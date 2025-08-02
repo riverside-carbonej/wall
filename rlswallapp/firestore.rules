@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isRiversideUser() {
+      return request.auth != null;
+      // No need to check email domain - Google Cloud OAuth already restricts to @riversideschools.net
+    }
+    
+    function isWallOwner(wallData) {
+      return request.auth.uid == wallData.permissions.owner;
+    }
+    
+    function isWallEditor(wallData) {
+      return request.auth.uid in wallData.permissions.editors;
+    }
+    
+    function hasDepartmentAccess(wallData) {
+      return wallData.permissions.allowDepartmentEdit && 
+             request.auth.token.department != null &&
+             request.auth.token.department == wallData.permissions.department;
+    }
+    
+    function canEditWall(wallData) {
+      return isWallOwner(wallData) || 
+             isWallEditor(wallData) || 
+             hasDepartmentAccess(wallData);
+    }
+    
+    function canViewWall(wallData) {
+      // Draft walls - only editors can view
+      if (!wallData.visibility.isPublished) {
+        return canEditWall(wallData);
+      }
+      
+      // Published public walls - anyone can view
+      if (!wallData.visibility.requiresLogin) {
+        return true;
+      }
+      
+      // Published login-required walls - authenticated users only
+      return isAuthenticated();
+    }
+    
+    // Walls collection
+    match /walls/{wallId} {
+      // Authenticated users can create walls
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == request.resource.data.permissions.owner;
+      
+      // Read walls based on visibility settings
+      allow read: if canViewWall(resource.data);
+      
+      // Update walls if user can edit
+      allow update: if isAuthenticated() && canEditWall(resource.data);
+      
+      // Delete walls if owner only
+      allow delete: if isAuthenticated() && isWallOwner(resource.data);
+    }
+    
+    // Wall items collection
+    match /wall_items/{itemId} {
+      // Helper to get the wall document
+      function getWall() {
+        return get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data;
+      }
+      
+      function getWallFromRequest() {
+        return get(/databases/$(database)/documents/walls/$(request.resource.data.wallId)).data;
+      }
+      
+      // Create items if user can edit the wall
+      allow create: if isAuthenticated() && 
+                       exists(/databases/$(database)/documents/walls/$(request.resource.data.wallId)) &&
+                       canEditWall(getWallFromRequest());
+      
+      // Read items if user can view the wall
+      allow read: if exists(/databases/$(database)/documents/walls/$(resource.data.wallId)) &&
+                     canViewWall(getWall());
+      
+      // Update items if user can edit the wall
+      allow update: if isAuthenticated() && 
+                       exists(/databases/$(database)/documents/walls/$(resource.data.wallId)) &&
+                       canEditWall(getWall());
+      
+      // Delete items if user can edit the wall
+      allow delete: if isAuthenticated() && 
+                       exists(/databases/$(database)/documents/walls/$(resource.data.wallId)) &&
+                       canEditWall(getWall());
+    }
+    
+    // User profiles collection
+    match /users/{userId} {
+      // Users can read/write their own profile
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Users can read other user profiles (for editor selection, etc.)
+      allow read: if isAuthenticated();
+    }
+  }
+}

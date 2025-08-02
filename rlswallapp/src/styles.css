@@ -1,0 +1,201 @@
+/* Google Fonts - Modern Typography */
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+/* Material Icons */
+@import 'material-icons/iconfont/material-icons.css';
+
+/* CSS Custom Properties for Material 3 Design System */
+:root {
+  /* Default to dark theme */
+  --md-sys-color-primary: #d4af37;
+  --md-sys-color-secondary: #9ca3af;
+  --md-sys-color-surface: #1f1f1f;
+  --md-sys-color-background: #121212;
+  --md-sys-color-on-surface: #e5e5e5;
+  --md-sys-color-on-background: #e5e5e5;
+  --md-sys-color-outline: #404040;
+  --md-sys-color-surface-variant: #2d2d2d;
+
+  /* Additional semantic colors */
+  --md-sys-color-surface-container: #242424;
+  --md-sys-color-surface-container-low: #1a1a1a;
+  --md-sys-color-surface-container-high: #2f2f2f;
+  --md-sys-color-on-surface-variant: #c7c7c7;
+  --md-sys-color-primary-container: #d4af3722;
+  --md-sys-color-on-primary-container: #d4af37;
+  --md-sys-color-on-primary: #000000;
+  --md-sys-color-outline-variant: #333333;
+  --md-sys-color-error: #f28b82;
+  --md-sys-color-error-container: #f2888222;
+  --md-sys-color-on-error-container: #f28b82;
+
+  /* Elevation shadows */
+  --md-sys-elevation-1: 0 1px 3px rgba(0,0,0,0.4);
+  --md-sys-elevation-2: 0 2px 6px rgba(0,0,0,0.4);
+  --md-sys-elevation-3: 0 4px 12px rgba(0,0,0,0.4);
+  --md-sys-elevation-4: 0 8px 24px rgba(0,0,0,0.4);
+
+  /* Shape tokens */
+  --md-sys-shape-corner-none: 0px;
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+}
+
+/* Light theme overrides */
+.light-theme {
+  --md-sys-color-primary: #d4af37;
+  --md-sys-color-secondary: #6b7280;
+  --md-sys-color-surface: #ffffff;
+  --md-sys-color-background: #fafafa;
+  --md-sys-color-on-surface: #202124;
+  --md-sys-color-on-background: #202124;
+  --md-sys-color-outline: #dadce0;
+  --md-sys-color-surface-variant: #f1f3f4;
+  --md-sys-color-surface-container: #e8eaed;
+  --md-sys-color-surface-container-low: #f1f3f4;
+  --md-sys-color-surface-container-high: #dadce0;
+  --md-sys-color-on-surface-variant: #5f6368;
+  --md-sys-color-primary-container: #d4af3715;
+  --md-sys-color-on-primary-container: #d4af37;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-outline-variant: #dadce0;
+  --md-sys-color-error: #d32f2f;
+  --md-sys-color-error-container: #d32f2f15;
+  --md-sys-color-on-error-container: #d32f2f;
+
+  --md-sys-elevation-1: 0 1px 3px rgba(0,0,0,0.12);
+  --md-sys-elevation-2: 0 2px 6px rgba(0,0,0,0.16);
+  --md-sys-elevation-3: 0 4px 12px rgba(0,0,0,0.15);
+  --md-sys-elevation-4: 0 8px 24px rgba(0,0,0,0.16);
+}
+
+/* Global Styles */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--md-sys-color-on-background);
+  background-color: var(--md-sys-color-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Google Sans', 'Roboto', sans-serif;
+  font-weight: 400;
+  margin: 0;
+  color: var(--md-sys-color-on-surface);
+}
+
+button {
+  font-family: 'Google Sans', 'Roboto', sans-serif;
+}
+
+input, textarea, select {
+  font-family: 'Google Sans', 'Roboto', sans-serif;
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  border: 1px solid var(--md-sys-color-outline);
+}
+
+/* Remove default Angular styles */
+router-outlet + * {
+  display: block;
+}
+
+/* Material 3 Component Utilities */
+.surface {
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+}
+
+.surface-variant {
+  background-color: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.surface-container {
+  background-color: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+}
+
+.primary {
+  background-color: var(--md-sys-color-primary);
+  color: white;
+}
+
+.primary-container {
+  background-color: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.elevation-1 { box-shadow: var(--md-sys-elevation-1); }
+.elevation-2 { box-shadow: var(--md-sys-elevation-2); }
+.elevation-3 { box-shadow: var(--md-sys-elevation-3); }
+.elevation-4 { box-shadow: var(--md-sys-elevation-4); }
+
+.rounded-small { border-radius: var(--md-sys-shape-corner-small); }
+.rounded-medium { border-radius: var(--md-sys-shape-corner-medium); }
+.rounded-large { border-radius: var(--md-sys-shape-corner-large); }
+.rounded-extra-large { border-radius: var(--md-sys-shape-corner-extra-large); }
+
+/* Material Icons Size Classes */
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  color: var(--md-sys-color-on-surface);
+  transition: color 0.3s ease;
+}
+
+.material-icons.md-18 { font-size: 18px; }
+.material-icons.md-20 { font-size: 20px; }
+.material-icons.md-24 { font-size: 24px; }
+.material-icons.md-36 { font-size: 36px; }
+.material-icons.md-48 { font-size: 48px; }
+
+/* Material Icons Outlined */
+.material-icons-outlined {
+  font-family: 'Material Icons Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  color: var(--md-sys-color-on-surface);
+  transition: color 0.3s ease;
+}
+
+.material-icons-outlined.md-18 { font-size: 18px; }
+.material-icons-outlined.md-20 { font-size: 20px; }
+.material-icons-outlined.md-24 { font-size: 24px; }
+.material-icons-outlined.md-36 { font-size: 36px; }
+.material-icons-outlined.md-48 { font-size: 48px; }

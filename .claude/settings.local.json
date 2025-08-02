@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(mv:*)",
+      "Bash(ng build)",
+      "Bash(npm uninstall:*)",
+      "WebFetch(domain:m3.material.io)",
+      "Bash(ng serve:*)",
+      "Bash(ng build:*)",
+      "Bash(taskkill:*)",
+      "Bash(claude mcp add:*)",
+      "Bash(claude mcp:*)",
+      "WebFetch(domain:mcp.context7.com)",
+      "Bash(copy:*)",
+      "Bash(cp:*)",
+      "WebFetch(domain:fonts.google.com)"
+    ],
+    "deny": []
+  }
+}
