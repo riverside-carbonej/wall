@@ -25,7 +25,8 @@
       "Bash(npm run build:*)",
       "Bash(curl:*)",
       "Bash(git config:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

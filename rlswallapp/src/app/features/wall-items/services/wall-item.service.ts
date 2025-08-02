@@ -1,34 +1,132 @@
-import { Injectable } from '@angular/core';
-import { Observable, map, switchMap, of, from } from 'rxjs';
-import { FirestoreService } from '../../../shared/services/appbase.service';
+import { Injectable, Injector, runInInjectionContext } from '@angular/core';
+import { Observable, map, switchMap, of, from, catchError } from 'rxjs';
+import { 
+  Firestore, 
+  collection, 
+  doc, 
+  getDocs, 
+  getDoc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  where,
+  orderBy,
+  serverTimestamp,
+  Timestamp
+} from '@angular/fire/firestore';
 import { WallItem } from '../../../shared/models/wall.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WallItemService {
-  private readonly collection = 'wall_items';
+  private readonly collectionName = 'wall_items';
 
-  constructor(private firestore: FirestoreService) {}
+  constructor(
+    private firestore: Firestore,
+    private injector: Injector
+  ) {}
 
   getWallItems(wallId: string): Observable<WallItem[]> {
-    return this.firestore.getWhere(this.collection, 'wallId', '==', wallId);
+    return runInInjectionContext(this.injector, () => {
+      const wallItemsCollection = collection(this.firestore, this.collectionName);
+      const q = query(
+        wallItemsCollection,
+        where('wallId', '==', wallId),
+        orderBy('createdAt', 'desc')
+      );
+      
+      return from(getDocs(q)).pipe(
+        map(snapshot => 
+          snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: this.timestampToDate(doc.data()['createdAt']),
+            updatedAt: this.timestampToDate(doc.data()['updatedAt'])
+          } as WallItem))
+        ),
+        catchError(error => {
+          console.error('Error getting wall items:', error);
+          return of([]);
+        })
+      );
+    });
   }
 
   getWallItemById(id: string): Observable<WallItem | null> {
-    return this.firestore.getById(this.collection, id);
+    return runInInjectionContext(this.injector, () => {
+      const docRef = doc(this.firestore, this.collectionName, id);
+      
+      return from(getDoc(docRef)).pipe(
+        map(docSnap => {
+          if (docSnap.exists()) {
+            return {
+              id: docSnap.id,
+              ...docSnap.data(),
+              createdAt: this.timestampToDate(docSnap.data()['createdAt']),
+              updatedAt: this.timestampToDate(docSnap.data()['updatedAt'])
+            } as WallItem;
+          }
+          return null;
+        }),
+        catchError(error => {
+          console.error('Error getting wall item:', error);
+          return of(null);
+        })
+      );
+    });
   }
 
   createWallItem(wallItem: Omit<WallItem, 'id'>): Observable<string> {
-    return this.firestore.create(this.collection, wallItem);
+    return runInInjectionContext(this.injector, () => {
+      const wallItemsCollection = collection(this.firestore, this.collectionName);
+      const cleanWallItem = this.cleanUndefinedValues(wallItem);
+      const wallItemData = {
+        ...cleanWallItem,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      return from(addDoc(wallItemsCollection, wallItemData)).pipe(
+        map(docRef => docRef.id),
+        catchError(error => {
+          console.error('Error creating wall item:', error);
+          throw error;
+        })
+      );
+    });
   }
 
   updateWallItem(id: string, wallItem: Partial<WallItem>): Observable<void> {
-    return this.firestore.update(this.collection, id, wallItem);
+    return runInInjectionContext(this.injector, () => {
+      const docRef = doc(this.firestore, this.collectionName, id);
+      const cleanUpdate = this.cleanUndefinedValues(wallItem);
+      const updateData = {
+        ...cleanUpdate,
+        updatedAt: serverTimestamp()
+      };
+      
+      return from(updateDoc(docRef, updateData)).pipe(
+        catchError(error => {
+          console.error('Error updating wall item:', error);
+          throw error;
+        })
+      );
+    });
   }
 
   deleteWallItem(id: string): Observable<void> {
-    return this.firestore.delete(this.collection, id);
+    return runInInjectionContext(this.injector, () => {
+      const docRef = doc(this.firestore, this.collectionName, id);
+      
+      return from(deleteDoc(docRef)).pipe(
+        catchError(error => {
+          console.error('Error deleting wall item:', error);
+          throw error;
+        })
+      );
+    });
   }
 
   deleteWallItems(wallId: string): Observable<void> {
@@ -50,7 +148,8 @@ export class WallItemService {
     return this.getWallItems(wallId).pipe(
       map(items => items.filter(item => {
         const searchLower = searchTerm.toLowerCase();
-        return Object.values(item.data).some(value => 
+        const itemData = item.fieldData || item.data || {};
+        return Object.values(itemData).some(value => 
           String(value).toLowerCase().includes(searchLower)
         );
       }))
@@ -67,7 +166,7 @@ export class WallItemService {
         return of(results);
       }
       
-      return this.firestore.create(this.collection, wallItems[currentIndex]).pipe(
+      return this.createWallItem(wallItems[currentIndex]).pipe(
         switchMap(id => {
           results.push(id);
           currentIndex++;
@@ -90,7 +189,7 @@ export class WallItemService {
       }
       
       const update = updates[currentIndex];
-      return this.firestore.update(this.collection, update.id, update.data).pipe(
+      return this.updateWallItem(update.id, update.data).pipe(
         switchMap(() => {
           currentIndex++;
           return updateNext();
@@ -111,7 +210,7 @@ export class WallItemService {
         return of(void 0);
       }
       
-      return this.firestore.delete(this.collection, itemIds[currentIndex]).pipe(
+      return this.deleteWallItem(itemIds[currentIndex]).pipe(
         switchMap(() => {
           currentIndex++;
           return deleteNext();
@@ -143,7 +242,8 @@ export class WallItemService {
     // Get all unique field keys from the data
     const fieldKeys = new Set<string>();
     items.forEach(item => {
-      Object.keys(item.data).forEach(key => fieldKeys.add(key));
+      const itemData = item.fieldData || item.data || {};
+      Object.keys(itemData).forEach(key => fieldKeys.add(key));
     });
 
     const headers = ['id', 'wallId', 'createdAt', 'updatedAt', ...Array.from(fieldKeys)];
@@ -156,7 +256,8 @@ export class WallItemService {
         item.createdAt.toString(),
         item.updatedAt.toString(),
         ...Array.from(fieldKeys).map(key => {
-          const value = item.data[key] || '';
+          const itemData = item.fieldData || item.data || {};
+          const value = itemData[key] || '';
           // Escape CSV values that contain commas or quotes
           return typeof value === 'string' && (value.includes(',') || value.includes('"')) 
             ? `"${value.replace(/"/g, '""')}"` 
@@ -167,5 +268,37 @@ export class WallItemService {
     });
 
     return csvRows.join('\n');
+  }
+
+  private timestampToDate(timestamp: any): Date {
+    if (timestamp && timestamp.toDate) {
+      return timestamp.toDate();
+    }
+    if (timestamp && timestamp.seconds) {
+      return new Date(timestamp.seconds * 1000);
+    }
+    return timestamp || new Date();
+  }
+
+  private cleanUndefinedValues(obj: any): any {
+    if (obj === null || obj === undefined) {
+      return null;
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.cleanUndefinedValues(item));
+    }
+    
+    if (typeof obj === 'object') {
+      const cleaned: any = {};
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key) && obj[key] !== undefined) {
+          cleaned[key] = this.cleanUndefinedValues(obj[key]);
+        }
+      }
+      return cleaned;
+    }
+    
+    return obj;
   }
 }

@@ -1,4 +1,5 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
+import { Router } from '@angular/router';
 import { Observable, from, map, catchError, of, BehaviorSubject } from 'rxjs';
 import { 
   Auth, 
@@ -25,11 +26,15 @@ export interface AppUser {
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<AppUser | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+  
+  private authStateReadySubject = new BehaviorSubject<boolean>(false);
+  public authStateReady$ = this.authStateReadySubject.asObservable();
 
-  constructor(private auth: Auth, private injector: Injector) {
+  constructor(private auth: Auth, private injector: Injector, private router: Router) {
     // Listen for auth state changes within injection context
     runInInjectionContext(this.injector, () => {
       onAuthStateChanged(this.auth, (user) => {
+        console.log('Auth state changed:', user?.email || 'No user');
         if (user) {
           const appUser: AppUser = {
             uid: user.uid,
@@ -37,11 +42,20 @@ export class AuthService {
             displayName: user.displayName,
             photoURL: user.photoURL
           };
+          console.log('Setting current user:', appUser.email);
           this.currentUserSubject.next(appUser);
         } else {
+          console.log('Setting current user to null');
           this.currentUserSubject.next(null);
         }
+        
+        // Mark auth state as ready after first callback
+        if (!this.authStateReadySubject.value) {
+          console.log('Auth state ready');
+          this.authStateReadySubject.next(true);
+        }
       });
+      
     });
   }
 
@@ -96,18 +110,23 @@ export class AuthService {
     });
   }
 
-  // Google Sign In
+  // Google Sign In with Popup
   signInWithGoogle(): Observable<AppUser> {
     return runInInjectionContext(this.injector, () => {
-      return from(signInWithPopup(this.auth, new GoogleAuthProvider())).pipe(
-        map(credential => ({
-          uid: credential.user.uid,
-          email: credential.user.email,
-          displayName: credential.user.displayName,
-          photoURL: credential.user.photoURL
-        } as AppUser)),
+      console.log('Initiating Google sign-in popup...');
+      const provider = new GoogleAuthProvider();
+      return from(signInWithPopup(this.auth, provider)).pipe(
+        map(credential => {
+          console.log('Popup sign-in successful:', credential.user.email);
+          return {
+            uid: credential.user.uid,
+            email: credential.user.email,
+            displayName: credential.user.displayName,
+            photoURL: credential.user.photoURL
+          } as AppUser;
+        }),
         catchError(error => {
-          console.error('Google sign in error:', error);
+          console.error('Google sign in popup error:', error);
           throw error;
         })
       );

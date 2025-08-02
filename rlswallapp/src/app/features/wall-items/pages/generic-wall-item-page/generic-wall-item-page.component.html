@@ -1,0 +1,222 @@
+@if (!isLoading) {
+<div class="generic-wall-item-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">{{ title }}</h1>
+      
+      <div class="header-actions" *ngIf="canEdit()">
+        <!-- Edit/Save Button -->
+        <button 
+          *ngIf="!editing && !isNewItem"
+          mat-raised-button 
+          color="primary"
+          (click)="onToggleEditMode()"
+          class="action-button">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+        
+        <button 
+          *ngIf="editing"
+          mat-raised-button 
+          color="primary"
+          (click)="onSaveItem()"
+          [disabled]="isSaving || itemForm.invalid"
+          class="action-button">
+          <mat-icon>{{ isSaving ? 'hourglass_empty' : 'save' }}</mat-icon>
+          {{ isNewItem ? 'Add Item' : 'Save Changes' }}
+        </button>
+        
+        <!-- Delete Button -->
+        <app-delete-button 
+          *ngIf="canDelete() && !editing"
+          [deleteItem]="onDeleteItem"
+          [name]="'item'">
+        </app-delete-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Layout -->
+  <div class="content-layout">
+    <!-- Image Section -->
+    <div class="image-section">
+      <!-- Image Gallery -->
+      <div class="image-gallery-container">
+        <app-item-image-gallery
+          [images]="wallItem.images || []"
+          [showControls]="editing"
+          [maxImages]="10"
+          (imageAdded)="onImageAdded(wallItem)"
+          (imageEdited)="onImageEdited($event, wallItem)"
+          (imageDeleted)="onImageDeleted($event, wallItem)"
+          (primaryImageChanged)="onPrimaryImageChanged($event, wallItem)">
+        </app-item-image-gallery>
+      </div>
+      
+      <!-- Image Upload -->
+      <div class="image-upload" *ngIf="editing">
+        <input 
+          #imageInput
+          type="file" 
+          multiple 
+          accept="image/*"
+          (change)="onImageSelected($event)"
+          style="display: none;">
+        
+        <button 
+          mat-outlined-button 
+          (click)="imageInput.click()"
+          class="upload-button">
+          <mat-icon>add_photo_alternate</mat-icon>
+          Add Images
+        </button>
+      </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="form-section">
+      <form [formGroup]="itemForm" *ngIf="objectType" class="item-form">
+        
+        <!-- Field Groups using Accordion -->
+        <mat-accordion multi="false">
+          
+          <!-- Basic Information Panel -->
+          <mat-expansion-panel 
+            [expanded]="currentPanelIndex === 0"
+            (opened)="currentPanelIndex = 0"
+            (closed)="currentPanelIndex = -1">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>info</mat-icon>
+                Basic Information
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            
+            <div class="field-grid">
+              <app-dynamic-field-renderer
+                *ngFor="let field of getBasicFields(); track field.id"
+                [field]="field"
+                [formControl]="getFormControl(field.id)"
+                [readonly]="!editing"
+                [value]="wallItem.fieldData[field.id]">
+              </app-dynamic-field-renderer>
+            </div>
+          </mat-expansion-panel>
+
+          <!-- Location Panel (if has location field) -->
+          <mat-expansion-panel 
+            *ngIf="getLocationFields().length > 0"
+            [expanded]="currentPanelIndex === 1"
+            (opened)="currentPanelIndex = 1"
+            (closed)="currentPanelIndex = -1">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>place</mat-icon>
+                Location
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            
+            <div class="location-section">
+              <div class="field-grid">
+                <app-dynamic-field-renderer
+                  *ngFor="let field of getLocationFields(); track field.id"
+                  [field]="field"
+                  [formControl]="getFormControl(field.id)"
+                  [readonly]="!editing"
+                  [value]="wallItem.fieldData[field.id]">
+                </app-dynamic-field-renderer>
+              </div>
+            </div>
+          </mat-expansion-panel>
+
+          <!-- Custom Fields Panel -->
+          <mat-expansion-panel 
+            *ngIf="getCustomFields().length > 0"
+            [expanded]="currentPanelIndex === 2"
+            (opened)="currentPanelIndex = 2"
+            (closed)="currentPanelIndex = -1">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>tune</mat-icon>
+                Additional Information
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            
+            <div class="field-grid">
+              <app-dynamic-field-renderer
+                *ngFor="let field of getCustomFields(); track field.id"
+                [field]="field"
+                [formControl]="getFormControl(field.id)"
+                [readonly]="!editing"
+                [value]="wallItem.fieldData[field.id]">
+              </app-dynamic-field-renderer>
+            </div>
+          </mat-expansion-panel>
+
+          <!-- Relationships Panel (Future Enhancement) -->
+          <mat-expansion-panel 
+            *ngIf="false"
+            [expanded]="currentPanelIndex === 3"
+            (opened)="currentPanelIndex = 3"
+            (closed)="currentPanelIndex = -1">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>link</mat-icon>
+                Relationships
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            
+            <div class="relationships-section">
+              <!-- TODO: Implement relationship management -->
+              <p>Relationship management coming soon...</p>
+            </div>
+          </mat-expansion-panel>
+
+        </mat-accordion>
+      </form>
+    </div>
+  </div>
+
+  <!-- Metadata Section (View Mode Only) -->
+  <div class="metadata-section" *ngIf="!editing && !isNewItem">
+    <mat-card class="metadata-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>info_outline</mat-icon>
+          Item Information
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="metadata-grid">
+          <div class="metadata-item">
+            <strong>Object Type:</strong>
+            <span>{{ objectType?.name }}</span>
+          </div>
+          <div class="metadata-item">
+            <strong>Created:</strong>
+            <span>{{ wallItem.createdAt | date:'medium' }}</span>
+          </div>
+          <div class="metadata-item">
+            <strong>Updated:</strong>
+            <span>{{ wallItem.updatedAt | date:'medium' }}</span>
+          </div>
+          <div class="metadata-item" *ngIf="wallItem.tags && wallItem.tags.length > 0">
+            <strong>Tags:</strong>
+            <span>{{ wallItem.tags.join(', ') }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+}
+
+<!-- Loading State -->
+@if (isLoading) {
+<div class="loading-container">
+  <mat-spinner diameter="60"></mat-spinner>
+  <p>Loading item...</p>
+</div>
+}

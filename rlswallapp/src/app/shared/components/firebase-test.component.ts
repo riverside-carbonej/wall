@@ -37,7 +37,7 @@ import { WallPermissionsService } from '../../core/services/wall-permissions.ser
         <div class="wall-list">
           <div *ngFor="let wall of walls" class="wall-item">
             <strong>{{ wall.name }}</strong>
-            <span class="wall-info">{{ wall.fields.length }} fields</span>
+            <span class="wall-info">{{ wall.fields?.length || 0 }} fields</span>
             <span class="wall-date">{{ wall.createdAt | date:'short' }}</span>
             <button (click)="deleteWall(wall.id)" class="delete-btn">Delete</button>
           </div>
@@ -220,6 +220,28 @@ export class FirebaseTestComponent implements OnInit {
     const testWall: Omit<Wall, 'id'> = {
       name: `Test Wall ${new Date().toLocaleTimeString()}`,
       description: 'This is a test wall created by Firebase test component',
+      
+      // Enhanced object system
+      objectTypes: [],
+      
+      // Theme and settings
+      theme: DEFAULT_THEMES[0],
+      permissions,
+      visibility,
+      settings: {
+        allowComments: false,
+        allowRatings: false,
+        enableNotifications: true,
+        autoSave: true,
+        moderationRequired: false
+      },
+      
+      // Metadata
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastActivityAt: new Date(),
+      
+      // Legacy fields for backward compatibility
       fields: [
         {
           id: 'test-field-1',
@@ -229,13 +251,6 @@ export class FirebaseTestComponent implements OnInit {
           placeholder: 'Enter test data'
         }
       ],
-      theme: DEFAULT_THEMES[0],
-      permissions,
-      visibility,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      
-      // Legacy fields for backward compatibility
       isPublic: false,
       ownerId: 'firebase-test',
       sharedWith: []

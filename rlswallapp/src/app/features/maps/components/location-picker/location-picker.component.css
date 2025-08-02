@@ -1,0 +1,301 @@
+.location-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 100%;
+}
+
+/* Search Section */
+.search-section {
+  position: relative;
+}
+
+.search-section .mat-mdc-form-field {
+  width: 100%;
+}
+
+.search-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.search-result {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+}
+
+.search-result:hover {
+  background-color: #f5f5f5;
+}
+
+.search-result:last-child {
+  border-bottom: none;
+}
+
+.result-icon {
+  color: #666;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.result-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-coords {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-buttons button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+}
+
+/* Map Container */
+.map-container {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.map {
+  width: 100%;
+  min-height: 300px;
+  background: #f0f0f0;
+}
+
+.map-instructions {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.map-instructions mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Coordinate Inputs */
+.coordinate-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.coordinate-row {
+  display: flex;
+  gap: 16px;
+}
+
+.coordinate-field {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .coordinate-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .action-buttons button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Selected Location Display */
+.selected-location {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  gap: 12px;
+}
+
+.location-icon {
+  color: #4285f4;
+  flex-shrink: 0;
+}
+
+.location-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.location-coordinates {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.location-address {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Utilities */
+.full-width {
+  width: 100%;
+}
+
+/* Material Design Enhancements */
+.mat-mdc-form-field.mat-focused .mat-mdc-form-field-focus-overlay {
+  opacity: 0.05;
+}
+
+.mat-mdc-form-field-outline-thick {
+  color: #4285f4;
+}
+
+/* Loading States */
+.action-buttons button[disabled] {
+  opacity: 0.6;
+}
+
+/* Custom Map Popup Styles (Global) */
+:host ::ng-deep .map-popup {
+  font-family: 'Roboto', sans-serif;
+}
+
+:host ::ng-deep .map-popup h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+:host ::ng-deep .map-popup p {
+  margin: 0 0 4px 0;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+:host ::ng-deep .map-popup .address {
+  font-style: italic;
+}
+
+/* Leaflet Marker Customization */
+:host ::ng-deep .custom-marker-container {
+  background: transparent !important;
+  border: none !important;
+}
+
+:host ::ng-deep .custom-marker .material-icons {
+  color: white;
+  font-size: 18px;
+  transform: rotate(45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Accessibility */
+.search-result:focus {
+  outline: 2px solid #4285f4;
+  outline-offset: -2px;
+}
+
+button:focus {
+  outline: 2px solid #4285f4;
+  outline-offset: 2px;
+}
+
+/* Animation */
+.search-results {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.selected-location {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

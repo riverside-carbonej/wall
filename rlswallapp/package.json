@@ -20,6 +20,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/animations": "^20.1.4",
     "@angular/cdk": "^20.1.4",
     "@angular/common": "^20.1.0",
     "@angular/compiler": "^20.1.0",
@@ -29,7 +30,9 @@
     "@angular/material": "^20.1.4",
     "@angular/platform-browser": "^20.1.0",
     "@angular/router": "^20.1.0",
+    "@types/leaflet": "^1.9.20",
     "firebase": "^11.10.0",
+    "leaflet": "^1.9.4",
     "material-icons": "^1.13.14",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

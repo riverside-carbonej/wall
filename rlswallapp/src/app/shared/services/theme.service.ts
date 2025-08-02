@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { WallTheme } from '../models/wall.model';
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
 
@@ -13,6 +14,9 @@ export interface AppTheme {
   onBackground: string;
   outline: string;
   surfaceVariant: string;
+  // Wall-specific theme enhancement
+  isWallTheme?: boolean;
+  wallTheme?: WallTheme;
 }
 
 @Injectable({
@@ -137,6 +141,90 @@ export class ThemeService {
     document.body.classList.add(`${theme.mode === 'dark' ? 'dark' : 'light'}-theme`);
   }
 
+  // Apply wall-specific theme
+  applyWallTheme(wallTheme: WallTheme): void {
+    const currentMode = this.currentTheme$.value.mode;
+    const isDark = currentMode === 'dark';
+    
+    const adaptedTheme: AppTheme = {
+      mode: currentMode,
+      primary: wallTheme.primaryColor,
+      secondary: wallTheme.secondaryColor,
+      surface: this.adjustColorForMode(wallTheme.surfaceColor, isDark),
+      background: this.adjustColorForMode(wallTheme.backgroundColor, isDark),
+      onSurface: wallTheme.bodyTextColor,
+      onBackground: wallTheme.bodyTextColor,
+      outline: this.generateOutlineColor(wallTheme.primaryColor, isDark),
+      surfaceVariant: this.generateSurfaceVariant(wallTheme.surfaceColor, isDark),
+      isWallTheme: true,
+      wallTheme
+    };
+    
+    this.currentTheme$.next(adaptedTheme);
+    this.applyThemeToDocument(adaptedTheme);
+    this.applyWallSpecificCSS(wallTheme);
+  }
+  
+  // Clear wall theme and return to app default
+  clearWallTheme(): void {
+    const savedMode = localStorage.getItem(this.THEME_KEY) as ThemeMode || 'dark';
+    this.setThemeMode(savedMode);
+    this.removeWallSpecificCSS();
+  }
+  
+  private adjustColorForMode(color: string, isDark: boolean): string {
+    // For dark mode, darken the colors; for light mode, use as-is or lighten
+    if (isDark) {
+      return this.darkenColor(color, 0.3);
+    }
+    return color;
+  }
+  
+  private generateOutlineColor(primaryColor: string, isDark: boolean): string {
+    // Generate a subtle outline color based on primary
+    const opacity = isDark ? 0.2 : 0.12;
+    return this.hexToRgba(primaryColor, opacity);
+  }
+  
+  private generateSurfaceVariant(surfaceColor: string, isDark: boolean): string {
+    // Generate surface variant by slightly modifying the surface color
+    return isDark ? this.lightenColor(surfaceColor, 0.1) : this.darkenColor(surfaceColor, 0.05);
+  }
+  
+  private applyWallSpecificCSS(wallTheme: WallTheme): void {
+    const root = document.documentElement;
+    
+    // Apply wall-specific CSS variables
+    root.style.setProperty('--wall-primary', wallTheme.primaryColor);
+    root.style.setProperty('--wall-secondary', wallTheme.secondaryColor);
+    root.style.setProperty('--wall-surface', wallTheme.surfaceColor);
+    root.style.setProperty('--wall-card', wallTheme.cardColor);
+    
+    // Apply tinted variations for UI elements
+    const primaryTint = this.hexToRgba(wallTheme.primaryColor, 0.1);
+    const primaryTintStrong = this.hexToRgba(wallTheme.primaryColor, 0.15);
+    
+    root.style.setProperty('--md-sys-color-primary-container', primaryTint);
+    root.style.setProperty('--md-sys-color-surface-container-low', primaryTint);
+    root.style.setProperty('--md-sys-color-surface-container', primaryTintStrong);
+    
+    // Add wall theme class
+    document.body.classList.add('wall-themed');
+  }
+  
+  private removeWallSpecificCSS(): void {
+    const root = document.documentElement;
+    
+    // Remove wall-specific CSS variables
+    root.style.removeProperty('--wall-primary');
+    root.style.removeProperty('--wall-secondary');
+    root.style.removeProperty('--wall-surface');
+    root.style.removeProperty('--wall-card');
+    
+    // Remove wall theme class
+    document.body.classList.remove('wall-themed');
+  }
+  
   // Helper method to generate Material 3 tints for wall themes
   generateMaterial3Tints(baseColor: string, isDark: boolean = false): {
     primary: string;
@@ -157,6 +245,60 @@ export class ThemeService {
       onPrimaryContainer: isDark ? '#ffffff' : '#000000',
       surface: isDark ? '#1f1f1f' : '#ffffff',
       onSurface: isDark ? '#e5e5e5' : '#202124'
+    };
+  }
+  
+  // Color utility methods
+  private hexToRgba(hex: string, alpha: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  
+  private darkenColor(hex: string, factor: number): string {
+    const r = Math.round(parseInt(hex.slice(1, 3), 16) * (1 - factor));
+    const g = Math.round(parseInt(hex.slice(3, 5), 16) * (1 - factor));
+    const b = Math.round(parseInt(hex.slice(5, 7), 16) * (1 - factor));
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  }
+  
+  private lightenColor(hex: string, factor: number): string {
+    const r = Math.round(parseInt(hex.slice(1, 3), 16) + (255 - parseInt(hex.slice(1, 3), 16)) * factor);
+    const g = Math.round(parseInt(hex.slice(3, 5), 16) + (255 - parseInt(hex.slice(3, 5), 16)) * factor);
+    const b = Math.round(parseInt(hex.slice(5, 7), 16) + (255 - parseInt(hex.slice(5, 7), 16)) * factor);
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  }
+  
+  // Generate a default wall theme if none exists
+  generateDefaultWallTheme(primaryColor: string = '#d4af37'): WallTheme {
+    return {
+      id: 'default',
+      name: 'Default',
+      description: 'Default wall theme',
+      primaryColor,
+      secondaryColor: '#6b7280',
+      tertiaryColor: '#059669',
+      backgroundColor: '#fafafa',
+      surfaceColor: '#ffffff',
+      cardColor: '#ffffff',
+      titleColor: '#202124',
+      bodyTextColor: '#374151',
+      secondaryTextColor: '#6b7280',
+      captionTextColor: '#9ca3af',
+      errorColor: '#ef4444',
+      warningColor: '#f59e0b',
+      successColor: '#10b981',
+      cardStyle: 'elevated',
+      layout: 'grid',
+      spacing: 'comfortable',
+      cornerRadius: 'medium',
+      elevation: 'medium',
+      font: 'system',
+      textScale: 1,
+      contrast: 'normal',
+      animations: true,
+      customCss: ''
     };
   }
 }

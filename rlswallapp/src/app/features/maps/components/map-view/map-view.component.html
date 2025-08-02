@@ -1,0 +1,119 @@
+<div class="map-view">
+  <!-- Map Controls -->
+  <div class="map-controls" *ngIf="showControls">
+    <div class="controls-row">
+      <!-- Tile Provider Selector -->
+      <mat-form-field appearance="outline" class="control-field">
+        <mat-label>Map Type</mat-label>
+        <mat-select 
+          [value]="settings.tileProvider"
+          (selectionChange)="onTileProviderChange($event.value)">
+          <mat-option value="openstreetmap">
+            <mat-icon>map</mat-icon>
+            Street Map
+          </mat-option>
+          <mat-option value="satellite">
+            <mat-icon>satellite_alt</mat-icon>
+            Satellite
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <!-- Object Type Filter -->
+      <mat-form-field appearance="outline" class="control-field">
+        <mat-label>Filter by Type</mat-label>
+        <mat-select 
+          [value]="settings.showAllItems ? 'all' : settings.filterByObjectType"
+          (selectionChange)="onFilterChange($event.value)">
+          <mat-option value="all">
+            <mat-icon>visibility</mat-icon>
+            All Items ({{ getVisibleItemsCount() }})
+          </mat-option>
+          <mat-option 
+            *ngFor="let objectType of objectTypes" 
+            [value]="objectType.id">
+            <mat-icon [style.color]="objectType.color">{{ objectType.icon || 'circle' }}</mat-icon>
+            {{ objectType.name }} ({{ getItemCountForObjectType(objectType.id) }})
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button 
+        mat-outlined-button
+        (click)="fitToAllMarkers()"
+        [disabled]="getItemsWithCoordinatesCount() === 0"
+        matTooltip="Zoom to fit all items">
+        <mat-icon>zoom_out_map</mat-icon>
+        Fit All
+      </button>
+      
+      <button 
+        mat-outlined-button
+        (click)="refreshMap()"
+        matTooltip="Refresh map">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </div>
+  
+  <!-- Map Container -->
+  <div class="map-container">
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" *ngIf="isLoading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>Loading map...</span>
+    </div>
+    
+    <!-- Map -->
+    <div 
+      #mapContainer 
+      id="map-view-map"
+      [style.height]="height"
+      class="map">
+    </div>
+    
+    <!-- No Items Message -->
+    <div class="no-items-message" *ngIf="!isLoading && getItemsWithCoordinatesCount() === 0">
+      <mat-icon>location_off</mat-icon>
+      <h3>No items with locations found</h3>
+      <p *ngIf="getVisibleItemsCount() === 0">
+        No items match the current filter criteria.
+      </p>
+      <p *ngIf="getVisibleItemsCount() > 0">
+        {{ getVisibleItemsCount() }} items found, but none have coordinate data.
+        Add locations to your items to see them on the map.
+      </p>
+    </div>
+    
+    <!-- Map Stats -->
+    <div class="map-stats" *ngIf="!isLoading && getItemsWithCoordinatesCount() > 0">
+      <div class="stats-chip">
+        <mat-icon>place</mat-icon>
+        <span>{{ getItemsWithCoordinatesCount() }} items on map</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Legend (if multiple object types visible) -->
+  <div class="map-legend" *ngIf="objectTypes.length > 1 && !isLoading">
+    <h4>Legend</h4>
+    <div class="legend-items">
+      <div 
+        class="legend-item" 
+        *ngFor="let objectType of objectTypes"
+        [class.active]="settings.showAllItems || settings.filterByObjectType === objectType.id">
+        <div class="legend-marker" [style.background-color]="objectType.color">
+          <mat-icon>{{ objectType.icon || 'circle' }}</mat-icon>
+        </div>
+        <span class="legend-label">{{ objectType.name }}</span>
+        <span class="legend-count">
+          ({{ getItemCountForObjectType(objectType.id) }})
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

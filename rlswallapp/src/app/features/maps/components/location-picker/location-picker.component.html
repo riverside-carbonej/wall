@@ -1,0 +1,123 @@
+<div class="location-picker">
+  <!-- Address Search Section -->
+  <div class="search-section" *ngIf="showAddressSearch">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Search for location</mat-label>
+      <input 
+        matInput 
+        [formControl]="addressControl"
+        placeholder="Enter address, city, or landmark"
+        autocomplete="off">
+      <mat-icon matSuffix>search</mat-icon>
+      <mat-progress-bar 
+        *ngIf="isSearching" 
+        mode="indeterminate" 
+        class="search-progress">
+      </mat-progress-bar>
+    </mat-form-field>
+    
+    <!-- Search Results -->
+    <div class="search-results" *ngIf="searchResults.length > 0">
+      <div 
+        class="search-result" 
+        *ngFor="let result of searchResults"
+        (click)="selectSearchResult(result)">
+        <mat-icon class="result-icon">place</mat-icon>
+        <div class="result-content">
+          <div class="result-name">{{ result.displayName }}</div>
+          <div class="result-coords">
+            {{ result.coordinates.lat.toFixed(4) }}, {{ result.coordinates.lng.toFixed(4) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button 
+      mat-raised-button 
+      color="primary"
+      *ngIf="showCurrentLocationButton"
+      (click)="getCurrentLocation()"
+      [disabled]="isGettingLocation">
+      <mat-icon>my_location</mat-icon>
+      <span *ngIf="!isGettingLocation">Use Current Location</span>
+      <span *ngIf="isGettingLocation">Getting Location...</span>
+    </button>
+    
+    <button 
+      mat-outlined-button
+      *ngIf="hasLocation"
+      (click)="clearLocation()">
+      <mat-icon>clear</mat-icon>
+      Clear Location
+    </button>
+  </div>
+  
+  <!-- Map Container -->
+  <div class="map-container">
+    <div 
+      #mapContainer 
+      id="location-picker-map"
+      [style.height]="height"
+      class="map">
+    </div>
+    
+    <!-- Map Instructions Overlay -->
+    <div class="map-instructions" *ngIf="allowMapClick && !hasLocation">
+      <mat-icon>touch_app</mat-icon>
+      <span>Click on the map to select a location</span>
+    </div>
+  </div>
+  
+  <!-- Coordinate Inputs -->
+  <div class="coordinate-inputs" *ngIf="showCoordinateInputs">
+    <div class="coordinate-row">
+      <mat-form-field appearance="outline" class="coordinate-field">
+        <mat-label>Latitude</mat-label>
+        <input 
+          matInput 
+          type="number"
+          step="any"
+          [formControl]="latitudeControl"
+          placeholder="e.g., 40.7128">
+        <mat-error *ngIf="latitudeControl.hasError('min')">
+          Latitude must be between -90 and 90
+        </mat-error>
+        <mat-error *ngIf="latitudeControl.hasError('max')">
+          Latitude must be between -90 and 90
+        </mat-error>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="coordinate-field">
+        <mat-label>Longitude</mat-label>
+        <input 
+          matInput 
+          type="number"
+          step="any"
+          [formControl]="longitudeControl"
+          placeholder="e.g., -74.0060">
+        <mat-error *ngIf="longitudeControl.hasError('min')">
+          Longitude must be between -180 and 180
+        </mat-error>
+        <mat-error *ngIf="longitudeControl.hasError('max')">
+          Longitude must be between -180 and 180
+        </mat-error>
+      </mat-form-field>
+    </div>
+    
+    <!-- Selected Location Display -->
+    <div class="selected-location" *ngIf="hasLocation">
+      <mat-icon class="location-icon">place</mat-icon>
+      <div class="location-details">
+        <div class="location-coordinates">
+          {{ currentCoordinates!.lat.toFixed(6) }}, {{ currentCoordinates!.lng.toFixed(6) }}
+        </div>
+        <div class="location-address" *ngIf="currentCoordinates && currentCoordinates.address">
+          {{ currentCoordinates.address }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

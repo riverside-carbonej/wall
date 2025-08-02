@@ -1,0 +1,327 @@
+.object-type-builder {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  
+  .builder-header {
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    
+    mat-card-header {
+      padding: 24px;
+    }
+    
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 24px;
+      margin: 0;
+    }
+    
+    mat-card-subtitle {
+      color: rgba(255, 255, 255, 0.8);
+      margin-top: 8px;
+    }
+  }
+  
+  .builder-form {
+    .section-card {
+      margin-bottom: 24px;
+      
+      mat-card-header {
+        mat-card-title {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 18px;
+        }
+        
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-left: auto;
+        }
+      }
+      
+      mat-card-content {
+        padding: 24px;
+      }
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+    
+    .full-width {
+      flex: 1;
+    }
+    
+    .half-width {
+      flex: 0 0 calc(50% - 8px);
+    }
+    
+    .third-width {
+      flex: 0 0 calc(33.333% - 11px);
+    }
+    
+    .field-options {
+      display: flex;
+      align-items: center;
+      padding: 16px 0;
+    }
+    
+    .color-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      
+      .color-swatch {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 2px solid #e5e7eb;
+      }
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: #6b7280;
+      
+      .empty-icon {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+        color: #d1d5db;
+        margin-bottom: 16px;
+      }
+      
+      h3 {
+        margin: 0 0 8px 0;
+        color: #374151;
+      }
+      
+      p {
+        margin: 0 0 24px 0;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+    
+    .fields-list {
+      .field-item {
+        display: flex;
+        margin-bottom: 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
+        
+        &.cdk-drag-preview {
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+          border: 1px solid #6366f1;
+        }
+        
+        &.cdk-drag-placeholder {
+          opacity: 0.5;
+          border: 2px dashed #d1d5db;
+          background: #f9fafb;
+        }
+        
+        .field-drag-handle {
+          display: flex;
+          align-items: center;
+          padding: 12px;
+          background: #f9fafb;
+          border-right: 1px solid #e5e7eb;
+          cursor: grab;
+          
+          &:active {
+            cursor: grabbing;
+          }
+          
+          mat-icon {
+            color: #9ca3af;
+          }
+        }
+        
+        mat-expansion-panel {
+          flex: 1;
+          border: none;
+          box-shadow: none;
+          
+          mat-expansion-panel-header {
+            padding: 16px 24px;
+            
+            mat-panel-title {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              
+              .field-type-icon {
+                color: #6366f1;
+              }
+            }
+            
+            mat-panel-description {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              
+              .required-chip {
+                background: #fef3c7;
+                color: #92400e;
+                font-size: 11px;
+                height: 20px;
+                line-height: 20px;
+              }
+            }
+          }
+          
+          .field-editor {
+            padding: 0 24px 24px 24px;
+            
+            .type-specific-config {
+              margin-top: 24px;
+              padding: 16px;
+              background: #f9fafb;
+              border-radius: 8px;
+              border: 1px solid #e5e7eb;
+              
+              h4 {
+                margin: 0 0 16px 0;
+                color: #374151;
+                font-size: 14px;
+                font-weight: 600;
+              }
+            }
+            
+            .field-actions {
+              display: flex;
+              gap: 8px;
+              margin-top: 16px;
+              padding-top: 16px;
+              border-top: 1px solid #e5e7eb;
+            }
+          }
+        }
+      }
+    }
+    
+    .builder-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      padding: 24px 0;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 32px;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .object-type-builder {
+    padding: 16px;
+    
+    .builder-form {
+      .form-row {
+        flex-direction: column;
+        gap: 0;
+        
+        .half-width,
+        .third-width {
+          flex: 1;
+        }
+      }
+      
+      .section-card {
+        mat-card-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 16px;
+          
+          .header-actions {
+            margin-left: 0;
+          }
+        }
+      }
+      
+      .fields-list {
+        .field-item {
+          .field-drag-handle {
+            display: none;
+          }
+        }
+      }
+      
+      .builder-actions {
+        flex-direction: column;
+        
+        button {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .object-type-builder {
+    .section-card {
+      background: #1f2937;
+      color: #f9fafb;
+    }
+    
+    .fields-list {
+      .field-item {
+        background: #1f2937;
+        border-color: #374151;
+        
+        .field-drag-handle {
+          background: #111827;
+          border-color: #374151;
+        }
+        
+        mat-expansion-panel {
+          background: #1f2937;
+          color: #f9fafb;
+        }
+        
+        .type-specific-config {
+          background: #111827;
+          border-color: #374151;
+        }
+      }
+    }
+    
+    .empty-state {
+      color: #9ca3af;
+      
+      h3 {
+        color: #f9fafb;
+      }
+    }
+  }
+}
+
+// Animation overrides for drag and drop
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.fields-list.cdk-drop-list-dragging .field-item:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

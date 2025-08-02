@@ -1,0 +1,355 @@
+<div class="dynamic-field-renderer">
+  <!-- Read-only Display Mode -->
+  @if (readonly) {
+    <div class="readonly-field">
+      <div class="field-label">
+        @if (getFieldIcon()) {
+          <mat-icon class="field-icon">{{ getFieldIcon() }}</mat-icon>
+        }
+        {{ field.name }}
+        @if (field.required) {
+          <span class="required-indicator">*</span>
+        }
+      </div>
+      
+      <div class="field-value" [class.empty]="!value">
+        {{ getDisplayValue() || 'No value' }}
+      </div>
+      
+      <!-- Special display for color fields -->
+      @if (isColor() && value) {
+        <div class="color-preview">
+          <div class="color-swatch" [style.background-color]="value"></div>
+        </div>
+      }
+      
+      <!-- Special display for file fields -->
+      @if (isFile() && value) {
+        <div class="file-info">
+          <mat-icon>attachment</mat-icon>
+          <span>{{ getFileDisplayName() }}</span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Edit Mode - Form Fields -->
+  @if (!readonly) {
+    <div class="edit-field">
+      
+      <!-- Text Input Fields (text, email, url) -->
+      @if (isTextInput()) {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </mat-label>
+          <input 
+            matInput 
+            [type]="getInputType()"
+            [formControl]="formControl"
+            [placeholder]="field.placeholder || ''"
+            [required]="field.required">
+          @if (getFieldIcon()) {
+            <mat-icon matSuffix>{{ getFieldIcon() }}</mat-icon>
+          }
+          @if (formControl.invalid && formControl.touched) {
+            <mat-error>
+              {{ getErrorMessage() }}
+            </mat-error>
+          }
+        </mat-form-field>
+      }
+
+      <!-- Textarea Fields (longtext, richtext) -->
+      @if (isTextarea()) {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </mat-label>
+          <textarea 
+            matInput 
+            [formControl]="formControl"
+            [placeholder]="field.placeholder || ''"
+            [required]="field.required"
+            rows="4"
+            cdkTextareaAutosize
+            cdkAutosizeMinRows="2"
+            cdkAutosizeMaxRows="8">
+          </textarea>
+          @if (getFieldIcon()) {
+            <mat-icon matSuffix>{{ getFieldIcon() }}</mat-icon>
+          }
+          @if (formControl.invalid && formControl.touched) {
+            <mat-error>
+              {{ getErrorMessage() }}
+            </mat-error>
+          }
+        </mat-form-field>
+      }
+
+      <!-- Number Input -->
+      @if (isNumber()) {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </mat-label>
+          <input 
+            matInput 
+            type="number"
+            [formControl]="formControl"
+            [placeholder]="field.placeholder || ''"
+            [required]="field.required">
+          @if (getFieldIcon()) {
+            <mat-icon matSuffix>{{ getFieldIcon() }}</mat-icon>
+          }
+          @if (formControl.invalid && formControl.touched) {
+            <mat-error>
+              {{ getErrorMessage() }}
+            </mat-error>
+          }
+        </mat-form-field>
+      }
+
+      <!-- Date Input -->
+      @if (isDate()) {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </mat-label>
+          <input 
+            matInput 
+            [matDatepicker]="datePicker"
+            [formControl]="formControl"
+            [required]="field.required"
+            readonly>
+          <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+          <mat-datepicker #datePicker></mat-datepicker>
+          @if (formControl.invalid && formControl.touched) {
+            <mat-error>
+              {{ getErrorMessage() }}
+            </mat-error>
+          }
+        </mat-form-field>
+      }
+
+      <!-- Boolean/Checkbox -->
+      @if (isBoolean()) {
+        <div class="checkbox-field">
+          <mat-checkbox [formControl]="formControl">
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </mat-checkbox>
+          @if (formControl.invalid && formControl.touched) {
+            <div class="field-error">
+              {{ getErrorMessage() }}
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Color Input -->
+      @if (isColor()) {
+        <div class="color-field">
+          <mat-form-field appearance="outline" class="color-input">
+            <mat-label>
+              {{ field.name }}
+              @if (field.required) {
+                <span class="required-indicator">*</span>
+              }
+            </mat-label>
+            <input 
+              matInput 
+              type="color"
+              [formControl]="formControl"
+              [required]="field.required">
+            @if (formControl.invalid && formControl.touched) {
+              <mat-error>
+                {{ getErrorMessage() }}
+              </mat-error>
+            }
+          </mat-form-field>
+          <div class="color-preview">
+            <div class="color-swatch" [style.background-color]="formControl.value"></div>
+          </div>
+        </div>
+      }
+
+      <!-- Multiselect -->
+      @if (isMultiselect()) {
+        <div class="multiselect-field">
+          <div class="field-label">
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </div>
+          
+          @if (field.multiselectConfig?.options) {
+            <div class="multiselect-options">
+              @for (option of field.multiselectConfig?.options || []; track option) {
+                <mat-checkbox 
+                  [checked]="isOptionSelected(option)"
+                  (change)="onMultiselectChange(option, $event.checked)"
+                  class="multiselect-option">
+                  {{ option }}
+                </mat-checkbox>
+              }
+            </div>
+          }
+          
+          <!-- Custom option input (if allowed) -->
+          @if (field.multiselectConfig?.allowCustom) {
+            <mat-form-field 
+              appearance="outline" 
+              class="custom-option-input">
+              <mat-label>Add custom option</mat-label>
+              <input matInput #customInput>
+              <button 
+                matSuffix 
+                mat-icon-button 
+                (click)="addCustomOption(customInput.value); customInput.value = ''">
+                <mat-icon>add</mat-icon>
+              </button>
+            </mat-form-field>
+          }
+          
+          @if (formControl.invalid && formControl.touched) {
+            <div class="field-error">
+              {{ getErrorMessage() }}
+            </div>
+          }
+        </div>
+      }
+
+      <!-- File Upload -->
+      @if (isFile()) {
+        <div class="file-field">
+          <div class="field-label">
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </div>
+          
+          <div class="file-upload-area">
+            <input 
+              #fileInput
+              type="file" 
+              [accept]="field.fileConfig?.allowedTypes?.join(',') || '*'"
+              [multiple]="field.fileConfig?.multiple || false"
+              (change)="onFileChange($event)"
+              style="display: none;">
+            
+            <button 
+              mat-outlined-button 
+              (click)="fileInput.click()"
+              class="file-upload-button">
+              <mat-icon>cloud_upload</mat-icon>
+              Choose {{ field.fileConfig?.multiple ? 'Files' : 'File' }}
+            </button>
+            
+            @if (formControl.value) {
+              <div class="selected-files">
+                <div class="file-info">
+                  <mat-icon>attachment</mat-icon>
+                  <span>{{ getFileDisplayName() }}</span>
+                </div>
+              </div>
+            }
+          </div>
+          
+          @if (formControl.invalid && formControl.touched) {
+            <div class="field-error">
+              {{ getErrorMessage() }}
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Location Field -->
+      @if (isLocation()) {
+        <div class="location-field">
+          <div class="field-label">
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </div>
+          
+          <!-- Read-only Location Display -->
+          @if (readonly) {
+            <div class="location-display">
+              @if (value && value.lat && value.lng) {
+                <div class="coordinates">
+                  <mat-icon>place</mat-icon>
+                  <span>{{ value.lat.toFixed(6) }}, {{ value.lng.toFixed(6) }}</span>
+                </div>
+              }
+              @if (value && value.address) {
+                <div class="address">
+                  <mat-icon>location_on</mat-icon>
+                  <span>{{ value.address }}</span>
+                </div>
+              }
+              @if (!value || (!value.lat && !value.lng)) {
+                <div class="no-location">
+                  <mat-icon>location_off</mat-icon>
+                  <span>No location set</span>
+                </div>
+              }
+            </div>
+          }
+          
+          <!-- Edit Mode - Location Picker -->
+          @if (!readonly) {
+            <div class="location-edit">
+              <app-location-picker
+                [initialCoordinates]="value"
+                [height]="'250px'"
+                (locationSelected)="onLocationSelected($event)"
+                (locationCleared)="onLocationCleared()">
+              </app-location-picker>
+            </div>
+          }
+          
+          @if (formControl.invalid && formControl.touched) {
+            <div class="field-error">
+              {{ getErrorMessage() }}
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Relationship Field -->
+      @if (isRelationship()) {
+        <div class="relationship-field">
+          <div class="field-label">
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </div>
+          
+          <div class="relationship-info">
+            <p>Relationship management will be available in the Relationships section.</p>
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+</div>

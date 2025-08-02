@@ -2,15 +2,18 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { map, debounceTime, distinctUntilChanged, switchMap, startWith } from 'rxjs/operators';
 import { WallService } from '../../services/wall.service';
 import { Wall } from '../../../../shared/models/wall.model';
+import { ButtonGroupComponent, ButtonGroupItem } from '../../../../shared/components/button-group/button-group.component';
 
 @Component({
   selector: 'app-wall-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, MatButtonModule, MatIconModule, ButtonGroupComponent],
   template: `
     <div class="docs-homepage">
       <!-- Template Gallery -->
@@ -21,37 +24,28 @@ import { Wall } from '../../../../shared/models/wall.model';
         <div class="template-gallery">
           <div class="template-item blank-template" (click)="createBlankWall()">
             <div class="template-icon">
-              <svg viewBox="0 0 24 24" width="56" height="56">
-                <path fill="#d4af37" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                <path fill="#202124" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
-              </svg>
+              <span class="material-icons md-56">add_circle_outline</span>
             </div>
             <span class="template-label">Blank</span>
           </div>
           
           <div class="template-item" (click)="createFromTemplate('alumni')">
             <div class="template-icon alumni-template">
-              <svg viewBox="0 0 24 24" width="32" height="32">
-                <path fill="#d4af37" d="M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z"/>
-              </svg>
+              <span class="material-icons md-32">school</span>
             </div>
             <span class="template-label">Alumni Directory</span>
           </div>
 
           <div class="template-item" (click)="createFromTemplate('veterans')">
             <div class="template-icon veterans-template">
-              <svg viewBox="0 0 24 24" width="32" height="32">
-                <path fill="#d4af37" d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A0.5,0.5 0 0,0 7,13.5A0.5,0.5 0 0,0 7.5,14A0.5,0.5 0 0,0 8,13.5A0.5,0.5 0 0,0 7.5,13M16.5,13A0.5,0.5 0 0,0 16,13.5A0.5,0.5 0 0,0 16.5,14A0.5,0.5 0 0,0 17,13.5A0.5,0.5 0 0,0 16.5,13Z"/>
-              </svg>
+              <span class="material-icons md-32">military_tech</span>
             </div>
             <span class="template-label">Veterans Registry</span>
           </div>
 
           <div class="template-item" (click)="createFromTemplate('team')">
             <div class="template-icon team-template">
-              <svg viewBox="0 0 24 24" width="32" height="32">
-                <path fill="#d4af37" d="M16,4C18.21,4 20,5.79 20,8C20,10.21 18.21,12 16,12C13.79,12 12,10.21 12,8C12,5.79 13.79,4 16,4M16,14C20.42,14 24,15.79 24,18V20H8V18C8,15.79 11.58,14 16,14M8,4C10.21,4 12,5.79 12,8C12,10.21 10.21,12 8,12C5.79,12 4,10.21 4,8C4,5.79 5.79,4 8,4M8,14C12.42,14 16,15.79 16,18V20H0V18C0,15.79 3.58,14 8,14Z"/>
-              </svg>
+              <span class="material-icons md-32">groups</span>
             </div>
             <span class="template-label">Team Directory</span>
           </div>
@@ -62,388 +56,384 @@ import { Wall } from '../../../../shared/models/wall.model';
       <section class="recent-section">
         <div class="section-header">
           <h2>Recent walls</h2>
-          <div class="view-controls">
-            <button class="view-toggle" [class.active]="viewMode === 'grid'" (click)="setViewMode('grid')">
-              <svg viewBox="0 0 24 24" width="20" height="20">
-                <path fill="currentColor" d="M3,11H11V3H3M3,21H11V13H3M13,21H21V13H13M13,3V11H21V3"/>
-              </svg>
-            </button>
-            <button class="view-toggle" [class.active]="viewMode === 'list'" (click)="setViewMode('list')">
-              <svg viewBox="0 0 24 24" width="20" height="20">
-                <path fill="currentColor" d="M3,5H21V7H3V5M3,13V11H21V13H3M3,19V17H21V19H3Z"/>
-              </svg>
-            </button>
-          </div>
+          <app-button-group
+            [items]="viewModeItems"
+            [activeId]="viewMode"
+            (selectionChange)="onViewModeChange($event)">
+          </app-button-group>
         </div>
 
-        <div class="search-filter" *ngIf="(filteredWalls$ | async)?.length || searchTerm">
-          <div class="search-container">
-            <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20">
-              <path fill="#5f6368" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-            </svg>
-            <input 
-              type="text" 
-              placeholder="Search walls..." 
-              [(ngModel)]="searchTerm"
-              (input)="onSearchChange($event)"
-              class="search-input"
-            >
-          </div>
-        </div>
 
-        <div class="walls-container" [class.list-view]="viewMode === 'list'" [class.grid-view]="viewMode === 'grid'">
-          <div *ngIf="filteredWalls$ | async as walls">
-            <div class="wall-item" *ngFor="let wall of walls; trackBy: trackByWallId" (click)="openWall(wall.id!)">
-              <div class="wall-thumbnail">
-                <div class="wall-preview" [style.background]="getWallGradient(wall)">
-                  <div class="preview-content">
-                    <div class="preview-dots">
-                      <div class="dot"></div>
-                      <div class="dot"></div>
-                      <div class="dot"></div>
-                    </div>
-                    <div class="preview-lines">
-                      <div class="line long"></div>
-                      <div class="line medium"></div>
-                      <div class="line short"></div>
+        <!-- Empty State (centered) -->
+        @if ((filteredWalls$ | async)?.length === 0 && !isLoading) {
+          <div class="empty-state-centered">
+            <div class="empty-illustration">
+              <svg viewBox="0 0 200 120" width="140" height="84" class="empty-svg">
+                <rect x="40" y="20" width="120" height="80" rx="8" class="svg-surface"/>
+                <rect x="50" y="30" width="100" height="6" rx="3" class="svg-line"/>
+                <rect x="50" y="45" width="80" height="4" rx="2" class="svg-line"/>
+                <rect x="50" y="55" width="60" height="4" rx="2" class="svg-line"/>
+                <circle cx="70" cy="75" r="8" class="svg-dot svg-dot-1"/>
+                <circle cx="90" cy="75" r="8" class="svg-dot svg-dot-2"/>
+                <circle cx="110" cy="75" r="8" class="svg-dot svg-dot-3"/>
+              </svg>
+            </div>
+            <h3>No walls yet</h3>
+            <p>Create your first wall to get started</p>
+            <button class="primary-button" (click)="createBlankWall()">
+              <svg viewBox="0 0 24 24" width="18" height="18">
+                <path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+              </svg>
+              Create wall
+            </button>
+          </div>
+        } @else {
+          <div class="walls-container" [class.list-view]="viewMode === 'list'" [class.grid-view]="viewMode === 'grid'">
+            @if (filteredWalls$ | async; as walls) {
+              @for (wall of walls; track trackByWallId($index, wall)) {
+                <div class="wall-item" (click)="openWall(wall.id!)">
+                  <div class="wall-thumbnail">
+                    <div class="wall-preview" [style.background]="getWallGradient(wall)">
+                      <div class="preview-content">
+                        <div class="preview-dots">
+                          <div class="dot"></div>
+                          <div class="dot"></div>
+                          <div class="dot"></div>
+                        </div>
+                        <div class="preview-lines">
+                          <div class="line long"></div>
+                          <div class="line medium"></div>
+                          <div class="line short"></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                  <div class="wall-info">
+                    <h3 class="wall-title">{{ wall.name }}</h3>
+                    <div class="wall-meta">
+                      <span class="wall-date">{{ getFormattedDate(wall.updatedAt) }}</span>
+                      <span class="wall-fields">{{ wall.fields?.length || 0 }} fields</span>
+                    </div>
+                  </div>
+                  <div class="wall-menu">
+                    <button class="menu-button" (click)="toggleMenu(wall.id!, $event)">
+                      <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"/>
+                      </svg>
+                    </button>
+                    @if (openMenuId === wall.id) {
+                      <div class="menu-dropdown" (click)="$event.stopPropagation()">
+                        <button (click)="openWall(wall.id!)">Open</button>
+                        <button (click)="editWall(wall.id!)">Edit</button>
+                        <button (click)="duplicateWall(wall.id!)">Make a copy</button>
+                        <button (click)="deleteWall(wall.id!)" class="delete-option">Delete</button>
+                      </div>
+                    }
+                  </div>
                 </div>
-              </div>
-              <div class="wall-info">
-                <h3 class="wall-title">{{ wall.name }}</h3>
-                <div class="wall-meta">
-                  <span class="wall-date">{{ getFormattedDate(wall.updatedAt) }}</span>
-                  <span class="wall-fields">{{ wall.fields.length }} fields</span>
-                </div>
-              </div>
-              <div class="wall-menu">
-                <button class="menu-button" (click)="toggleMenu(wall.id!, $event)">
-                  <svg viewBox="0 0 24 24" width="20" height="20">
-                    <path fill="currentColor" d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"/>
-                  </svg>
-                </button>
-                <div class="menu-dropdown" *ngIf="openMenuId === wall.id" (click)="$event.stopPropagation()">
-                  <button (click)="openWall(wall.id!)">Open</button>
-                  <button (click)="editWall(wall.id!)">Edit</button>
-                  <button (click)="duplicateWall(wall.id!)">Make a copy</button>
-                  <button (click)="deleteWall(wall.id!)" class="delete-option">Delete</button>
-                </div>
-              </div>
-            </div>
+              }
+            }
+          </div>
+        }
 
-            <div class="empty-state" *ngIf="walls.length === 0 && !isLoading">
-              <div class="empty-illustration">
-                <svg viewBox="0 0 200 120" width="200" height="120" class="empty-svg">
-                  <rect x="40" y="20" width="120" height="80" rx="8" class="svg-surface"/>
-                  <rect x="50" y="30" width="100" height="6" rx="3" class="svg-line"/>
-                  <rect x="50" y="45" width="80" height="4" rx="2" class="svg-line"/>
-                  <rect x="50" y="55" width="60" height="4" rx="2" class="svg-line"/>
-                  <circle cx="70" cy="75" r="8" class="svg-dot svg-dot-1"/>
-                  <circle cx="90" cy="75" r="8" class="svg-dot svg-dot-2"/>
-                  <circle cx="110" cy="75" r="8" class="svg-dot svg-dot-3"/>
-                </svg>
-              </div>
-              <h3>No walls yet</h3>
-              <p>Create your first wall to get started with organizing your data</p>
-              <button class="primary-button" (click)="createBlankWall()">
-                <svg viewBox="0 0 24 24" width="20" height="20">
-                  <path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
-                </svg>
-                Create wall
-              </button>
+        @if (isLoading) {
+          <div class="loading-state">
+            <div class="loading-content">
+              <div class="loading-spinner"></div>
+              <p>Loading your walls...</p>
             </div>
           </div>
-        </div>
-
-        <div class="loading-state" *ngIf="isLoading">
-          <div class="loading-content">
-            <div class="loading-spinner"></div>
-            <p>Loading your walls...</p>
-          </div>
-        </div>
+        }
       </section>
     </div>
   `,
   styles: [`
+    /* Enhanced Material 3 Mobile-First Wall List */
     .docs-homepage {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 32px 24px;
-      background: var(--md-sys-color-background);
+      padding: var(--md-sys-spacing-8) var(--md-sys-spacing-6);
+      background-color: var(--md-sys-color-background);
+      min-height: 100vh;
     }
 
-    /* Template Section */
+    /* Enhanced Template Section */
     .template-section {
-      margin-bottom: 48px;
+      margin-bottom: var(--md-sys-spacing-12);
     }
 
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: var(--md-sys-spacing-6);
+      padding-bottom: var(--md-sys-spacing-4);
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
     }
 
     .section-header h2 {
-      font-size: 22px;
-      font-weight: 400;
+      font-size: var(--md-sys-typescale-title-large-size);
+      line-height: var(--md-sys-typescale-title-large-line-height);
+      font-weight: var(--md-sys-typescale-title-large-weight);
       color: var(--md-sys-color-on-background);
       margin: 0;
+      font-family: 'Google Sans', sans-serif;
     }
 
     .template-gallery {
-      display: flex;
-      gap: 16px;
-      overflow-x: auto;
-      padding: 8px 0 16px 0;
-      margin: 0 -8px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--md-sys-spacing-4);
+      padding: var(--md-sys-spacing-2) 0;
     }
 
     .template-item {
+      /* Material 3 Card with enhanced touch targets */
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-width: 120px;
-      padding: 16px;
-      border-radius: 12px;
+      min-height: var(--md-sys-touch-target-large);
+      padding: var(--md-sys-spacing-5);
+      border-radius: var(--md-sys-shape-corner-large);
       cursor: pointer;
-      transition: all 0.2s ease;
-      background: var(--md-sys-color-surface);
-      border: 1px solid var(--md-sys-color-outline);
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      background-color: var(--md-sys-color-surface-container);
+      border: 1px solid var(--md-sys-color-outline-variant);
       position: relative;
-      z-index: 1;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
 
     .template-item:hover {
       box-shadow: var(--md-sys-elevation-3);
-      transform: translateY(-4px);
-      z-index: 2;
+      transform: translateY(-2px) scale(1.02);
+      border-color: var(--md-sys-color-primary);
+      background-color: var(--md-sys-color-surface-container-high);
+    }
+
+    .template-item:active {
+      transform: translateY(0) scale(1);
+      transition-duration: 0.1s;
     }
 
     .blank-template {
-      border: 2px dashed #d4af37;
-      background: linear-gradient(135deg, #d4af3708, #d4af3715);
+      border: 2px dashed var(--md-sys-color-primary);
+      background: linear-gradient(135deg, 
+        var(--md-sys-color-primary-container),
+        var(--md-sys-color-surface-container));
     }
 
+    .blank-template:hover {
+      background: linear-gradient(135deg, 
+        var(--md-sys-color-primary-container),
+        var(--md-sys-color-primary-container));
+    }
+
+
     .template-icon {
-      width: 72px;
-      height: 72px;
+      width: 80px;
+      height: 80px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      background: var(--md-sys-color-surface-variant);
+      border-radius: var(--md-sys-shape-corner-medium);
+      margin-bottom: var(--md-sys-spacing-3);
+      background: linear-gradient(135deg, 
+        var(--md-sys-color-surface-variant),
+        var(--md-sys-color-surface-container));
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .template-item:hover .template-icon {
+      transform: scale(1.1);
+      background: linear-gradient(135deg, 
+        var(--md-sys-color-primary-container),
+        var(--md-sys-color-tertiary-container));
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
 
     .alumni-template, .veterans-template, .team-template {
-      background: linear-gradient(135deg, #d4af3715, #d4af3708);
+      background: linear-gradient(135deg, 
+        var(--md-sys-color-primary-container),
+        var(--md-sys-color-secondary-container));
+    }
+
+    .template-icon .material-icons {
+      color: #d4af37;
     }
 
     .template-label {
-      font-size: 14px;
+      font-size: var(--md-sys-typescale-label-large-size);
+      line-height: var(--md-sys-typescale-label-large-line-height);
+      font-weight: var(--md-sys-typescale-label-large-weight);
       color: var(--md-sys-color-on-surface);
       text-align: center;
-      font-weight: 400;
+      font-family: 'Google Sans', sans-serif;
     }
 
-    /* Recent Section */
+    /* Enhanced Recent Section */
     .recent-section {
-      margin-bottom: 32px;
+      margin-bottom: var(--md-sys-spacing-8);
     }
 
-    .view-controls {
-      display: flex;
-      gap: 4px;
-      background: var(--md-sys-color-surface-container);
-      border: 1px solid var(--md-sys-color-outline);
-      border-radius: 24px;
-      padding: 4px;
-    }
 
-    .view-toggle {
-      background: none;
-      border: none;
-      border-radius: 20px;
-      padding: 8px;
-      cursor: pointer;
-      color: var(--md-sys-color-on-surface-variant);
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .view-toggle.active {
-      background: var(--md-sys-color-surface);
-      color: var(--md-sys-color-on-surface);
-      box-shadow: var(--md-sys-elevation-1);
-    }
-
-    .search-filter {
-      margin: 24px 0;
-      display: flex;
-      justify-content: center;
-    }
-
-    .search-container {
-      position: relative;
-      max-width: 400px;
-      width: 100%;
-    }
-
-    .search-input {
-      width: 100%;
-      height: 48px;
-      border: 1px solid var(--md-sys-color-outline);
-      border-radius: 24px;
-      padding: 0 48px 0 16px;
-      font-size: 16px;
-      background: var(--md-sys-color-surface);
-      color: var(--md-sys-color-on-surface);
-      transition: all 0.2s;
-      outline: none;
-    }
-
-    .search-input:focus {
-      box-shadow: 0 2px 8px rgba(0,0,0,0.16);
-      border-color: #d4af37;
-    }
-
-    .search-icon {
-      position: absolute;
-      right: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-    }
-
-    /* Walls Container */
+    /* Enhanced Walls Container */
     .walls-container {
-      margin-top: 24px;
+      margin-top: var(--md-sys-spacing-6);
     }
 
     .grid-view {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--md-sys-spacing-5);
     }
 
     .list-view {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: var(--md-sys-spacing-3);
     }
 
     .wall-item {
-      background: var(--md-sys-color-surface);
-      border-radius: 12px;
+      /* Enhanced Material 3 Card */
+      background-color: var(--md-sys-color-surface-container);
+      border-radius: var(--md-sys-shape-corner-large);
       cursor: pointer;
-      transition: all 0.2s ease;
-      border: 1px solid var(--md-sys-color-outline);
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      border: 1px solid var(--md-sys-color-outline-variant);
       overflow: hidden;
       position: relative;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
 
     .wall-item:hover {
       box-shadow: var(--md-sys-elevation-3);
+      transform: translateY(-4px);
+      border-color: var(--md-sys-color-primary);
+      background-color: var(--md-sys-color-surface-container-high);
+    }
+
+    .wall-item:active {
       transform: translateY(-2px);
+      transition-duration: 0.1s;
     }
 
     .grid-view .wall-item {
       display: flex;
       flex-direction: column;
+      min-height: 240px;
     }
 
     .list-view .wall-item {
       display: flex;
       align-items: center;
-      padding: 12px 16px;
+      padding: var(--md-sys-spacing-4) var(--md-sys-spacing-5);
+      min-height: var(--md-sys-touch-target-large);
     }
 
     .wall-thumbnail {
       flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
     }
 
     .grid-view .wall-thumbnail {
-      height: 160px;
+      height: 140px;
+      border-radius: var(--md-sys-shape-corner-large) var(--md-sys-shape-corner-large) 0 0;
     }
 
     .list-view .wall-thumbnail {
-      width: 40px;
-      height: 40px;
-      margin-right: 16px;
+      width: var(--md-sys-touch-target-min);
+      height: var(--md-sys-touch-target-min);
+      margin-right: var(--md-sys-spacing-4);
+      border-radius: var(--md-sys-shape-corner-medium);
     }
 
     .wall-preview {
       width: 100%;
       height: 100%;
-      border-radius: 8px;
       position: relative;
       overflow: hidden;
-    }
-
-    .list-view .wall-preview {
-      border-radius: 6px;
+      background: linear-gradient(135deg, 
+        var(--md-sys-color-primary-container),
+        var(--md-sys-color-tertiary-container));
     }
 
     .preview-content {
-      padding: 16px;
+      padding: var(--md-sys-spacing-5);
       height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: var(--md-sys-spacing-3);
+      position: relative;
     }
 
     .list-view .preview-content {
-      padding: 8px;
-      gap: 4px;
+      padding: var(--md-sys-spacing-2);
+      gap: var(--md-sys-spacing-1);
     }
 
     .preview-dots {
       display: flex;
-      gap: 6px;
+      gap: var(--md-sys-spacing-2);
     }
 
     .dot {
-      width: 6px;
-      height: 6px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: var(--md-sys-color-outline);
-      opacity: 0.3;
+      background-color: var(--md-sys-color-on-surface-variant);
+      opacity: 0.4;
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .wall-item:hover .dot {
+      opacity: 0.8;
+      transform: scale(1.2);
     }
 
     .list-view .dot {
-      width: 3px;
-      height: 3px;
+      width: 4px;
+      height: 4px;
     }
 
     .preview-lines {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: var(--md-sys-spacing-1);
     }
 
     .line {
-      height: 4px;
-      background: var(--md-sys-color-outline);
-      opacity: 0.2;
-      border-radius: 2px;
+      height: 6px;
+      background-color: var(--md-sys-color-on-surface-variant);
+      opacity: 0.3;
+      border-radius: var(--md-sys-shape-corner-small);
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .wall-item:hover .line {
+      opacity: 0.6;
     }
 
     .list-view .line {
-      height: 2px;
+      height: 3px;
     }
 
-    .line.long { width: 80%; }
-    .line.medium { width: 60%; }
-    .line.short { width: 40%; }
+    .line.long { width: 85%; }
+    .line.medium { width: 65%; }
+    .line.short { width: 45%; }
 
     .wall-info {
-      padding: 16px;
+      padding: var(--md-sys-spacing-5);
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .list-view .wall-info {
@@ -451,35 +441,42 @@ import { Wall } from '../../../../shared/models/wall.model';
     }
 
     .wall-title {
-      font-size: 16px;
-      font-weight: 400;
+      font-size: var(--md-sys-typescale-title-medium-size);
+      line-height: var(--md-sys-typescale-title-medium-line-height);
+      font-weight: var(--md-sys-typescale-title-medium-weight);
       color: var(--md-sys-color-on-surface);
-      margin: 0 0 8px 0;
-      line-height: 1.3;
+      margin: 0 0 var(--md-sys-spacing-2) 0;
+      font-family: 'Google Sans', sans-serif;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .list-view .wall-title {
-      font-size: 14px;
-      margin: 0 0 4px 0;
+      font-size: var(--md-sys-typescale-body-large-size);
+      margin: 0 0 var(--md-sys-spacing-1) 0;
     }
 
     .wall-meta {
       display: flex;
-      gap: 12px;
-      font-size: 12px;
+      gap: var(--md-sys-spacing-3);
+      font-size: var(--md-sys-typescale-label-medium-size);
+      line-height: var(--md-sys-typescale-label-medium-line-height);
       color: var(--md-sys-color-on-surface-variant);
+      font-family: 'Google Sans', sans-serif;
     }
 
     .list-view .wall-meta {
-      gap: 8px;
+      gap: var(--md-sys-spacing-2);
     }
 
     .wall-menu {
       position: absolute;
-      top: 8px;
-      right: 8px;
+      top: var(--md-sys-spacing-2);
+      right: var(--md-sys-spacing-2);
       opacity: 0;
-      transition: opacity 0.2s;
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 5;
     }
 
     .wall-item:hover .wall-menu {
@@ -487,125 +484,191 @@ import { Wall } from '../../../../shared/models/wall.model';
     }
 
     .menu-button {
-      background: var(--md-sys-color-surface);
-      opacity: 0.9;
-      border: none;
+      background-color: var(--md-sys-color-surface);
+      border: 1px solid var(--md-sys-color-outline-variant);
       border-radius: 50%;
-      width: 32px;
-      height: 32px;
+      width: var(--md-sys-touch-target-min);
+      height: var(--md-sys-touch-target-min);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       color: var(--md-sys-color-on-surface-variant);
-      transition: all 0.2s;
-      backdrop-filter: blur(4px);
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--md-sys-elevation-2);
     }
 
     .menu-button:hover {
-      background: var(--md-sys-color-surface);
-      opacity: 1;
+      background-color: var(--md-sys-color-surface-container-high);
       color: var(--md-sys-color-on-surface);
+      transform: scale(1.1);
+      box-shadow: var(--md-sys-elevation-3);
     }
 
     .menu-dropdown {
       position: absolute;
-      top: 100%;
+      top: calc(100% + var(--md-sys-spacing-2));
       right: 0;
-      background: var(--md-sys-color-surface);
-      border-radius: 8px;
+      background-color: var(--md-sys-color-surface-container-high);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-sys-shape-corner-medium);
       box-shadow: var(--md-sys-elevation-4);
-      padding: 8px 0;
-      min-width: 120px;
-      z-index: 10;
+      padding: var(--md-sys-spacing-2) 0;
+      min-width: 140px;
+      z-index: 100;
+      animation: fadeInUp 0.2s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .menu-dropdown button {
       background: none;
       border: none;
-      padding: 8px 16px;
+      padding: var(--md-sys-spacing-2) var(--md-sys-spacing-4);
       width: 100%;
       text-align: left;
       cursor: pointer;
-      font-size: 14px;
+      font-size: var(--md-sys-typescale-body-medium-size);
       color: var(--md-sys-color-on-surface);
-      transition: background 0.2s;
+      transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+      font-family: 'Google Sans', sans-serif;
+      min-height: var(--md-sys-touch-target-min);
+      display: flex;
+      align-items: center;
     }
 
     .menu-dropdown button:hover {
-      background: var(--md-sys-color-surface-variant);
+      background-color: var(--md-sys-color-primary-container);
     }
 
     .menu-dropdown .delete-option {
-      color: #d93025;
+      color: var(--md-sys-color-error);
     }
 
     .menu-dropdown .delete-option:hover {
-      background: #fce8e6;
+      background-color: var(--md-sys-color-error-container);
     }
 
-    /* Empty State */
+    /* Centered Empty State */
+    .empty-state-centered {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 30vh;
+      color: var(--md-sys-color-on-surface-variant);
+      padding: var(--md-sys-spacing-6);
+    }
+
+    /* Enhanced Empty State (legacy) */
     .empty-state {
       text-align: center;
-      padding: 64px 32px;
+      padding: var(--md-sys-spacing-16) var(--md-sys-spacing-8);
       color: var(--md-sys-color-on-surface-variant);
+      background-color: var(--md-sys-color-surface-container);
+      border-radius: var(--md-sys-shape-corner-extra-large);
+      margin: var(--md-sys-spacing-6) 0;
     }
 
     .empty-illustration {
-      margin-bottom: 24px;
+      margin-bottom: var(--md-sys-spacing-6);
+      opacity: 0.8;
     }
 
-    .empty-state h3 {
-      font-size: 20px;
-      font-weight: 400;
+    .empty-state-centered .empty-illustration {
+      margin-bottom: var(--md-sys-spacing-3);
+      opacity: 0.4;
+    }
+
+    .empty-state h3,
+    .empty-state-centered h3 {
+      font-size: var(--md-sys-typescale-headline-small-size);
+      line-height: var(--md-sys-typescale-headline-small-line-height);
+      font-weight: var(--md-sys-typescale-headline-small-weight);
       color: var(--md-sys-color-on-surface);
-      margin: 0 0 8px 0;
+      margin: 0 0 var(--md-sys-spacing-2) 0;
+      font-family: 'Google Sans', sans-serif;
     }
 
     .empty-state p {
-      font-size: 14px;
-      margin: 0 0 24px 0;
-      line-height: 1.4;
+      font-size: var(--md-sys-typescale-body-large-size);
+      line-height: var(--md-sys-typescale-body-large-line-height);
+      margin: 0 0 var(--md-sys-spacing-6) 0;
+      font-family: 'Google Sans', sans-serif;
+    }
+
+    .empty-state-centered p {
+      font-size: var(--md-sys-typescale-body-medium-size);
+      line-height: var(--md-sys-typescale-body-medium-line-height);
+      margin: 0 0 var(--md-sys-spacing-4) 0;
+      font-family: 'Google Sans', sans-serif;
+      max-width: 280px;
+      opacity: 0.8;
     }
 
     .primary-button {
-      background: #d4af37;
-      color: white;
+      /* Material 3 Filled Button */
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
       border: none;
-      border-radius: 24px;
-      padding: 12px 24px;
-      font-size: 14px;
-      font-weight: 500;
+      border-radius: var(--md-sys-shape-corner-full);
+      padding: var(--md-sys-spacing-4) var(--md-sys-spacing-6);
+      min-height: var(--md-sys-touch-target-min);
+      font-size: var(--md-sys-typescale-label-large-size);
+      font-weight: var(--md-sys-typescale-label-large-weight);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
+      gap: var(--md-sys-spacing-2);
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      box-shadow: var(--md-sys-elevation-1);
+      font-family: 'Google Sans', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .primary-button:hover {
-      background: #b8941f;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+      background-color: color-mix(in srgb, var(--md-sys-color-primary) 92%, var(--md-sys-color-on-primary) 8%);
+      transform: translateY(-2px);
+      box-shadow: var(--md-sys-elevation-3);
     }
 
-    /* Loading State */
+    .primary-button:active {
+      transform: translateY(0);
+      transition-duration: 0.1s;
+    }
+
+    /* Enhanced Loading State */
     .loading-state {
       text-align: center;
-      padding: 64px 32px;
+      padding: var(--md-sys-spacing-16) var(--md-sys-spacing-8);
+      background-color: var(--md-sys-color-surface-container);
+      border-radius: var(--md-sys-shape-corner-extra-large);
+      margin: var(--md-sys-spacing-6) 0;
     }
 
     .loading-content {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: var(--md-sys-spacing-4);
     }
 
     .loading-spinner {
-      width: 32px;
-      height: 32px;
-      border: 3px solid var(--md-sys-color-outline);
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--md-sys-color-outline-variant);
       border-top-color: var(--md-sys-color-primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
@@ -613,15 +676,16 @@ import { Wall } from '../../../../shared/models/wall.model';
 
     .loading-state p {
       color: var(--md-sys-color-on-surface-variant);
-      font-size: 14px;
+      font-size: var(--md-sys-typescale-body-large-size);
       margin: 0;
+      font-family: 'Google Sans', sans-serif;
     }
 
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
 
-    /* SVG Theme Support */
+    /* Enhanced SVG Theme Support */
     .svg-surface {
       fill: var(--md-sys-color-surface-variant);
       stroke: var(--md-sys-color-outline);
@@ -637,23 +701,69 @@ import { Wall } from '../../../../shared/models/wall.model';
       fill: var(--md-sys-color-primary);
     }
 
-    .svg-dot-1 { opacity: 0.3; }
-    .svg-dot-2 { opacity: 0.6; }
+    .svg-dot-1 { opacity: 0.4; }
+    .svg-dot-2 { opacity: 0.7; }
     .svg-dot-3 { opacity: 1; }
 
-    /* Responsive */
+    /* Enhanced Mobile-First Responsive Design */
+    @media (min-width: 769px) {
+      .template-gallery {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: var(--md-sys-spacing-5);
+      }
+    }
+
     @media (max-width: 768px) {
       .docs-homepage {
-        padding: 24px 16px;
+        padding: var(--md-sys-spacing-6) var(--md-sys-spacing-4);
       }
 
       .template-gallery {
-        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: var(--md-sys-spacing-3);
       }
 
       .template-item {
-        min-width: 100px;
-        padding: 12px;
+        padding: var(--md-sys-spacing-4);
+      }
+
+      .template-icon {
+        width: 64px;
+        height: 64px;
+      }
+
+      .grid-view {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: var(--md-sys-spacing-4);
+      }
+
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--md-sys-spacing-4);
+      }
+
+      .view-controls {
+        align-self: flex-end;
+      }
+
+      .wall-info {
+        padding: var(--md-sys-spacing-4);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .docs-homepage {
+        padding: var(--md-sys-spacing-4) var(--md-sys-spacing-3);
+      }
+
+      .template-gallery {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--md-sys-spacing-2);
+      }
+
+      .template-item {
+        padding: var(--md-sys-spacing-3);
       }
 
       .template-icon {
@@ -661,20 +771,64 @@ import { Wall } from '../../../../shared/models/wall.model';
         height: 56px;
       }
 
+      .template-label {
+        font-size: var(--md-sys-typescale-label-medium-size);
+      }
+
       .grid-view {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 12px;
+        grid-template-columns: 1fr;
+        gap: var(--md-sys-spacing-3);
       }
 
-      .section-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
+      .section-header h2 {
+        font-size: var(--md-sys-typescale-title-medium-size);
       }
 
-      .view-controls {
-        align-self: flex-end;
+      .wall-item:hover {
+        transform: none; /* Disable hover transforms on mobile */
       }
+
+      .wall-menu {
+        opacity: 1; /* Always show menu on mobile */
+      }
+    }
+
+    /* Accessibility enhancements */
+    @media (prefers-reduced-motion: reduce) {
+      .template-item,
+      .wall-item,
+      .view-toggle,
+      .primary-button,
+      .menu-button {
+        transition: none;
+      }
+
+      .template-item:hover,
+      .wall-item:hover {
+        transform: none;
+      }
+
+      .loading-spinner {
+        animation: none;
+      }
+    }
+
+    /* Focus indicators for keyboard navigation */
+    .template-item:focus,
+    .wall-item:focus,
+    .view-toggle:focus,
+    .menu-button:focus,
+    .primary-button:focus {
+      outline: 2px solid var(--md-sys-color-primary);
+      outline-offset: 2px;
+    }
+
+    .template-item:focus:not(:focus-visible),
+    .wall-item:focus:not(:focus-visible),
+    .view-toggle:focus:not(:focus-visible),
+    .menu-button:focus:not(:focus-visible),
+    .primary-button:focus:not(:focus-visible) {
+      outline: none;
     }
   `]
 })
@@ -685,6 +839,11 @@ export class WallListComponent implements OnInit {
   isLoading = true;
   searchTerm = '';
   viewMode: 'grid' | 'list' = 'grid';
+  
+  viewModeItems: ButtonGroupItem[] = [
+    { id: 'grid', label: 'Grid', icon: 'grid_view' },
+    { id: 'list', label: 'List', icon: 'view_list' }
+  ];
   openMenuId: string | null = null;
 
   constructor(private wallService: WallService, private router: Router) {
@@ -761,6 +920,10 @@ export class WallListComponent implements OnInit {
 
   setViewMode(mode: 'grid' | 'list'): void {
     this.viewMode = mode;
+  }
+
+  onViewModeChange(item: ButtonGroupItem): void {
+    this.setViewMode(item.id as 'grid' | 'list');
   }
 
   openWall(id: string): void {

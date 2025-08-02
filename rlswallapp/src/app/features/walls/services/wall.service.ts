@@ -1,5 +1,5 @@
 import { Injectable, Injector, runInInjectionContext } from '@angular/core';
-import { Observable, from, map, catchError, of, throwError, switchMap } from 'rxjs';
+import { Observable, from, map, catchError, of, throwError, switchMap, forkJoin } from 'rxjs';
 import { 
   Firestore, 
   collection, 
@@ -15,8 +15,9 @@ import {
   serverTimestamp,
   Timestamp
 } from '@angular/fire/firestore';
-import { Wall } from '../../../shared/models/wall.model';
+import { Wall, WallObjectType, FieldDefinition } from '../../../shared/models/wall.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { ObjectTypeService } from './object-type.service';
 
 @Injectable({
   providedIn: 'root'
@@ -27,6 +28,7 @@ export class WallService {
   constructor(
     private firestore: Firestore,
     private authService: AuthService,
+    private objectTypeService: ObjectTypeService,
     private injector: Injector
   ) {}
 
@@ -54,6 +56,8 @@ export class WallService {
           );
           
           // Execute both queries and combine results
+          console.log('Executing owned query for user:', userEmail);
+          console.log('Executing shared query for user:', userEmail);
           return from(Promise.all([getDocs(ownedQuery), getDocs(sharedQuery)]));
         });
       }),
@@ -142,8 +146,11 @@ export class WallService {
       switchMap(userEmail => {
         return runInInjectionContext(this.injector, () => {
           const wallsCollection = collection(this.firestore, this.collectionName);
+          // Clean up undefined values for Firestore
+          const cleanWall = this.cleanUndefinedValues(wall);
           const wallData = {
-            ...wall,
+            ...cleanWall,
+            name: cleanWall.name || 'Untitled Wall',
             ownerId: userEmail,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
@@ -161,20 +168,35 @@ export class WallService {
   }
 
   updateWall(id: string, wallUpdate: Partial<Wall>): Observable<void> {
-    return runInInjectionContext(this.injector, () => {
-      const wallDoc = doc(this.firestore, this.collectionName, id);
-      const updateData = {
-        ...wallUpdate,
-        updatedAt: serverTimestamp()
-      };
-      
-      return from(updateDoc(wallDoc, updateData)).pipe(
-        catchError(error => {
-          console.error('Error updating wall:', error);
-          throw error;
-        })
-      );
-    });
+    return this.authService.currentUser$.pipe(
+      map(user => {
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+        return user.email!;
+      }),
+      switchMap(userEmail => {
+        return runInInjectionContext(this.injector, () => {
+          const wallDoc = doc(this.firestore, this.collectionName, id);
+          const cleanUpdate = this.cleanUndefinedValues(wallUpdate);
+          
+          // Ensure ownerId is preserved - never overwrite it during update
+          const { ownerId, ...safeUpdate } = cleanUpdate;
+          
+          const updateData = {
+            ...safeUpdate,
+            updatedAt: serverTimestamp()
+          };
+          
+          console.log('Updating wall with safe data:', updateData);
+          return from(updateDoc(wallDoc, updateData));
+        });
+      }),
+      catchError(error => {
+        console.error('Error updating wall:', error);
+        throw error;
+      })
+    );
   }
 
   deleteWall(id: string): Observable<void> {
@@ -263,5 +285,266 @@ export class WallService {
       return new Date(timestamp.seconds * 1000);
     }
     return timestamp || new Date();
+  }
+
+  private cleanUndefinedValues(obj: any): any {
+    if (obj === null || obj === undefined) {
+      return null;
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.cleanUndefinedValues(item));
+    }
+    
+    if (typeof obj === 'object') {
+      const cleaned: any = {};
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key) && obj[key] !== undefined) {
+          cleaned[key] = this.cleanUndefinedValues(obj[key]);
+        }
+      }
+      return cleaned;
+    }
+    
+    return obj;
+  }
+
+  // Object Type Management Methods
+
+  /**
+   * Create a new wall with object types (Phase 2+ approach)
+   */
+  createWallWithObjectTypes(
+    wallData: Omit<Wall, 'id' | 'objectTypes'>, 
+    template?: 'veteran' | 'alumni' | 'general'
+  ): Observable<{ wallId: string; objectTypes: WallObjectType[] }> {
+    const wallWithEmptyObjectTypes = { ...wallData, objectTypes: [] };
+    return this.createWall(wallWithEmptyObjectTypes).pipe(
+      switchMap(wallId => {
+        // Create object types based on template
+        let objectTypesObservable: Observable<WallObjectType[]>;
+        
+        switch (template) {
+          case 'veteran':
+            objectTypesObservable = this.objectTypeService.createVeteranRegistryTemplate(wallId);
+            break;
+          case 'alumni':
+            objectTypesObservable = this.objectTypeService.createAlumniDirectoryTemplate(wallId);
+            break;
+          default:
+            objectTypesObservable = this.objectTypeService.createDefaultObjectTypes(wallId);
+        }
+        
+        return objectTypesObservable.pipe(
+          switchMap(objectTypes => {
+            // Update wall with object types
+            return this.updateWall(wallId, { objectTypes }).pipe(
+              map(() => ({ wallId, objectTypes }))
+            );
+          })
+        );
+      })
+    );
+  }
+
+  /**
+   * Get wall with its object types populated
+   */
+  getWallWithObjectTypes(wallId: string): Observable<Wall | null> {
+    return forkJoin({
+      wall: this.getWallById(wallId),
+      objectTypes: this.objectTypeService.getObjectTypesForWall(wallId)
+    }).pipe(
+      map(({ wall, objectTypes }) => {
+        if (!wall) return null;
+        
+        return {
+          ...wall,
+          objectTypes
+        };
+      }),
+      catchError(error => {
+        console.error('Error getting wall with object types:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Migrate legacy wall from fields to object types
+   */
+  migrateLegacyWall(wallId: string): Observable<Wall> {
+    return this.getWallById(wallId).pipe(
+      switchMap(wall => {
+        if (!wall) {
+          return throwError(() => new Error('Wall not found'));
+        }
+
+        // Check if wall has legacy fields and no object types
+        if (wall.fields && wall.fields.length > 0 && (!wall.objectTypes || wall.objectTypes.length === 0)) {
+          return this.objectTypeService.migrateLegacyFieldsToObjectType(wallId, wall.fields).pipe(
+            switchMap(objectType => {
+              // Update wall to use object types
+              const updatedWall: Partial<Wall> = {
+                objectTypes: [objectType],
+                // Keep legacy fields for backup during transition
+                fields: wall.fields
+              };
+
+              return this.updateWall(wallId, updatedWall).pipe(
+                map(() => ({
+                  ...wall,
+                  objectTypes: [objectType]
+                }))
+              );
+            })
+          );
+        }
+
+        // Wall is already migrated or doesn't need migration
+        return of(wall);
+      })
+    );
+  }
+
+  /**
+   * Add object type to existing wall
+   */
+  addObjectTypeToWall(wallId: string, objectType: Omit<WallObjectType, 'id'>): Observable<WallObjectType> {
+    return this.objectTypeService.createObjectType(objectType).pipe(
+      switchMap(objectTypeId => {
+        const newObjectType: WallObjectType = {
+          ...objectType,
+          id: objectTypeId
+        };
+
+        return this.getWallById(wallId).pipe(
+          switchMap(wall => {
+            if (!wall) {
+              return throwError(() => new Error('Wall not found'));
+            }
+
+            const existingObjectTypes = wall.objectTypes || [];
+            const updatedObjectTypes = [...existingObjectTypes, newObjectType];
+
+            return this.updateWall(wallId, { objectTypes: updatedObjectTypes }).pipe(
+              map(() => newObjectType)
+            );
+          })
+        );
+      })
+    );
+  }
+
+  /**
+   * Update object type in wall
+   */
+  updateObjectTypeInWall(wallId: string, objectTypeId: string, updates: Partial<WallObjectType>): Observable<void> {
+    return forkJoin({
+      updateObjectType: this.objectTypeService.updateObjectType(objectTypeId, updates),
+      wall: this.getWallById(wallId)
+    }).pipe(
+      switchMap(({ wall }) => {
+        if (!wall || !wall.objectTypes) {
+          return throwError(() => new Error('Wall or object types not found'));
+        }
+
+        const updatedObjectTypes = wall.objectTypes.map(ot => 
+          ot.id === objectTypeId ? { ...ot, ...updates } : ot
+        );
+
+        return this.updateWall(wallId, { objectTypes: updatedObjectTypes });
+      })
+    );
+  }
+
+  /**
+   * Remove object type from wall
+   */
+  removeObjectTypeFromWall(wallId: string, objectTypeId: string): Observable<void> {
+    return this.getWallById(wallId).pipe(
+      switchMap(wall => {
+        if (!wall || !wall.objectTypes) {
+          return throwError(() => new Error('Wall or object types not found'));
+        }
+
+        const updatedObjectTypes = wall.objectTypes.filter(ot => ot.id !== objectTypeId);
+
+        return forkJoin({
+          updateWall: this.updateWall(wallId, { objectTypes: updatedObjectTypes }),
+          deleteObjectType: this.objectTypeService.deleteObjectType(objectTypeId)
+        }).pipe(
+          map(() => void 0)
+        );
+      })
+    );
+  }
+
+  /**
+   * Check if wall needs migration from legacy fields
+   */
+  checkWallMigrationStatus(wallId: string): Observable<{
+    needsMigration: boolean;
+    hasLegacyFields: boolean;
+    hasObjectTypes: boolean;
+    legacyFieldCount: number;
+    objectTypeCount: number;
+  }> {
+    return this.getWallById(wallId).pipe(
+      map(wall => {
+        if (!wall) {
+          return {
+            needsMigration: false,
+            hasLegacyFields: false,
+            hasObjectTypes: false,
+            legacyFieldCount: 0,
+            objectTypeCount: 0
+          };
+        }
+
+        const hasLegacyFields = !!(wall.fields && wall.fields.length > 0);
+        const hasObjectTypes = !!(wall.objectTypes && wall.objectTypes.length > 0);
+        const needsMigration = hasLegacyFields && !hasObjectTypes;
+
+        return {
+          needsMigration,
+          hasLegacyFields,
+          hasObjectTypes,
+          legacyFieldCount: wall.fields?.length || 0,
+          objectTypeCount: wall.objectTypes?.length || 0
+        };
+      })
+    );
+  }
+
+  /**
+   * Batch migrate multiple walls
+   */
+  batchMigrateLegacyWalls(): Observable<{ wallId: string; success: boolean; error?: string }[]> {
+    return this.getAllWalls().pipe(
+      switchMap(walls => {
+        const legacyWalls = walls.filter(wall => 
+          wall.fields && wall.fields.length > 0 && 
+          (!wall.objectTypes || wall.objectTypes.length === 0)
+        );
+
+        if (legacyWalls.length === 0) {
+          return of([]);
+        }
+
+        const migrationObservables = legacyWalls.map(wall =>
+          this.migrateLegacyWall(wall.id).pipe(
+            map(() => ({ wallId: wall.id, success: true })),
+            catchError(error => of({ 
+              wallId: wall.id, 
+              success: false, 
+              error: error.message 
+            }))
+          )
+        );
+
+        return forkJoin(migrationObservables);
+      })
+    );
   }
 }

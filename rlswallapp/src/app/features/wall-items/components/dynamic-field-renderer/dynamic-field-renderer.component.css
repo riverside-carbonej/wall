@@ -1,0 +1,337 @@
+.dynamic-field-renderer {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+/* Common Styles */
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.field-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.required-indicator {
+  color: var(--md-sys-color-error);
+  font-weight: bold;
+}
+
+.field-error {
+  color: var(--md-sys-color-error);
+  font-size: 12px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Read-only Mode */
+.readonly-field {
+  padding: 12px;
+  background: var(--md-sys-color-surface-variant);
+  border-radius: 8px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.readonly-field .field-label {
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.field-value {
+  color: var(--md-sys-color-on-surface);
+  font-size: 14px;
+  min-height: 20px;
+  word-break: break-word;
+}
+
+.field-value.empty {
+  color: var(--md-sys-color-on-surface-variant);
+  font-style: italic;
+}
+
+/* Edit Mode */
+.edit-field {
+  width: 100%;
+}
+
+/* Checkbox Field */
+.checkbox-field {
+  margin: 16px 0;
+}
+
+.checkbox-field .mat-mdc-checkbox {
+  margin-right: 8px;
+}
+
+/* Color Field */
+.color-field {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.color-input {
+  flex: 1;
+}
+
+.color-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--md-sys-color-outline);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Multiselect Field */
+.multiselect-field {
+  margin: 16px 0;
+}
+
+.multiselect-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 12px;
+  background: var(--md-sys-color-surface-container-lowest);
+  border-radius: 8px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.multiselect-option {
+  margin: 0;
+}
+
+.custom-option-input {
+  margin-top: 8px;
+  width: 100%;
+}
+
+/* File Field */
+.file-field {
+  margin: 16px 0;
+}
+
+.file-upload-area {
+  padding: 16px;
+  border: 2px dashed var(--md-sys-color-outline);
+  border-radius: 12px;
+  text-align: center;
+  background: var(--md-sys-color-surface-container-lowest);
+  transition: all 0.2s ease;
+}
+
+.file-upload-area:hover {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+}
+
+.file-upload-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto;
+}
+
+.selected-files {
+  margin-top: 12px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 14px;
+}
+
+/* Location Field */
+.location-field {
+  margin: 16px 0;
+}
+
+.location-display {
+  padding: 12px;
+  background: var(--md-sys-color-surface-container-lowest);
+  border-radius: 8px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.location-display .coordinates,
+.location-display .address,
+.location-display .no-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 14px;
+}
+
+.location-display .coordinates {
+  color: var(--md-sys-color-on-surface);
+  font-weight: 500;
+}
+
+.location-display .no-location {
+  color: var(--md-sys-color-on-surface-variant);
+  font-style: italic;
+}
+
+.location-edit {
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.location-info {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 14px;
+  text-align: center;
+}
+
+.location-info p {
+  margin: 0;
+}
+
+/* Relationship Field */
+.relationship-field {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--md-sys-color-surface-container-lowest);
+  border-radius: 8px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.relationship-info {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 14px;
+  text-align: center;
+}
+
+.relationship-info p {
+  margin: 0;
+}
+
+/* Material Design Form Field Customizations */
+.mat-mdc-form-field {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.mat-mdc-form-field.mat-form-field-appearance-outline {
+  margin-bottom: 16px;
+}
+
+.mat-mdc-form-field-subscript-wrapper {
+  margin-top: 4px;
+}
+
+/* Date Picker Customization */
+.mat-mdc-form-field .mat-datepicker-toggle {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Textarea Auto-resize */
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .color-field {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .multiselect-options {
+    padding: 8px;
+  }
+  
+  .file-upload-area {
+    padding: 12px;
+  }
+}
+
+/* Focus States */
+.file-upload-button:focus,
+.color-swatch:focus {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+/* Animation */
+.edit-field {
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* High Contrast Support */
+@media (prefers-contrast: high) {
+  .readonly-field,
+  .multiselect-options,
+  .file-upload-area,
+  .location-field,
+  .relationship-field {
+    border-width: 2px;
+  }
+  
+  .color-swatch {
+    border-width: 3px;
+  }
+}
+
+/* Touch Targets */
+.file-upload-button,
+.multiselect-option,
+.color-swatch {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Error States */
+.mat-mdc-form-field.mat-form-field-invalid .mat-mdc-form-field-outline-thick {
+  color: var(--md-sys-color-error);
+}
+
+.mat-mdc-checkbox.mat-mdc-checkbox-invalid .mdc-checkbox__background {
+  border-color: var(--md-sys-color-error);
+}

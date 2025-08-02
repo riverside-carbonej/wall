@@ -323,8 +323,7 @@ export class LoginComponent {
 
     this.authService.signInWithGoogle().subscribe({
       next: (user) => {
-        // Google Cloud OAuth already restricts to @riversideschools.net
-        // No need for additional domain checking
+        console.log('Login successful:', user.email);
         this.loading = false;
         this.router.navigate(['/walls']);
       },
