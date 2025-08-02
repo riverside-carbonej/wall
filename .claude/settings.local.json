@@ -17,7 +17,15 @@
       "WebFetch(domain:mcp.context7.com)",
       "Bash(copy:*)",
       "Bash(cp:*)",
-      "WebFetch(domain:fonts.google.com)"
+      "WebFetch(domain:fonts.google.com)",
+      "Bash(find:*)",
+      "mcp__context7__resolve-library-id",
+      "Bash(grep:*)",
+      "Bash(touch:*)",
+      "Bash(npm run build:*)",
+      "Bash(curl:*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
