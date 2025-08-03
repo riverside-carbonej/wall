@@ -99,8 +99,6 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
     }
 
     .blur-background {
-      backdrop-filter: blur(3em);
-      -webkit-backdrop-filter: blur(3em);
       -webkit-mask-image: radial-gradient(circle, black 20%, transparent 500px);
       mask-image: radial-gradient(circle, black 20%, transparent 500px);
       width: 1100px;
@@ -121,16 +119,6 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
       text-align: center;
     }
 
-    .wall-logo img {
-      width: 8em;
-      height: 8em;
-      object-fit: contain;
-      margin-bottom: 1rem;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 1rem;
-    }
-
     .organization-logo {
       margin-bottom: 2rem;
     }
@@ -140,7 +128,7 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
       height: 10em;
       object-fit: contain;
       filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
-      margin-bottom: -2.5em;
+      margin-bottom: -1.5em;
     }
 
     .wall-title-group {
@@ -174,54 +162,6 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
       line-height: 1.4;
     }
 
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .title-wrapper {
-        min-width: 300px;
-        font-size: 18px;
-        padding: 0 1rem;
-      }
-      
-      .organization-logo img {
-        width: 8em;
-        height: 8em;
-        margin-bottom: -2em;
-      }
-      
-      .wall-logo img {
-        width: 6em;
-        height: 6em;
-      }
-      
-      .wall-title {
-        font-size: 2em;
-        white-space: normal;
-        line-height: 1.1;
-      }
-
-      .wall-description {
-        font-size: 1em;
-      }
-
-    }
-
-    @media (max-width: 480px) {
-      .title-wrapper {
-        min-width: 280px;
-        font-size: 16px;
-      }
-
-      .wall-title {
-        font-size: 1.8em;
-      }
-
-      .organization-logo img {
-        width: 6em;
-        height: 6em;
-        margin-bottom: -1.5em;
-      }
-    }
   `]
 })
 export class WallHomeComponent implements OnInit, OnDestroy {

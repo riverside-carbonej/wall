@@ -86,10 +86,17 @@ export class MatCardActions {
   selector: 'mat-checkbox',
   standalone: true,
   imports: [CommonModule, FormsModule],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: MatCheckbox,
+      multi: true
+    }
+  ],
   template: `
     <label class="mat-checkbox">
       <input type="checkbox" 
-             [checked]="checked()" 
+             [checked]="getCheckedState()" 
              [disabled]="disabled()"
              (change)="onCheck($event)">
       <span class="checkmark"></span>
@@ -111,14 +118,43 @@ export class MatCardActions {
     }
   `]
 })
-export class MatCheckbox {
-  checked = model<boolean>(false);
+export class MatCheckbox implements ControlValueAccessor {
+  checked = input<boolean>(false);
   disabled = input<boolean>(false);
   change = output<boolean>();
 
+  private internalChecked = signal<boolean>(false);
+  private onChange = (value: boolean) => {};
+  private onTouched = () => {};
+
+  getCheckedState(): boolean {
+    // Use external checked input if provided, otherwise use internal state
+    return this.checked() !== undefined ? this.checked() : this.internalChecked();
+  }
+
   onCheck(event: any) {
-    this.checked.set(event.target.checked);
-    this.change.emit(event.target.checked);
+    const value = event.target.checked;
+    this.internalChecked.set(value);
+    this.change.emit(value);
+    this.onChange(value);
+    this.onTouched();
+  }
+
+  // ControlValueAccessor implementation
+  writeValue(value: boolean): void {
+    this.internalChecked.set(value || false);
+  }
+
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    // Handle disabled state if needed
   }
 }
 

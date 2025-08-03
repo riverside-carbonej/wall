@@ -25,130 +25,127 @@ export interface ObjectTypeBuilderConfig {
     MatSelect
   ],
   template: `
-    <div class="preset-builder">
-      <form [formGroup]="objectTypeForm">
+    <div class="form-section-parent" [formGroup]="objectTypeForm">
+      
+      <!-- Object Details Section -->
+      <div class="form-section">
+        <h2>Object Details</h2>
         
-        <!-- Object Details Section -->
-        <div class="form-section">
-          <h2>Object Details</h2>
-          
-          <div class="form-field">
-            <label class="field-label">Object Name *</label>
-            <div class="input-container">
-              <mat-icon class="prefix-icon">label</mat-icon>
-              <input 
-                class="material-input" 
-                formControlName="name" 
-                placeholder="e.g., Veteran, Product, Event"
-                required>
-            </div>
-          </div>
-          
-          <div class="form-field">
-            <label class="field-label">Icon</label>
-            <mat-select formControlName="icon" class="material-select" [displayValueFunction]="getIconDisplayValue" [showIcon]="true">
-              @for (option of iconOptions; track option.value) {
-                <mat-option [value]="option.value">
-                  <mat-icon class="option-icon" [icon]="option.value"></mat-icon>
-                  {{ option.label }}
-                </mat-option>
-              }
-            </mat-select>
-          </div>
-          
-          <div class="form-field">
-            <label class="field-label">Description</label>
-            <div class="input-container">
-              <mat-icon class="prefix-icon">description</mat-icon>
-              <textarea 
-                class="material-textarea" 
-                formControlName="description" 
-                rows="2" 
-                placeholder="Brief description of this object type"></textarea>
-            </div>
-            <div class="field-hint">Optional - what does this object represent?</div>
+        <div class="form-field">
+          <label class="field-label">Object Name *</label>
+          <div class="input-container">
+            <mat-icon class="prefix-icon">label</mat-icon>
+            <input 
+              class="material-input" 
+              formControlName="name" 
+              placeholder="e.g., Veteran, Product, Event"
+              required>
           </div>
         </div>
-
-        <!-- Properties Section -->
-        <div class="form-section properties-section">
-          <div class="section-title-row">
-            <h2>Object Properties</h2>
-            <app-themed-button
-              variant="raised"
-              color="primary"
-              icon="add"
-              label="Add Property"
-              (buttonClick)="addField()">
-            </app-themed-button>
+        
+        <div class="form-field">
+          <label class="field-label">Icon</label>
+          <mat-select formControlName="icon" class="material-select" [displayValueFunction]="getIconDisplayValue" [showIcon]="true">
+            @for (option of iconOptions; track option.value) {
+              <mat-option [value]="option.value">
+                <mat-icon class="option-icon" [icon]="option.value"></mat-icon>
+                {{ option.label }}
+              </mat-option>
+            }
+          </mat-select>
+        </div>
+        
+        <div class="form-field">
+          <label class="field-label">Description</label>
+          <div class="input-container">
+            <mat-icon class="prefix-icon">description</mat-icon>
+            <textarea 
+              class="material-textarea" 
+              formControlName="description" 
+              rows="2" 
+              placeholder="Brief description of this object type"></textarea>
           </div>
-          <div class="section-divider"></div>
-          
-          @if (fieldsArray.length === 0) {
-            <div class="empty-state">
-              <mat-icon>view_list</mat-icon>
-              <p>Add properties to define what information each object will contain (name, date, location, etc.)</p>
-            </div>
-          } @else {
-            <div class="properties-grid">
-              @for (field of fieldsArray.controls; track $index) {
-                <div class="property-chip" [formGroupName]="$index">
-                  <mat-icon class="property-icon">{{ getFieldIcon(field.get('type')?.value) }}</mat-icon>
-                  <div class="property-info">
-                    <span class="property-name">{{ field.get('name')?.value || 'Untitled Property' }}</span>
-                    <span class="property-meta">
-                      {{ getFieldTypeLabel(field.get('type')?.value) }}
-                      @if (field.get('required')?.value) {
-                        <mat-icon class="required-icon">star</mat-icon>
-                      }
-                    </span>
-                  </div>
-                  <div class="property-actions">
-                    <app-themed-button
-                      variant="icon"
-                      icon="edit"
-                      (buttonClick)="editField($index)">
-                    </app-themed-button>
-                    <app-themed-button
-                      variant="icon"
-                      color="warn"
-                      icon="delete"
-                      (buttonClick)="removeField($index)">
-                    </app-themed-button>
-                  </div>
+          <div class="field-hint">Optional - what does this object represent?</div>
+        </div>
+      </div>
+
+      <!-- Properties Section -->
+      <div class="form-section properties-section">
+        <div class="section-title-row">
+          <h2>Object Properties</h2>
+          <app-themed-button
+            variant="raised"
+            color="primary"
+            icon="add"
+            label="Add Property"
+            (buttonClick)="addField()">
+          </app-themed-button>
+        </div>
+        <div class="section-divider"></div>
+        
+        @if (fieldsArray.length === 0) {
+          <div class="empty-state">
+            <mat-icon>view_list</mat-icon>
+            <p>Add properties to define what information each object will contain (name, date, location, etc.)</p>
+          </div>
+        } @else {
+          <div class="properties-grid">
+            @for (field of fieldsArray.controls; track $index) {
+              <div class="property-chip" [formGroupName]="$index">
+                <mat-icon class="property-icon">{{ getFieldIcon(field.get('type')?.value) }}</mat-icon>
+                <div class="property-info">
+                  <span class="property-name">{{ field.get('name')?.value || 'Untitled Property' }}</span>
+                  <span class="property-meta">
+                    {{ getFieldTypeLabel(field.get('type')?.value) }}
+                    @if (field.get('required')?.value) {
+                      <mat-icon class="required-icon">star</mat-icon>
+                    }
+                  </span>
                 </div>
-              }
-            </div>
-          }
-        </div>
-
-        <!-- Action Bar -->
-        <div class="action-bar" *ngIf="!showFieldEditor">
-          @if (objectTypeForm.invalid) {
-            <div class="form-warning">
-              <mat-icon class="warning-icon">warning</mat-icon>
-              <span>Please complete all required fields to save the object type</span>
-            </div>
-          }
-          
-          <div class="action-buttons">
-            <app-themed-button
-              variant="stroked"
-              color="primary"
-              label="Cancel"
-              (buttonClick)="onCancel()">
-            </app-themed-button>
-            <app-themed-button
-              variant="raised"
-              color="primary"
-              label="Save Object Type"
-              [disabled]="objectTypeForm.invalid"
-              (buttonClick)="onSave()">
-            </app-themed-button>
+                <div class="property-actions">
+                  <app-themed-button
+                    variant="icon"
+                    icon="edit"
+                    (buttonClick)="editField($index)">
+                  </app-themed-button>
+                  <app-themed-button
+                    variant="icon"
+                    color="warn"
+                    icon="delete"
+                    (buttonClick)="removeField($index)">
+                  </app-themed-button>
+                </div>
+              </div>
+            }
           </div>
-        </div>
+        }
+      </div>
 
-      </form>
+      <!-- Action Bar -->
+      <div class="action-bar" *ngIf="!showFieldEditor">
+        @if (objectTypeForm.invalid) {
+          <div class="form-warning">
+            <mat-icon class="warning-icon">warning</mat-icon>
+            <span>Please complete all required fields to save the object type</span>
+          </div>
+        }
+        
+        <div class="action-buttons">
+          <app-themed-button
+            variant="stroked"
+            color="primary"
+            label="Cancel"
+            (buttonClick)="onCancel()">
+          </app-themed-button>
+          <app-themed-button
+            variant="raised"
+            color="primary"
+            label="Save Object Type"
+            [disabled]="objectTypeForm.invalid"
+            (buttonClick)="onSave()">
+          </app-themed-button>
+        </div>
+      </div>
 
       <!-- Property Editor Modal -->
       @if (showFieldEditor) {
@@ -245,20 +242,21 @@ export interface ObjectTypeBuilderConfig {
     </div>
   `,
   styles: [`
-    .preset-builder {
-      max-width: 700px;
-      margin: 0 auto;
-      padding: 16px;
+    .form-section-parent {
       display: flex;
       flex-direction: column;
-      gap: 48px;
+      gap: 60px;
     }
 
     /* Form Sections */
     .form-section {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 20px;
+    }
+    
+    .form-section:first-child {
+      margin-top: 0;
     }
 
     .form-section h2 {
@@ -388,10 +386,6 @@ export interface ObjectTypeBuilderConfig {
       margin-bottom: 12px;
     }
 
-    /* Add extra spacing between Object Details and Properties sections within the form */
-    .form-section:nth-child(2) {
-      margin-top: 24px;
-    }
 
     .empty-state {
       text-align: center;
@@ -497,7 +491,6 @@ export interface ObjectTypeBuilderConfig {
 
     /* Action Bar */
     .action-bar {
-      padding: 16px 0 0 0;
     }
 
     .form-warning {

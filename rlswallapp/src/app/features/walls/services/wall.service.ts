@@ -13,11 +13,11 @@ import {
   orderBy, 
   where,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  onSnapshot
 } from '@angular/fire/firestore';
 import { Wall, WallObjectType, FieldDefinition } from '../../../shared/models/wall.model';
 import { AuthService } from '../../../core/services/auth.service';
-import { ObjectTypeService } from './object-type.service';
 
 @Injectable({
   providedIn: 'root'
@@ -28,7 +28,6 @@ export class WallService {
   constructor(
     private firestore: Firestore,
     private authService: AuthService,
-    private objectTypeService: ObjectTypeService,
     private injector: Injector
   ) {}
 
@@ -130,6 +129,62 @@ export class WallService {
       }),
       catchError(error => {
         console.error('Error getting wall:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Watch wall for real-time changes
+   */
+  watchWallById(id: string): Observable<Wall | null> {
+    return this.authService.currentUser$.pipe(
+      map(user => {
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+        return user.email!;
+      }),
+      switchMap(userEmail => {
+        return runInInjectionContext(this.injector, () => {
+          const wallDoc = doc(this.firestore, this.collectionName, id);
+          
+          return new Observable<Wall | null>(subscriber => {
+            const unsubscribe = onSnapshot(wallDoc, 
+              (docSnap) => {
+                if (docSnap.exists()) {
+                  const data = docSnap.data();
+                  const wall = {
+                    id: docSnap.id,
+                    ...data,
+                    createdAt: this.timestampToDate(data['createdAt']),
+                    updatedAt: this.timestampToDate(data['updatedAt'])
+                  } as Wall;
+                  
+                  // Check if user has access to this wall
+                  if (wall.ownerId === userEmail || wall.sharedWith?.includes(userEmail)) {
+                    subscriber.next(wall);
+                  } else {
+                    console.warn('User does not have access to this wall');
+                    subscriber.next(null);
+                  }
+                } else {
+                  subscriber.next(null);
+                }
+              },
+              (error) => {
+                console.error('Error watching wall:', error);
+                subscriber.error(error);
+              }
+            );
+
+            // Return cleanup function
+            return () => unsubscribe();
+          });
+        });
+      }),
+      catchError(error => {
+        console.error('Error setting up wall watcher:', error);
         return of(null);
       })
     );
@@ -318,56 +373,41 @@ export class WallService {
     wallData: Omit<Wall, 'id' | 'objectTypes'>, 
     template?: 'veteran' | 'alumni' | 'general'
   ): Observable<{ wallId: string; objectTypes: WallObjectType[] }> {
-    const wallWithEmptyObjectTypes = { ...wallData, objectTypes: [] };
-    return this.createWall(wallWithEmptyObjectTypes).pipe(
-      switchMap(wallId => {
-        // Create object types based on template
-        let objectTypesObservable: Observable<WallObjectType[]>;
-        
-        switch (template) {
-          case 'veteran':
-            objectTypesObservable = this.objectTypeService.createVeteranRegistryTemplate(wallId);
-            break;
-          case 'alumni':
-            objectTypesObservable = this.objectTypeService.createAlumniDirectoryTemplate(wallId);
-            break;
-          default:
-            objectTypesObservable = this.objectTypeService.createDefaultObjectTypes(wallId);
-        }
-        
-        return objectTypesObservable.pipe(
-          switchMap(objectTypes => {
-            // Update wall with object types
-            return this.updateWall(wallId, { objectTypes }).pipe(
-              map(() => ({ wallId, objectTypes }))
-            );
-          })
+    // Create object types based on template
+    let objectTypes: WallObjectType[];
+    
+    switch (template) {
+      case 'veteran':
+        objectTypes = this.getVeteranRegistryTemplate('placeholder');
+        break;
+      case 'alumni':
+        objectTypes = this.getAlumniDirectoryTemplate('placeholder');
+        break;
+      default:
+        objectTypes = this.getDefaultObjectTypes('placeholder');
+    }
+    
+    const wallWithObjectTypes = { ...wallData, objectTypes };
+    return this.createWall(wallWithObjectTypes).pipe(
+      map(wallId => {
+        // Update object types with actual wallId
+        const updatedObjectTypes = objectTypes.map(ot => ({ ...ot, wallId }));
+        return { wallId, objectTypes: updatedObjectTypes };
+      }),
+      switchMap(result => {
+        // Update wall with corrected wallIds in object types
+        return this.updateWall(result.wallId, { objectTypes: result.objectTypes }).pipe(
+          map(() => result)
         );
       })
     );
   }
 
   /**
-   * Get wall with its object types populated
+   * Get wall with its object types populated (walls already contain object types)
    */
   getWallWithObjectTypes(wallId: string): Observable<Wall | null> {
-    return forkJoin({
-      wall: this.getWallById(wallId),
-      objectTypes: this.objectTypeService.getObjectTypesForWall(wallId)
-    }).pipe(
-      map(({ wall, objectTypes }) => {
-        if (!wall) return null;
-        
-        return {
-          ...wall,
-          objectTypes
-        };
-      }),
-      catchError(error => {
-        console.error('Error getting wall with object types:', error);
-        return of(null);
-      })
-    );
+    return this.getWallById(wallId);
   }
 
   /**
@@ -382,22 +422,41 @@ export class WallService {
 
         // Check if wall has legacy fields and no object types
         if (wall.fields && wall.fields.length > 0 && (!wall.objectTypes || wall.objectTypes.length === 0)) {
-          return this.objectTypeService.migrateLegacyFieldsToObjectType(wallId, wall.fields).pipe(
-            switchMap(objectType => {
-              // Update wall to use object types
-              const updatedWall: Partial<Wall> = {
-                objectTypes: [objectType],
-                // Keep legacy fields for backup during transition
-                fields: wall.fields
-              };
+          // Create legacy object type directly
+          const objectType: WallObjectType = {
+            id: `ot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            wallId: wallId,
+            name: 'Wall Items',
+            description: 'Migrated from legacy field system',
+            icon: 'article',
+            color: '#6366f1',
+            fields: wall.fields,
+            relationships: [],
+            displaySettings: {
+              cardLayout: 'detailed',
+              showOnMap: false,
+              primaryField: wall.fields[0]?.id || '',
+              secondaryField: wall.fields[1]?.id,
+              imageField: undefined
+            },
+            isActive: true,
+            sortOrder: 0,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
 
-              return this.updateWall(wallId, updatedWall).pipe(
-                map(() => ({
-                  ...wall,
-                  objectTypes: [objectType]
-                }))
-              );
-            })
+          // Update wall to use object types
+          const updatedWall: Partial<Wall> = {
+            objectTypes: [objectType],
+            // Keep legacy fields for backup during transition
+            fields: wall.fields
+          };
+
+          return this.updateWall(wallId, updatedWall).pipe(
+            map(() => ({
+              ...wall,
+              objectTypes: [objectType]
+            }))
           );
         }
 
@@ -411,26 +470,26 @@ export class WallService {
    * Add object type to existing wall
    */
   addObjectTypeToWall(wallId: string, objectType: Omit<WallObjectType, 'id'>): Observable<WallObjectType> {
-    return this.objectTypeService.createObjectType(objectType).pipe(
-      switchMap(objectTypeId => {
+    return this.getWallById(wallId).pipe(
+      switchMap(wall => {
+        if (!wall) {
+          return throwError(() => new Error('Wall not found'));
+        }
+
+        // Generate a unique ID for the object type
+        const objectTypeId = `ot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const newObjectType: WallObjectType = {
           ...objectType,
-          id: objectTypeId
+          id: objectTypeId,
+          createdAt: new Date(),
+          updatedAt: new Date()
         };
 
-        return this.getWallById(wallId).pipe(
-          switchMap(wall => {
-            if (!wall) {
-              return throwError(() => new Error('Wall not found'));
-            }
+        const existingObjectTypes = wall.objectTypes || [];
+        const updatedObjectTypes = [...existingObjectTypes, newObjectType];
 
-            const existingObjectTypes = wall.objectTypes || [];
-            const updatedObjectTypes = [...existingObjectTypes, newObjectType];
-
-            return this.updateWall(wallId, { objectTypes: updatedObjectTypes }).pipe(
-              map(() => newObjectType)
-            );
-          })
+        return this.updateWall(wallId, { objectTypes: updatedObjectTypes }).pipe(
+          map(() => newObjectType)
         );
       })
     );
@@ -440,17 +499,14 @@ export class WallService {
    * Update object type in wall
    */
   updateObjectTypeInWall(wallId: string, objectTypeId: string, updates: Partial<WallObjectType>): Observable<void> {
-    return forkJoin({
-      updateObjectType: this.objectTypeService.updateObjectType(objectTypeId, updates),
-      wall: this.getWallById(wallId)
-    }).pipe(
-      switchMap(({ wall }) => {
+    return this.getWallById(wallId).pipe(
+      switchMap(wall => {
         if (!wall || !wall.objectTypes) {
           return throwError(() => new Error('Wall or object types not found'));
         }
 
         const updatedObjectTypes = wall.objectTypes.map(ot => 
-          ot.id === objectTypeId ? { ...ot, ...updates } : ot
+          ot.id === objectTypeId ? { ...ot, ...updates, updatedAt: new Date() } : ot
         );
 
         return this.updateWall(wallId, { objectTypes: updatedObjectTypes });
@@ -470,12 +526,7 @@ export class WallService {
 
         const updatedObjectTypes = wall.objectTypes.filter(ot => ot.id !== objectTypeId);
 
-        return forkJoin({
-          updateWall: this.updateWall(wallId, { objectTypes: updatedObjectTypes }),
-          deleteObjectType: this.objectTypeService.deleteObjectType(objectTypeId)
-        }).pipe(
-          map(() => void 0)
-        );
+        return this.updateWall(wallId, { objectTypes: updatedObjectTypes });
       })
     );
   }
@@ -561,5 +612,184 @@ export class WallService {
     };
     
     return from(updateDoc(wallDoc, updateData));
+  }
+
+  /**
+   * Get default object type templates
+   */
+  private getDefaultObjectTypes(wallId: string): WallObjectType[] {
+    return [
+      {
+        id: `ot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        wallId,
+        name: 'General Items',
+        description: 'General purpose items for any content',
+        icon: 'description',
+        color: '#6366f1',
+        fields: [
+          {
+            id: 'title',
+            name: 'Title',
+            type: 'text',
+            required: true,
+            placeholder: 'Enter title...'
+          },
+          {
+            id: 'description',
+            name: 'Description',
+            type: 'longtext',
+            required: false,
+            placeholder: 'Enter description...'
+          },
+          {
+            id: 'date',
+            name: 'Date',
+            type: 'date',
+            required: false
+          }
+        ],
+        relationships: [],
+        displaySettings: {
+          cardLayout: 'detailed',
+          showOnMap: false,
+          primaryField: 'title',
+          secondaryField: 'description'
+        },
+        isActive: true,
+        sortOrder: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+  }
+
+  /**
+   * Get veteran registry template
+   */
+  private getVeteranRegistryTemplate(wallId: string): WallObjectType[] {
+    return [
+      {
+        id: `ot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        wallId,
+        name: 'Veteran',
+        description: 'Service member information',
+        icon: 'military_tech',
+        color: '#059669',
+        fields: [
+          {
+            id: 'name',
+            name: 'Full Name',
+            type: 'text',
+            required: true,
+            placeholder: 'Enter full name...'
+          },
+          {
+            id: 'rank',
+            name: 'Rank',
+            type: 'text',
+            required: false,
+            placeholder: 'Enter rank...'
+          },
+          {
+            id: 'branch',
+            name: 'Service Branch',
+            type: 'text',
+            required: true,
+            placeholder: 'Army, Navy, Air Force, Marines, Coast Guard...'
+          },
+          {
+            id: 'serviceYears',
+            name: 'Years of Service',
+            type: 'text',
+            required: false,
+            placeholder: 'e.g., 1998-2018'
+          },
+          {
+            id: 'bio',
+            name: 'Biography',
+            type: 'longtext',
+            required: false,
+            placeholder: 'Enter biography...'
+          }
+        ],
+        relationships: [],
+        displaySettings: {
+          cardLayout: 'detailed',
+          showOnMap: false,
+          primaryField: 'name',
+          secondaryField: 'rank'
+        },
+        isActive: true,
+        sortOrder: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      // Add other veteran registry object types as needed
+    ];
+  }
+
+  /**
+   * Get alumni directory template
+   */
+  private getAlumniDirectoryTemplate(wallId: string): WallObjectType[] {
+    return [
+      {
+        id: `ot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        wallId,
+        name: 'Alumnus',
+        description: 'Alumni information',
+        icon: 'school',
+        color: '#2563eb',
+        fields: [
+          {
+            id: 'name',
+            name: 'Full Name',
+            type: 'text',
+            required: true,
+            placeholder: 'Enter full name...'
+          },
+          {
+            id: 'graduationYear',
+            name: 'Graduation Year',
+            type: 'number',
+            required: true,
+            placeholder: 'Enter graduation year...'
+          },
+          {
+            id: 'degree',
+            name: 'Degree',
+            type: 'text',
+            required: false,
+            placeholder: 'Enter degree...'
+          },
+          {
+            id: 'currentPosition',
+            name: 'Current Position',
+            type: 'text',
+            required: false,
+            placeholder: 'Enter current position...'
+          },
+          {
+            id: 'email',
+            name: 'Email',
+            type: 'email',
+            required: false,
+            placeholder: 'Enter email address...'
+          }
+        ],
+        relationships: [],
+        displaySettings: {
+          cardLayout: 'detailed',
+          showOnMap: false,
+          primaryField: 'name',
+          secondaryField: 'currentPosition'
+        },
+        isActive: true,
+        sortOrder: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      // Add other alumni directory object types as needed
+    ];
   }
 }

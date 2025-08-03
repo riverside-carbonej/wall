@@ -46,7 +46,7 @@ export interface CardMenuItem extends ActionMenuItem {}
             <img mat-card-avatar [src]="avatar" [alt]="avatarAlt || 'Avatar'" />
           } @else if (avatarIcon) {
             <div mat-card-avatar class="avatar-icon">
-              <mat-icon>{{ avatarIcon }}</mat-icon>
+              <mat-icon [icon]="avatarIcon"></mat-icon>
             </div>
           }
           
@@ -229,10 +229,11 @@ export interface CardMenuItem extends ActionMenuItem {}
     
     /* Header */
     mat-card-header {
-      padding: var(--md-sys-spacing-4);
+      padding: var(--md-sys-spacing-3);
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: var(--md-sys-spacing-3);
+      position: relative;
     }
     
     .header-with-menu {
@@ -242,6 +243,7 @@ export interface CardMenuItem extends ActionMenuItem {}
     .header-content {
       flex: 1;
       min-width: 0;
+      padding-left: var(--md-sys-spacing-3);
     }
     
     .header-menu-trigger {
@@ -265,8 +267,8 @@ export interface CardMenuItem extends ActionMenuItem {}
     }
     
     .avatar-icon {
-      width: 40px;
-      height: 40px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       background-color: var(--md-sys-color-primary-container);
       color: var(--md-sys-color-on-primary-container);
@@ -276,9 +278,9 @@ export interface CardMenuItem extends ActionMenuItem {}
     }
     
     .avatar-icon mat-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
     }
     
     /* Media */
@@ -331,7 +333,7 @@ export interface CardMenuItem extends ActionMenuItem {}
     
     /* Content */
     .card-content {
-      padding: var(--md-sys-spacing-4);
+      padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3);
     }
     
     .description {
@@ -362,8 +364,14 @@ export interface CardMenuItem extends ActionMenuItem {}
     
     /* Actions */
     .card-actions {
-      padding: var(--md-sys-spacing-2) var(--md-sys-spacing-4) var(--md-sys-spacing-4);
+      padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3) var(--md-sys-spacing-3);
       gap: var(--md-sys-spacing-2);
+    }
+    
+    .card-actions app-themed-button {
+      min-height: 48px;
+      padding: 12px 24px;
+      font-size: 16px;
     }
     
     /* Mobile Responsive */

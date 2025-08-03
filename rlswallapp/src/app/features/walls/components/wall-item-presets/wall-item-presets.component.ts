@@ -91,27 +91,30 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
     /* Grid layout for presets */
     .presets-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
     }
 
     .preset-card {
       /* Card component handles styling */
+      height: fit-content;
     }
 
     .field-summary {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
+      margin-top: 8px;
     }
 
     .field-chip {
       background: var(--md-sys-color-primary-container);
       color: var(--md-sys-color-on-primary-container);
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 0.75rem;
+      padding: 3px 6px;
+      border-radius: 10px;
+      font-size: 0.7rem;
       font-weight: 500;
+      line-height: 1.2;
     }
 
     .field-chip.more {
@@ -155,7 +158,7 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
     this.wall$ = this.route.paramMap.pipe(
       switchMap(params => {
         const wallId = params.get('id')!;
-        return this.wallService.getWallById(wallId);
+        return this.wallService.watchWallById(wallId);
       }),
       filter(wall => wall !== null),
       takeUntil(this.destroy$)

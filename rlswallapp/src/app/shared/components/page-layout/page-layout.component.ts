@@ -76,7 +76,6 @@ export interface PageAction {
 
     /* Header */
     .page-header {
-      margin-bottom: 32px;
       padding-bottom: 16px;
       border-bottom: 1px solid var(--md-sys-color-outline);
     }
