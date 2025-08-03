@@ -1,14 +1,13 @@
 import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions } from '../../../../shared/components/material-stubs';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { MatExpansionPanel, MatExpansionPanelHeader, MatPanelTitle, MatAccordion } from '../../../../shared/components/material-stubs';
+import { MatFormField, MatLabel, MatError } from '../../../../shared/components/material-stubs';
+import { ProgressSpinnerComponent } from '../../../../shared/components/progress-spinner/progress-spinner.component';
+// Dialog functionality simplified to use native confirmations
 // Note: Using dialog instead of snackbar for now due to import issues
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subject, takeUntil, firstValueFrom } from 'rxjs';
@@ -21,6 +20,7 @@ import { ItemImageGalleryComponent } from '../../components/item-image-gallery/i
 import { DynamicFieldRendererComponent } from '../../components/dynamic-field-renderer/dynamic-field-renderer.component';
 import { DeleteButtonComponent } from '../../components/delete-button/delete-button.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
+import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 
 import { Wall, WallItem, WallObjectType, FieldDefinition, WallItemImage } from '../../../../shared/models/wall.model';
 import { ErrorDialogComponent } from '../../../../shared/components/error-dialog/error-dialog.component';
@@ -31,18 +31,17 @@ import { ErrorDialogComponent } from '../../../../shared/components/error-dialog
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatExpansionModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-    MatDialogModule,
+    MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions,
+    ThemedButtonComponent,
+    MaterialIconComponent,
+    MatExpansionPanel, MatExpansionPanelHeader, MatPanelTitle, MatAccordion,
+    MatFormField, MatLabel, MatError,
+    ProgressSpinnerComponent,
     ItemImageGalleryComponent,
     DynamicFieldRendererComponent,
     DeleteButtonComponent,
-    LoadingStateComponent
+    LoadingStateComponent,
+    PageLayoutComponent
   ],
   templateUrl: './generic-wall-item-page.component.html',
   styleUrls: ['./generic-wall-item-page.component.css']
@@ -84,8 +83,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     private wallService: WallService,
     private wallItemService: WallItemService,
     private imageUploadService: ImageUploadService,
-    private fb: FormBuilder,
-    private dialog: MatDialog
+    private fb: FormBuilder
   ) {}
   
   ngOnInit() {
@@ -97,6 +95,49 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.cleanupImagePreviews();
+  }
+
+  getPageActions(): PageAction[] {
+    const actions: PageAction[] = [];
+    
+    if (this.canEdit()) {
+      if (!this.editing && !this.isNewItem) {
+        actions.push({
+          label: 'Edit',
+          icon: 'edit',
+          variant: 'raised',
+          color: 'primary',
+          action: () => this.onToggleEditMode()
+        });
+      }
+      
+      if (this.editing) {
+        actions.push({
+          label: this.isNewItem ? 'Add Item' : 'Save Changes',
+          icon: this.isSaving ? 'hourglass_empty' : 'save',
+          variant: 'raised',
+          color: 'primary',
+          disabled: this.isSaving || this.itemForm?.invalid,
+          action: () => this.onSaveItem()
+        });
+      }
+      
+      if (this.canDelete() && !this.editing) {
+        actions.push({
+          label: 'Delete',
+          icon: 'delete',
+          variant: 'stroked',
+          color: 'warn',
+          action: () => this.onDeleteItem()
+        });
+      }
+    }
+    
+    return actions;
+  }
+
+  onBackClick(): void {
+    this.router.navigate(['/walls', this.wallId]);
   }
   
   private initializeFromRoute() {
@@ -435,25 +476,8 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     const errorMessage = this.getErrorMessage(error);
     const errorDetails = this.getErrorDetails(error);
     
-    const dialogRef = this.dialog.open(ErrorDialogComponent, {
-      width: '400px',
-      disableClose: false,
-      data: {
-        title: this.isNewItem ? 'Failed to Create Item' : 'Failed to Save Changes',
-        message: errorMessage,
-        showRetry: true,
-        details: errorDetails
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result === true) {
-        // User clicked retry - attempt save again
-        this.onSaveItem();
-      }
-      // If result is false or undefined, user clicked close
-      // Form data is preserved automatically (veteran app pattern)
-    });
+    // Show error using native alert
+    alert(`${this.isNewItem ? 'Failed to Create Item' : 'Failed to Save Changes'}\n\n${errorMessage}\n\nDetails: ${errorDetails}`);
   }
 
   private getErrorMessage(error: any): string {
@@ -522,23 +546,8 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     const errorMessage = this.getErrorMessage(error);
     const errorDetails = this.getErrorDetails(error);
     
-    const dialogRef = this.dialog.open(ErrorDialogComponent, {
-      width: '400px',
-      disableClose: false,
-      data: {
-        title: 'Failed to Delete Item',
-        message: errorMessage,
-        showRetry: true,
-        details: errorDetails
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result === true) {
-        // User clicked retry - attempt delete again
-        this.onDeleteItem();
-      }
-    });
+    // Show error using native alert
+    alert(`Failed to Delete Item\n\n${errorMessage}\n\nDetails: ${errorDetails}`);
   }
   
   // Template helper methods
@@ -580,11 +589,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     );
   }
 
-  // Navigation methods
-  onBackClick() {
-    // Navigate back to wall overview
-    this.router.navigate(['/walls', this.wallId]);
-  }
+  // Navigation methods (onBackClick already defined above)
 
   onCancelEdit() {
     if (this.isNewItem) {

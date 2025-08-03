@@ -2,17 +2,12 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { FormFieldComponent } from '../../../../shared/components/input-field/input-field.component';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatCardActions, MatCheckbox, MatDivider, MatLabel, MatError } from '../../../../shared/components/material-stubs';
+import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
+import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { switchMap, filter } from 'rxjs/operators';
 
@@ -25,35 +20,30 @@ import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wa
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatToolbarModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatCheckboxModule,
-    MatChipsModule,
-    MatDividerModule,
-    MatSnackBarModule
+    ThemedButtonComponent,
+    MaterialIconComponent,
+    FormFieldComponent,
+    MatCard,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardSubtitle,
+    MatCardContent,
+    MatCardActions,
+    MatCheckbox,
+    MatDivider,
+    MatLabel,
+    MatError,
+    PageLayoutComponent
   ],
   template: `
-    <div class="users-permissions" *ngIf="wall$ | async as wall">
-      <!-- Header -->
-      <mat-toolbar class="page-header">
-        <button mat-icon-button (click)="goBack()">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
-        <span class="page-title">Users & Permissions</span>
-        <span class="spacer"></span>
-        <button mat-raised-button color="primary" (click)="savePermissions()" [disabled]="!permissionsForm.valid || saving">
-          <mat-icon>save</mat-icon>
-          Save Changes
-        </button>
-      </mat-toolbar>
-
-      <!-- Content -->
-      <div class="content-container">
+    <div *ngIf="wall$ | async as wall">
+      <app-page-layout
+        title="Users & Permissions"
+        subtitle="Manage who can access and edit this wall"
+        [showBackButton]="true"
+        [actions]="getPageActions()"
+        (backClick)="goBack()">
+        
         <form [formGroup]="permissionsForm" class="permissions-form">
           
           <!-- Owner Section -->
@@ -92,31 +82,37 @@ import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wa
               <div class="editors-list" formArrayName="editors">
                 @for (control of editorsArray.controls; track $index) {
                   <div class="editor-row" [formGroupName]="$index">
-                    <mat-form-field class="editor-email-field">
+                    <mat-form-field 
+                      class="editor-email-field">
                       <mat-label>Editor Email</mat-label>
                       <input matInput 
                              formControlName="email" 
                              type="email" 
-                             placeholder="user@riversideschools.net">
-                      <mat-error *ngIf="control.get('email')?.hasError('required')">Email is required</mat-error>
-                      <mat-error *ngIf="control.get('email')?.hasError('email')">Enter a valid email</mat-error>
+                             placeholder="user@riversideschools.net"
+                             required>
+                      @if (control.get('email')?.hasError('required')) {
+                        <mat-error>Email is required</mat-error>
+                      }
+                      @if (control.get('email')?.hasError('email')) {
+                        <mat-error>Enter a valid email</mat-error>
+                      }
                     </mat-form-field>
                     
-                    <button mat-icon-button 
+                    <app-themed-button variant="icon" 
                             type="button"
                             color="warn" 
                             (click)="removeEditor($index)"
                             [disabled]="editorsArray.length <= 1">
                       <mat-icon>delete</mat-icon>
-                    </button>
+                    </app-themed-button>
                   </div>
                 }
               </div>
               
-              <button mat-stroked-button type="button" (click)="addEditor()">
+              <app-themed-button variant="stroked" type="button" (click)="addEditor()">
                 <mat-icon>add</mat-icon>
                 Add Editor
-              </button>
+              </app-themed-button>
             </mat-card-content>
           </mat-card>
 
@@ -137,18 +133,18 @@ import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wa
               @if (permissionsForm.get('allowDepartmentEdit')?.value) {
                 <mat-form-field class="department-field">
                   <mat-label>Department</mat-label>
-                  <mat-select formControlName="department">
-                    <mat-option value="">Select Department</mat-option>
-                    <mat-option value="Administration">Administration</mat-option>
-                    <mat-option value="English">English</mat-option>
-                    <mat-option value="Mathematics">Mathematics</mat-option>
-                    <mat-option value="Science">Science</mat-option>
-                    <mat-option value="Social Studies">Social Studies</mat-option>
-                    <mat-option value="Fine Arts">Fine Arts</mat-option>
-                    <mat-option value="Physical Education">Physical Education</mat-option>
-                    <mat-option value="Technology">Technology</mat-option>
-                    <mat-option value="Support Staff">Support Staff</mat-option>
-                  </mat-select>
+                  <select matNativeControl formControlName="department">
+                    <option value="">Select Department</option>
+                    <option value="Administration">Administration</option>
+                    <option value="English">English</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Science">Science</option>
+                    <option value="Social Studies">Social Studies</option>
+                    <option value="Fine Arts">Fine Arts</option>
+                    <option value="Physical Education">Physical Education</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Support Staff">Support Staff</option>
+                  </select>
                 </mat-form-field>
                 
                 <div class="department-info">
@@ -199,37 +195,11 @@ import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wa
           </mat-card>
 
         </form>
-      </div>
+        
+      </app-page-layout>
     </div>
   `,
   styles: [`
-    .users-permissions {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .page-header {
-      background: var(--md-sys-color-surface-container);
-      color: var(--md-sys-color-on-surface);
-      flex-shrink: 0;
-    }
-
-    .page-title {
-      font-size: 1.25rem;
-      font-weight: 500;
-    }
-
-    .spacer {
-      flex: 1;
-    }
-
-    .content-container {
-      flex: 1;
-      padding: 24px;
-      overflow-y: auto;
-    }
-
     .permissions-form {
       max-width: 800px;
       margin: 0 auto;
@@ -351,10 +321,6 @@ import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wa
 
     /* Responsive design */
     @media (max-width: 768px) {
-      .content-container {
-        padding: 16px;
-      }
-      
       .editor-row {
         flex-direction: column;
         align-items: stretch;
@@ -382,7 +348,7 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     private router: Router,
     private wallService: WallService,
     private fb: FormBuilder,
-    private snackBar: MatSnackBar
+    private confirmationDialog: ConfirmationDialogService
   ) {
     this.initializeForm();
   }
@@ -477,13 +443,26 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     this.editorsArray.removeAt(index);
   }
 
+  getPageActions(): PageAction[] {
+    return [
+      {
+        label: 'Save Changes',
+        icon: 'save',
+        variant: 'raised',
+        color: 'primary',
+        disabled: !this.permissionsForm?.valid || this.saving,
+        action: () => this.savePermissions()
+      }
+    ];
+  }
+
   goBack() {
     this.router.navigate(['../'], { relativeTo: this.route });
   }
 
   savePermissions() {
     if (!this.permissionsForm.valid) {
-      this.snackBar.open('Please fix validation errors before saving', 'Close', { duration: 3000 });
+      alert('Please fix validation errors before saving');
       return;
     }
 
@@ -503,12 +482,12 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     this.wallService.updateWallPermissions(wallId, updatedPermissions).subscribe({
       next: () => {
         this.saving = false;
-        this.snackBar.open('Permissions updated successfully', 'Close', { duration: 3000 });
+        alert('Permissions updated successfully');
       },
       error: (error) => {
         this.saving = false;
         console.error('Error updating permissions:', error);
-        this.snackBar.open('Failed to update permissions', 'Close', { duration: 3000 });
+        alert('Failed to update permissions');
       }
     });
   }

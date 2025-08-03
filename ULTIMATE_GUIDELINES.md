@@ -69,7 +69,7 @@ Wall
 ### 3. Navigation Context Pattern
 - **App Home**: `/walls` (list all walls)
 - **Wall Home**: `/walls/:id` (animated home for specific wall)
-- **Wall Management**: `/walls/:id/manage` (object types/presets)
+- **Wall Management**: `/walls/:id/item-presets` (object types/presets)
 - **Wall Settings**: `/walls/:id/edit` (wall configuration)
 - **User Permissions**: `/walls/:id/permissions` (access control)
 

@@ -1,23 +1,24 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions, MatCardSubtitle } from '../../../../shared/components/material-stubs';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { MatFormField, MatLabel, MatError } from '../../../../shared/components/material-stubs';
+import { SelectComponent } from '../../../../shared/components/select/select.component';
+import { MatOption } from '../../../../shared/components/material-stubs';
+import { MatCheckbox } from '../../../../shared/components/material-stubs';
+import { MatSlideToggle } from '../../../../shared/components/material-stubs';
+import { MatExpansionPanel, MatExpansionPanelHeader, MatPanelTitle, MatPanelDescription } from '../../../../shared/components/material-stubs';
+import { MatMenu, MatMenuItem } from '../../../../shared/components/material-stubs';
+import { TooltipDirective } from '../../../../shared/components/tooltip/tooltip.component';
+import { MatDivider } from '../../../../shared/components/material-stubs';
+import { MatChipListbox, MatChipOption, MatChip } from '../../../../shared/components/material-stubs';
+// Dialog functionality simplified to use native confirmations
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { WallObjectType, RelationshipDefinition } from '../../../../shared/models/wall.model';
 import { ObjectTypeManagementService } from '../../../../shared/services/object-type-management.service';
+import { FormFieldComponent } from '../../../../shared/components/form-field/form-field.component';
 
 export interface RelationshipTemplate {
   id: string;
@@ -35,21 +36,21 @@ export interface RelationshipTemplate {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatCheckboxModule,
-    MatSlideToggleModule,
-    MatExpansionModule,
-    MatMenuModule,
-    MatTooltipModule,
-    MatDividerModule,
-    MatChipsModule,
-    MatDialogModule,
-    DragDropModule
+    MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions, MatCardSubtitle,
+    ThemedButtonComponent,
+    MaterialIconComponent,
+    MatFormField, MatLabel, MatError,
+    SelectComponent,
+    MatOption,
+    MatCheckbox,
+    MatSlideToggle,
+    MatExpansionPanel, MatExpansionPanelHeader, MatPanelTitle, MatPanelDescription,
+    MatMenu, MatMenuItem,
+    TooltipDirective,
+    MatDivider,
+    MatChipListbox, MatChipOption, MatChip,
+    DragDropModule,
+    FormFieldComponent
   ],
   template: `
     <div class="relationship-manager">
@@ -69,21 +70,23 @@ export interface RelationshipTemplate {
               <mat-icon>add</mat-icon>
               Add Relationship
             </button>
-            <button mat-icon-button [matMenuTriggerFor]="templatesMenu" 
+            <button mat-icon-button (click)="toggleTemplatesMenu()" 
                     matTooltip="Use relationship template">
               <mat-icon>library_add</mat-icon>
             </button>
-            <mat-menu #templatesMenu="matMenu">
-              @for (template of relationshipTemplates; track template.id) {
-                <button mat-menu-item (click)="addFromTemplate(template)">
-                  <mat-icon>{{getRelationshipIcon(template.relationshipType)}}</mat-icon>
-                  <div class="template-menu-item">
-                    <span class="template-name">{{template.name}}</span>
-                    <span class="template-description">{{template.description}}</span>
-                  </div>
-                </button>
-              }
-            </mat-menu>
+            @if (templatesMenuOpen) {
+              <div class="templates-dropdown">
+                @for (template of relationshipTemplates; track template.id) {
+                  <button class="template-menu-item" (click)="addFromTemplate(template); templatesMenuOpen = false">
+                    <mat-icon>{{getRelationshipIcon(template.relationshipType)}}</mat-icon>
+                    <div class="template-info">
+                      <span class="template-name">{{template.name}}</span>
+                      <span class="template-description">{{template.description}}</span>
+                    </div>
+                  </button>
+                }
+              </div>
+            }
           </div>
         </mat-card-header>
       </mat-card>
@@ -198,22 +201,21 @@ export interface RelationshipTemplate {
                           <h4>Basic Information</h4>
                           
                           <div class="form-row">
-                            <mat-form-field class="full-width">
-                              <mat-label>Relationship Name</mat-label>
+                            <app-form-field 
+                              class="full-width"
+                              label="Relationship Name"
+                              [required]="true"
+                              [error]="relationship.get('name')?.hasError('required') ? 'Relationship name is required' : ''">
                               <input matInput formControlName="name" 
                                      placeholder="e.g., 'served in', 'belongs to', 'manages'">
-                              @if (relationship.get('name')?.hasError('required')) {
-                                <mat-error>Relationship name is required</mat-error>
-                              }
-                            </mat-form-field>
+                            </app-form-field>
                           </div>
 
                           <div class="form-row">
-                            <mat-form-field class="full-width">
-                              <mat-label>Description</mat-label>
+                            <app-form-field class="full-width" label="Description">
                               <textarea matInput formControlName="description" rows="2"
                                        placeholder="Describe how these objects relate to each other..."></textarea>
-                            </mat-form-field>
+                            </app-form-field>
                           </div>
                         </div>
 
@@ -223,8 +225,7 @@ export interface RelationshipTemplate {
                           <h4>Object Types</h4>
                           
                           <div class="form-row">
-                            <mat-form-field class="half-width">
-                              <mat-label>From Object Type</mat-label>
+                            <app-form-field class="half-width" label="From Object Type">
                               <mat-select formControlName="fromObjectTypeId">
                                 @for (objectType of availableObjectTypes; track objectType.id) {
                                   <mat-option [value]="objectType.id">
@@ -233,10 +234,9 @@ export interface RelationshipTemplate {
                                   </mat-option>
                                 }
                               </mat-select>
-                            </mat-form-field>
+                            </app-form-field>
 
-                            <mat-form-field class="half-width">
-                              <mat-label>To Object Type</mat-label>
+                            <app-form-field class="half-width" label="To Object Type">
                               <mat-select formControlName="toObjectTypeId">
                                 @for (objectType of availableObjectTypes; track objectType.id) {
                                   <mat-option [value]="objectType.id">
@@ -245,7 +245,7 @@ export interface RelationshipTemplate {
                                   </mat-option>
                                 }
                               </mat-select>
-                            </mat-form-field>
+                            </app-form-field>
                           </div>
 
                           <div class="relationship-preview">
@@ -281,8 +281,7 @@ export interface RelationshipTemplate {
                           <h4>Relationship Type</h4>
                           
                           <div class="form-row">
-                            <mat-form-field class="full-width">
-                              <mat-label>Relationship Type</mat-label>
+                            <app-form-field class="full-width" label="Relationship Type">
                               <mat-select formControlName="relationshipType">
                                 <mat-option value="one-to-one">
                                   <mat-icon>looks_one</mat-icon>
@@ -300,7 +299,7 @@ export interface RelationshipTemplate {
                                   <span class="type-description">Multiple items can relate to multiple other items</span>
                                 </mat-option>
                               </mat-select>
-                            </mat-form-field>
+                            </app-form-field>
                           </div>
 
                           <div class="relationship-type-explanation">
@@ -338,7 +337,7 @@ export interface RelationshipTemplate {
                           <div class="form-row">
                             <div class="checkbox-group">
                               <mat-slide-toggle formControlName="cascadeDelete" 
-                                              (change)="onCascadeDeleteChange(i, $event.checked)">
+                                              (change)="onCascadeDeleteChange(i, $event)">
                                 Cascade Delete
                               </mat-slide-toggle>
                               <span class="option-description warning-text">
@@ -403,6 +402,7 @@ export class RelationshipManagerComponent implements OnInit {
   relationshipsForm!: FormGroup;
   expandedRelationshipIndex = -1;
   isSaving = false;
+  templatesMenuOpen = false;
 
   relationshipTemplates: RelationshipTemplate[] = [
     {
@@ -445,7 +445,6 @@ export class RelationshipManagerComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private dialog: MatDialog,
     private objectTypeService: ObjectTypeManagementService
   ) {}
 
@@ -650,6 +649,10 @@ export class RelationshipManagerComponent implements OnInit {
 
   private generateRelationshipId(): string {
     return `rel_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  toggleTemplatesMenu(): void {
+    this.templatesMenuOpen = !this.templatesMenuOpen;
   }
 
   onCancel(): void {

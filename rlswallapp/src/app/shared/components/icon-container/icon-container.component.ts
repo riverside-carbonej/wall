@@ -1,11 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
+import { MaterialIconComponent } from '../material-icon/material-icon.component';
 
 @Component({
   selector: 'app-icon-container',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, MaterialIconComponent],
   template: `
     <div class="icon-container" 
          [class]="containerClass"

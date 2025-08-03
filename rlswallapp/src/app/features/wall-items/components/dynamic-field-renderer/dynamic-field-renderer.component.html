@@ -39,39 +39,32 @@
       
       <!-- Text Input Fields (text, email, url) -->
       @if (isTextInput()) {
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>
-            {{ field.name }}
-            @if (field.required) {
-              <span class="required-indicator">*</span>
-            }
-          </mat-label>
+        <app-form-field
+          [label]="field.name"
+          [required]="field.required"
+          [suffixIcon]="getFieldIcon()"
+          [error]="formControl.invalid && formControl.touched ? getErrorMessage() : undefined"
+          appearance="outline"
+          spacing="comfortable">
           <input 
             matInput 
             [type]="getInputType()"
             [formControl]="formControl"
             [placeholder]="field.placeholder || ''"
             [required]="field.required">
-          @if (getFieldIcon()) {
-            <mat-icon matSuffix>{{ getFieldIcon() }}</mat-icon>
-          }
-          @if (formControl.invalid && formControl.touched) {
-            <mat-error>
-              {{ getErrorMessage() }}
-            </mat-error>
-          }
-        </mat-form-field>
+        </app-form-field>
       }
 
       <!-- Textarea Fields (longtext, richtext) -->
       @if (isTextarea()) {
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>
-            {{ field.name }}
-            @if (field.required) {
-              <span class="required-indicator">*</span>
-            }
-          </mat-label>
+        <app-form-field
+          [label]="field.name"
+          [required]="field.required"
+          [suffixIcon]="getFieldIcon()"
+          [error]="formControl.invalid && formControl.touched ? getErrorMessage() : undefined"
+          [hint]="field.placeholder"
+          appearance="outline"
+          spacing="comfortable">
           <textarea 
             matInput 
             [formControl]="formControl"
@@ -82,15 +75,7 @@
             cdkAutosizeMinRows="2"
             cdkAutosizeMaxRows="8">
           </textarea>
-          @if (getFieldIcon()) {
-            <mat-icon matSuffix>{{ getFieldIcon() }}</mat-icon>
-          }
-          @if (formControl.invalid && formControl.touched) {
-            <mat-error>
-              {{ getErrorMessage() }}
-            </mat-error>
-          }
-        </mat-form-field>
+        </app-form-field>
       }
 
       <!-- Number Input -->
@@ -129,12 +114,10 @@
             }
           </mat-label>
           <input 
-            matInput 
-            [matDatepicker]="datePicker"
+            type="date"
             [formControl]="formControl"
             [required]="field.required"
-            readonly>
-          <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+            class="date-input">
           <mat-datepicker #datePicker></mat-datepicker>
           @if (formControl.invalid && formControl.touched) {
             <mat-error>
@@ -203,7 +186,7 @@
               @for (option of field.multiselectConfig?.options || []; track option) {
                 <mat-checkbox 
                   [checked]="isOptionSelected(option)"
-                  (change)="onMultiselectChange(option, $event.checked)"
+                  (change)="onMultiselectChange(option, $event)"
                   class="multiselect-option">
                   {{ option }}
                 </mat-checkbox>

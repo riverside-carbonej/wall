@@ -1,22 +1,23 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatBadgeModule } from '@angular/material/badge';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions } from '../../../../shared/components/material-stubs';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { MatFormField, MatLabel, MatError } from '../../../../shared/components/material-stubs';
+import { SelectComponent } from '../../../../shared/components/select/select.component';
+import { MatOption } from '../../../../shared/components/material-stubs';
+import { MatChipListbox, MatChipOption, MatChip } from '../../../../shared/components/material-stubs';
+// Dialog functionality simplified to use native confirmations
+import { MatMenu, MatMenuItem } from '../../../../shared/components/material-stubs';
+import { TooltipDirective } from '../../../../shared/components/tooltip/tooltip.component';
+import { MatDivider } from '../../../../shared/components/material-stubs';
+import { MatTabGroup, MatTab } from '../../../../shared/components/material-stubs';
 import { FormsModule } from '@angular/forms';
 import { ButtonGroupComponent, ButtonGroupItem } from '../../../../shared/components/button-group/button-group.component';
+import { CardComponent, CardAction } from '../../../../shared/components/card/card.component';
 import { ObjectTypeService } from '../../../walls/services/object-type.service';
 import { WallObjectType } from '../../../../shared/models/wall.model';
+import { FormFieldComponent } from '../../../../shared/components/form-field/form-field.component';
 
 export interface WallTemplate {
   id: string;
@@ -38,20 +39,20 @@ export interface WallTemplate {
   imports: [
     CommonModule,
     FormsModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatChipsModule,
-    MatTabsModule,
+    MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions,
+    ThemedButtonComponent,
+    MaterialIconComponent,
+    MatFormField, MatLabel, MatError,
+    SelectComponent,
+    MatOption,
+    MatChipListbox, MatChipOption, MatChip,
+    MatTabGroup, MatTab,
     ButtonGroupComponent,
-    MatDialogModule,
-    MatMenuModule,
-    MatTooltipModule,
-    MatBadgeModule,
-    MatDividerModule
+    CardComponent,
+    MatMenu, MatMenuItem,
+    TooltipDirective,
+    MatDivider,
+    FormFieldComponent
   ],
   template: `
     <div class="template-library">
@@ -65,15 +66,12 @@ export interface WallTemplate {
         </div>
         
         <div class="header-actions">
-          <mat-form-field class="search-field">
-            <mat-label>Search templates</mat-label>
+          <app-form-field class="search-field" label="Search templates" suffixIcon="search">
             <input matInput [(ngModel)]="searchTerm" (input)="onSearch()" 
                    placeholder="Search by name, category, or feature...">
-            <mat-icon matSuffix>search</mat-icon>
-          </mat-form-field>
+          </app-form-field>
           
-          <mat-form-field class="filter-field">
-            <mat-label>Category</mat-label>
+          <app-form-field class="filter-field" label="Category">
             <mat-select [(ngModel)]="selectedCategory" (selectionChange)="onCategoryFilter()">
               <mat-option value="all">All Categories</mat-option>
               <mat-option value="business">Business</mat-option>
@@ -83,7 +81,7 @@ export interface WallTemplate {
               <mat-option value="personal">Personal</mat-option>
               <mat-option value="custom">Custom</mat-option>
             </mat-select>
-          </mat-form-field>
+          </app-form-field>
         </div>
       </div>
 
@@ -99,58 +97,30 @@ export interface WallTemplate {
             <div class="featured-tab">
               <div class="templates-grid">
                 @for (template of featuredTemplates; track template.id) {
-                  <mat-card class="template-card featured" (click)="selectTemplate(template)">
-                    <div class="template-header">
-                      <div class="template-icon">
-                        <mat-icon>{{getTemplateIcon(template.category)}}</mat-icon>
-                      </div>
-                      <div class="template-badges">
-                        <mat-chip class="complexity-chip" [class]="'complexity-' + template.complexity">
-                          {{template.complexity}}
-                        </mat-chip>
-                        @if (template.category === 'military') {
-                          <mat-chip class="category-chip military">Military</mat-chip>
-                        }
-                      </div>
+                  <app-card
+                    variant="elevated"
+                    size="medium"
+                    [clickable]="true"
+                    [avatarIcon]="getTemplateIcon(template.category)"
+                    [title]="template.name"
+                    [subtitle]="template.category === 'military' ? 'Military • ' + template.complexity : template.complexity"
+                    [description]="template.description"
+                    [metadata]="getTemplateMetadata(template)"
+                    [actions]="getTemplateActions(template)"
+                    [ariaLabel]="'Template: ' + template.name"
+                    (cardClick)="selectTemplate(template)"
+                    class="template-card featured">
+                    
+                    <!-- Template Features in Content Slot -->
+                    <div class="template-features">
+                      @for (feature of template.features.slice(0, 3); track feature) {
+                        <mat-chip class="feature-chip">{{feature}}</mat-chip>
+                      }
+                      @if (template.features.length > 3) {
+                        <mat-chip class="more-chip">+{{template.features.length - 3}} more</mat-chip>
+                      }
                     </div>
-                    
-                    <mat-card-content>
-                      <h3>{{template.name}}</h3>
-                      <p class="template-description">{{template.description}}</p>
-                      
-                      <div class="template-stats">
-                        <div class="stat">
-                          <mat-icon>category</mat-icon>
-                          <span>{{template.objectTypes.length}} Object Types</span>
-                        </div>
-                        <div class="stat">
-                          <mat-icon>schedule</mat-icon>
-                          <span>{{template.estimatedSetupTime}}</span>
-                        </div>
-                      </div>
-                      
-                      <div class="template-features">
-                        @for (feature of template.features.slice(0, 3); track feature) {
-                          <mat-chip class="feature-chip">{{feature}}</mat-chip>
-                        }
-                        @if (template.features.length > 3) {
-                          <mat-chip class="more-chip">+{{template.features.length - 3}} more</mat-chip>
-                        }
-                      </div>
-                    </mat-card-content>
-                    
-                    <mat-card-actions>
-                      <button mat-button (click)="previewTemplate(template); $event.stopPropagation()">
-                        <mat-icon>visibility</mat-icon>
-                        Preview
-                      </button>
-                      <button mat-raised-button color="primary" 
-                              (click)="useTemplate(template); $event.stopPropagation()">
-                        <mat-icon>add</mat-icon>
-                        Use Template
-                      </button>
-                    </mat-card-actions>
-                  </mat-card>
+                  </app-card>
                 }
               </div>
             </div>
@@ -160,57 +130,27 @@ export interface WallTemplate {
             <div class="all-templates-tab">
               <div class="templates-grid">
                 @for (template of filteredTemplates; track template.id) {
-                  <mat-card class="template-card" (click)="selectTemplate(template)">
-                    <div class="template-header">
-                      <div class="template-icon">
-                        <mat-icon>{{getTemplateIcon(template.category)}}</mat-icon>
-                      </div>
-                      <div class="template-badges">
-                        <mat-chip class="complexity-chip" [class]="'complexity-' + template.complexity">
-                          {{template.complexity}}
-                        </mat-chip>
-                        <mat-chip class="category-chip" [class]="template.category">
-                          {{getCategoryLabel(template.category)}}
-                        </mat-chip>
-                      </div>
-                    </div>
+                  <app-card
+                    variant="elevated"
+                    size="medium"
+                    [clickable]="true"
+                    [avatarIcon]="getTemplateIcon(template.category)"
+                    [title]="template.name"
+                    [subtitle]="getCategoryLabel(template.category) + ' • ' + template.complexity"
+                    [description]="template.description"
+                    [metadata]="getAllTemplateMetadata(template)"
+                    [actions]="getTemplateActions(template)"
+                    [ariaLabel]="'Template: ' + template.name"
+                    (cardClick)="selectTemplate(template)"
+                    class="template-card">
                     
-                    <mat-card-content>
-                      <h3>{{template.name}}</h3>
-                      <p class="template-description">{{template.description}}</p>
-                      
-                      <div class="template-stats">
-                        <div class="stat">
-                          <mat-icon>category</mat-icon>
-                          <span>{{template.objectTypes.length}} Types</span>
-                        </div>
-                        <div class="stat">
-                          <mat-icon>device_hub</mat-icon>
-                          <span>{{template.relationships.length}} Relations</span>
-                        </div>
-                        <div class="stat">
-                          <mat-icon>schedule</mat-icon>
-                          <span>{{template.estimatedSetupTime}}</span>
-                        </div>
-                      </div>
-                      
+                    <!-- Use Case and Features -->
+                    <div class="template-details">
                       <div class="use-case">
                         <strong>Use Case:</strong> {{template.useCase}}
                       </div>
-                    </mat-card-content>
-                    
-                    <mat-card-actions>
-                      <button mat-button (click)="previewTemplate(template); $event.stopPropagation()">
-                        <mat-icon>visibility</mat-icon>
-                        Preview
-                      </button>
-                      <button mat-raised-button color="primary" 
-                              (click)="useTemplate(template); $event.stopPropagation()">
-                        <mat-icon>add</mat-icon>
-                        Use Template
-                      </button>
-                    </mat-card-actions>
-                  </mat-card>
+                    </div>
+                  </app-card>
                 }
               </div>
               
@@ -264,32 +204,34 @@ export interface WallTemplate {
                           <mat-icon>bookmark</mat-icon>
                         </div>
                         <div class="template-actions">
-                          <button mat-icon-button [matMenuTriggerFor]="templateMenu">
+                          <button class="template-menu-button" (click)="toggleTemplateMenu(template.id)">
                             <mat-icon>more_vert</mat-icon>
                           </button>
-                          <mat-menu #templateMenu="matMenu">
-                            <button mat-menu-item (click)="editTemplate(template)">
-                              <mat-icon>edit</mat-icon>
-                              Edit
-                            </button>
-                            <button mat-menu-item (click)="duplicateTemplate(template)">
-                              <mat-icon>content_copy</mat-icon>
-                              Duplicate
-                            </button>
-                            <button mat-menu-item (click)="exportTemplate(template)">
-                              <mat-icon>file_download</mat-icon>
-                              Export
-                            </button>
-                            <button mat-menu-item (click)="shareTemplate(template)">
-                              <mat-icon>share</mat-icon>
-                              Share
-                            </button>
-                            <mat-divider></mat-divider>
-                            <button mat-menu-item (click)="deleteTemplate(template)" class="danger">
-                              <mat-icon>delete</mat-icon>
-                              Delete
-                            </button>
-                          </mat-menu>
+                          @if (openMenuId === template.id) {
+                            <mat-menu class="template-menu">
+                              <button class="menu-item" (click)="editTemplate(template)">
+                                <mat-icon>edit</mat-icon>
+                                Edit
+                              </button>
+                              <button class="menu-item" (click)="duplicateTemplate(template)">
+                                <mat-icon>content_copy</mat-icon>
+                                Duplicate
+                              </button>
+                              <button class="menu-item" (click)="exportTemplate(template)">
+                                <mat-icon>file_download</mat-icon>
+                                Export
+                              </button>
+                              <button class="menu-item" (click)="shareTemplate(template)">
+                                <mat-icon>share</mat-icon>
+                                Share
+                              </button>
+                              <mat-divider></mat-divider>
+                              <button class="menu-item danger" (click)="deleteTemplate(template)">
+                                <mat-icon>delete</mat-icon>
+                                Delete
+                              </button>
+                            </mat-menu>
+                          }
                         </div>
                       </div>
                       
@@ -337,6 +279,7 @@ export class TemplateLibraryComponent implements OnInit {
   @Output() close = new EventEmitter<void>();
 
   searchTerm = '';
+  openMenuId: string | null = null;
   selectedCategory = 'all';
   selectedTab = 0;
   
@@ -352,7 +295,6 @@ export class TemplateLibraryComponent implements OnInit {
   ];
 
   constructor(
-    private dialog: MatDialog,
     private objectTypeService: ObjectTypeService
   ) {}
 
@@ -761,5 +703,42 @@ export class TemplateLibraryComponent implements OnInit {
 
   onTabChange(item: ButtonGroupItem): void {
     this.selectedTab = parseInt(item.id);
+  }
+
+  // Helper methods for CardComponent
+  getTemplateMetadata(template: WallTemplate): Array<{key: string; value: string; icon?: string}> {
+    return [
+      { key: 'objectTypes', value: `${template.objectTypes.length} Object Types`, icon: 'category' },
+      { key: 'setupTime', value: template.estimatedSetupTime, icon: 'schedule' }
+    ];
+  }
+
+  getAllTemplateMetadata(template: WallTemplate): Array<{key: string; value: string; icon?: string}> {
+    return [
+      { key: 'objectTypes', value: `${template.objectTypes.length} Types`, icon: 'category' },
+      { key: 'relationships', value: `${template.relationships.length} Relations`, icon: 'device_hub' },
+      { key: 'setupTime', value: template.estimatedSetupTime, icon: 'schedule' }
+    ];
+  }
+
+  getTemplateActions(template: WallTemplate): CardAction[] {
+    return [
+      {
+        label: 'Preview',
+        icon: 'visibility',
+        primary: false,
+        action: () => this.previewTemplate(template)
+      },
+      {
+        label: 'Use Template',
+        icon: 'add',
+        primary: true,
+        action: () => this.useTemplate(template)
+      }
+    ];
+  }
+
+  toggleTemplateMenu(templateId: string): void {
+    this.openMenuId = this.openMenuId === templateId ? null : templateId;
   }
 }

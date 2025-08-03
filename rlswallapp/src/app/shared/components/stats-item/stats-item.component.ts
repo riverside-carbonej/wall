@@ -1,17 +1,17 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
+import { MaterialIconComponent } from '../material-icon/material-icon.component';
 
 @Component({
   selector: 'app-stats-item',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, MaterialIconComponent],
   template: `
-    <div class="stat-item" [class]="containerClass">
-      @if (icon) {
-        <mat-icon class="stat-icon" [class]="iconClass">{{ icon }}</mat-icon>
+    <div class="stat-item" [class]="containerClass()">
+      @if (icon()) {
+        <mat-icon class="stat-icon" [class]="iconClass()" [icon]="icon()"></mat-icon>
       }
-      <span class="stat-text" [class]="textClass">{{ text }}</span>
+      <span class="stat-text" [class]="textClass()">{{ text() }}</span>
     </div>
   `,
   styles: [`
@@ -70,9 +70,9 @@ import { MatIconModule } from '@angular/material/icon';
   `]
 })
 export class StatsItemComponent {
-  @Input() icon?: string;
-  @Input() text!: string;
-  @Input() containerClass?: string;
-  @Input() iconClass?: string;
-  @Input() textClass?: string;
+  icon = input<string>();
+  text = input.required<string>();
+  containerClass = input<string>();
+  iconClass = input<string>();
+  textClass = input<string>();
 }

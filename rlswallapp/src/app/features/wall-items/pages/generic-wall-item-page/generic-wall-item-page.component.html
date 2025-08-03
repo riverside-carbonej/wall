@@ -1,49 +1,11 @@
 @if (!isLoading) {
-<div class="generic-wall-item-page">
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1 class="page-title">{{ title }}</h1>
-      
-      @if (canEdit()) {
-        <div class="header-actions">
-        <!-- Edit/Save Button -->
-        @if (!editing && !isNewItem) {
-          <button 
-            mat-raised-button 
-            color="primary"
-            (click)="onToggleEditMode()"
-            class="action-button">
-            <mat-icon>edit</mat-icon>
-            Edit
-          </button>
-        }
-        
-        @if (editing) {
-          <button 
-            mat-raised-button 
-            color="primary"
-            (click)="onSaveItem()"
-            [disabled]="isSaving || itemForm.invalid"
-            class="action-button">
-            <mat-icon>{{ isSaving ? 'hourglass_empty' : 'save' }}</mat-icon>
-            {{ isNewItem ? 'Add Item' : 'Save Changes' }}
-          </button>
-        }
-        
-        <!-- Delete Button -->
-        @if (canDelete() && !editing) {
-          <app-delete-button 
-            [deleteItem]="onDeleteItem.bind(this)"
-            [name]="'item'">
-          </app-delete-button>
-        }
-        </div>
-      }
-    </div>
-  </div>
-
-  <!-- Main Content Layout -->
+  <app-page-layout
+    [title]="title"
+    [showBackButton]="true"
+    [actions]="getPageActions()"
+    (backClick)="onBackClick()">
+    
+    <!-- Main Content Layout -->
   <div class="content-layout">
     <!-- Image Section -->
     <div class="image-section">
@@ -229,7 +191,8 @@
     </mat-card>
     </div>
   }
-</div>
+  
+  </app-page-layout>
 }
 
 <!-- Loading State -->

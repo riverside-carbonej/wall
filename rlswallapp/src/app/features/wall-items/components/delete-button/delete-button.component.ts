@@ -1,22 +1,22 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 
 @Component({
   selector: 'app-delete-button',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatDialogModule],
+  imports: [CommonModule, ThemedButtonComponent, MaterialIconComponent],
   template: `
-    <button 
-      mat-outlined-button 
+    <app-themed-button 
+      variant="stroked"
       color="warn"
       (click)="confirmDelete()"
       class="delete-button">
       <mat-icon>delete</mat-icon>
       Delete {{ name }}
-    </button>
+    </app-themed-button>
   `,
   styles: [`
     .delete-button {
@@ -31,12 +31,15 @@ export class DeleteButtonComponent {
   @Input() deleteItem!: () => Promise<any> | void;
   @Input() name = 'item';
 
-  constructor(private dialog: MatDialog) {}
+  constructor(
+    private confirmationService: ConfirmationDialogService
+  ) {}
 
   confirmDelete() {
-    const confirmed = window.confirm(`Are you sure you want to delete this ${this.name}?`);
-    if (confirmed && this.deleteItem) {
-      this.deleteItem();
-    }
+    this.confirmationService.confirmDelete(this.name).subscribe(confirmed => {
+      if (confirmed && this.deleteItem) {
+        this.deleteItem();
+      }
+    });
   }
 }

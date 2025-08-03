@@ -1,172 +1,94 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { ProgressSpinnerComponent } from '../../../../shared/components/progress-spinner/progress-spinner.component';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { switchMap, filter } from 'rxjs/operators';
 
 import { WallService } from '../../services/wall.service';
 import { Wall, WallObjectType } from '../../../../shared/models/wall.model';
 import { ObjectTypeBuilderComponent, ObjectTypeBuilderConfig } from '../../../object-types/components/object-type-builder/object-type-builder.component';
-import { TemplateLibraryComponent } from '../../../object-types/components/template-library/template-library.component';
 import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/components/empty-state/empty-state.component';
+import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
+import { CardComponent, CardAction, CardMenuItem } from '../../../../shared/components/card/card.component';
+import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 
 @Component({
   selector: 'app-wall-item-presets',
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTabsModule,
-    MatToolbarModule,
-    MatProgressSpinnerModule,
+    ThemedButtonComponent,
+    MaterialIconComponent,
+    ProgressSpinnerComponent,
     ObjectTypeBuilderComponent,
-    TemplateLibraryComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    PageLayoutComponent,
+    CardComponent
   ],
   template: `
-    <div class="wall-item-presets" *ngIf="wall$ | async as wall">
-      <!-- Header -->
-      <mat-toolbar class="page-header">
-        <button mat-icon-button (click)="goBack()">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
-        <span class="page-title">Wall Item Presets</span>
-        <span class="spacer"></span>
-        <button mat-raised-button color="primary" (click)="createNewPreset()">
-          <mat-icon>add</mat-icon>
-          New Preset
-        </button>
-      </mat-toolbar>
-
-      <!-- Content -->
-      <div class="content-container">
-        <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)">
-          
-          <!-- Existing Presets Tab -->
-          <mat-tab label="Current Presets">
-            <div class="tab-content">
-              @if (wall.objectTypes && wall.objectTypes.length > 0) {
-                <div class="presets-grid">
-                  @for (objectType of wall.objectTypes; track objectType.id) {
-                    <mat-card class="preset-card">
-                      <mat-card-header>
-                        <div mat-card-avatar class="preset-avatar">
-                          <mat-icon [style.color]="objectType.color">{{ objectType.icon }}</mat-icon>
-                        </div>
-                        <mat-card-title>{{ objectType.name }}</mat-card-title>
-                        <mat-card-subtitle>{{ objectType.fields.length }} fields</mat-card-subtitle>
-                      </mat-card-header>
-                      
-                      <mat-card-content>
-                        <p class="preset-description">{{ objectType.description }}</p>
-                        <div class="field-summary">
-                          @for (field of objectType.fields | slice:0:3; track field.id) {
-                            <span class="field-chip">{{ field.name }}</span>
-                          }
-                          @if (objectType.fields.length > 3) {
-                            <span class="field-chip more">+{{ objectType.fields.length - 3 }} more</span>
-                          }
-                        </div>
-                      </mat-card-content>
-                      
-                      <mat-card-actions>
-                        <button mat-button (click)="editPreset(objectType)">
-                          <mat-icon>edit</mat-icon>
-                          Edit
-                        </button>
-                        <button mat-button color="warn" (click)="deletePreset(objectType)">
-                          <mat-icon>delete</mat-icon>
-                          Delete
-                        </button>
-                      </mat-card-actions>
-                    </mat-card>
-                  }
-                </div>
-              } @else {
-                <app-empty-state
-                  icon="category"
-                  title="No Wall Item Presets Yet"
-                  message="Create your first preset to define the structure of items in this wall."
-                  [actions]="emptyStateActions">
-                </app-empty-state>
+    <div *ngIf="wall$ | async as wall">
+      <app-page-layout
+        title="Wall Item Presets"
+        subtitle="Define the structure of items in this wall"
+        [showBackButton]="true"
+        [actions]="getPageActions()"
+        (backClick)="goBack()">
+        
+        <!-- Content Section -->
+        @if (showBuilder) {
+          <app-object-type-builder
+            [config]="{
+              mode: editingObjectType ? 'edit' : 'create',
+              wallId: wall.id,
+              initialData: editingObjectType || undefined
+            }"
+            (save)="onObjectTypeSaved($event)"
+            (cancel)="onBuilderCancelled()">
+          </app-object-type-builder>
+        } @else {
+          @if (wall.objectTypes && wall.objectTypes.length > 0) {
+            <div class="presets-grid">
+              @for (objectType of wall.objectTypes; track objectType.id) {
+                <app-card
+                  variant="elevated"
+                  size="medium"
+                  [title]="objectType.name"
+                  [subtitle]="objectType.fields.length + ' fields'"
+                  [avatarIcon]="objectType.icon"
+                  [description]="objectType.description"
+                  [metadata]="getMetadata(objectType)"
+                  [actions]="getActions(objectType)"
+                  class="preset-card">
+                  
+                  <div class="field-summary">
+                    @for (field of objectType.fields | slice:0:3; track field.id) {
+                      <span class="field-chip">{{ field.name }}</span>
+                    }
+                    @if (objectType.fields.length > 3) {
+                      <span class="field-chip more">+{{ objectType.fields.length - 3 }} more</span>
+                    }
+                  </div>
+                </app-card>
               }
             </div>
-          </mat-tab>
-
-          <!-- Template Library Tab -->
-          <mat-tab label="Template Library">
-            <div class="tab-content">
-              <app-template-library
-                [wallId]="wall.id"
-                (templateSelected)="onTemplateSelected($event)">
-              </app-template-library>
-            </div>
-          </mat-tab>
-
-          <!-- Create/Edit Preset Tab -->
-          <mat-tab label="Create Preset" [disabled]="!showBuilder">
-            <div class="tab-content">
-              @if (showBuilder) {
-                <app-object-type-builder
-                  [config]="{
-                    mode: editingObjectType ? 'edit' : 'create',
-                    wallId: wall.id,
-                    initialData: editingObjectType || undefined
-                  }"
-                  (save)="onObjectTypeSaved($event)"
-                  (cancel)="onBuilderCancelled()">
-                </app-object-type-builder>
-              }
-            </div>
-          </mat-tab>
-
-        </mat-tab-group>
-      </div>
+          } @else {
+            <app-empty-state
+              icon="category"
+              title="No Wall Item Presets Yet"
+              message="Create your first preset to define the structure of items in this wall."
+              [actions]="emptyStateActions">
+            </app-empty-state>
+          }
+        }
+        
+      </app-page-layout>
     </div>
   `,
   styles: [`
-    .wall-item-presets {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .page-header {
-      background: var(--md-sys-color-surface-container);
-      color: var(--md-sys-color-on-surface);
-      flex-shrink: 0;
-    }
-
-    .page-title {
-      font-size: 1.25rem;
-      font-weight: 500;
-    }
-
-    .spacer {
-      flex: 1;
-    }
-
-    .content-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .tab-content {
-      padding: 24px;
-      height: calc(100vh - 120px);
-      overflow-y: auto;
-    }
-
+    /* Grid layout for presets */
     .presets-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -174,28 +96,7 @@ import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/compon
     }
 
     .preset-card {
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .preset-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .preset-avatar {
-      background: var(--md-sys-color-primary-container);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .preset-description {
-      color: var(--md-sys-color-on-surface-variant);
-      margin: 0 0 16px 0;
-      line-height: 1.4;
+      /* Card component handles styling */
     }
 
     .field-summary {
@@ -218,18 +119,10 @@ import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/compon
       color: var(--md-sys-color-on-surface-variant);
     }
 
-    mat-card-actions {
-      padding: 8px 16px 16px;
-    }
-
     /* Responsive design */
     @media (max-width: 768px) {
       .presets-grid {
         grid-template-columns: 1fr;
-      }
-      
-      .tab-content {
-        padding: 16px;
       }
     }
   `]
@@ -238,14 +131,15 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   
   wall$!: Observable<Wall>;
-  selectedTabIndex = 0;
   showBuilder = false;
   editingObjectType: WallObjectType | null = null;
+  
   
   emptyStateActions: EmptyStateAction[] = [
     {
       label: 'Create Preset',
-      primary: true,
+      icon: 'add',
+      primary: false,
       action: () => this.createNewPreset()
     }
   ];
@@ -253,7 +147,8 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private wallService: WallService
+    private wallService: WallService,
+    private confirmationDialog: ConfirmationDialogService
   ) {}
 
   ngOnInit() {
@@ -276,51 +171,55 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
     this.router.navigate(['../'], { relativeTo: this.route });
   }
 
+  getPageActions(): PageAction[] {
+    if (this.showBuilder) {
+      return []; // No header actions when showing builder (builder has its own controls)
+    }
+    
+    return [
+      {
+        label: 'New Preset',
+        icon: 'add',
+        variant: 'raised',
+        color: 'primary',
+        action: () => this.createNewPreset()
+      }
+    ];
+  }
+
   createNewPreset() {
     this.editingObjectType = null;
     this.showBuilder = true;
-    this.selectedTabIndex = 2; // Switch to Create Preset tab
   }
 
   editPreset(objectType: WallObjectType) {
     this.editingObjectType = objectType;
     this.showBuilder = true;
-    this.selectedTabIndex = 2; // Switch to Create Preset tab
   }
 
   deletePreset(objectType: WallObjectType) {
-    if (confirm(`Are you sure you want to delete the "${objectType.name}" preset? This action cannot be undone.`)) {
-      this.wall$.pipe(
-        switchMap(wall => {
-          if (!wall) throw new Error('Wall not found');
-          return this.wallService.removeObjectTypeFromWall(wall.id, objectType.id);
-        }),
-        takeUntil(this.destroy$)
-      ).subscribe({
-        next: () => {
-          console.log('Preset deleted successfully');
-          // The wall$ observable will automatically update
-        },
-        error: (error) => {
-          console.error('Error deleting preset:', error);
-          alert('Failed to delete preset. Please try again.');
-        }
-      });
-    }
+    this.confirmationDialog.confirmDelete(objectType.name).subscribe(confirmed => {
+      if (confirmed) {
+        this.wall$.pipe(
+          switchMap(wall => {
+            if (!wall) throw new Error('Wall not found');
+            return this.wallService.removeObjectTypeFromWall(wall.id, objectType.id);
+          }),
+          takeUntil(this.destroy$)
+        ).subscribe({
+          next: () => {
+            console.log('Preset deleted successfully');
+            // The wall$ observable will automatically update
+          },
+          error: (error) => {
+            console.error('Error deleting preset:', error);
+            alert('Failed to delete preset. Please try again.');
+          }
+        });
+      }
+    });
   }
 
-  onTemplateSelected(template: any) {
-    // Apply template to create new object type
-    console.log('Template selected:', template);
-    if (template.objectTypes && template.objectTypes.length > 0) {
-      // Use first object type from template as initial data
-      this.editingObjectType = template.objectTypes[0] as WallObjectType;
-      this.showBuilder = true;
-      this.selectedTabIndex = 2; // Switch to Create Preset tab
-    } else {
-      this.createNewPreset();
-    }
-  }
 
   onObjectTypeSaved(objectType: WallObjectType) {
     this.wall$.pipe(
@@ -341,7 +240,6 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
         console.log('Object type saved successfully');
         this.showBuilder = false;
         this.editingObjectType = null;
-        this.selectedTabIndex = 0; // Return to Current Presets tab
         // The wall$ observable will automatically update
       },
       error: (error) => {
@@ -354,14 +252,29 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
   onBuilderCancelled() {
     this.showBuilder = false;
     this.editingObjectType = null;
-    this.selectedTabIndex = 0; // Return to Current Presets tab
   }
 
-  onTabChange(event: any) {
-    this.selectedTabIndex = event.index;
-    if (event.index !== 2) {
-      this.showBuilder = false;
-      this.editingObjectType = null;
-    }
+  getMetadata(objectType: WallObjectType): Array<{key: string; value: string; icon?: string}> {
+    return [
+      { key: 'fields', value: `${objectType.fields.length} fields`, icon: 'list' }
+    ];
   }
+
+  getActions(objectType: WallObjectType): CardAction[] {
+    return [
+      {
+        label: 'Edit',
+        icon: 'edit',
+        primary: false,
+        action: () => this.editPreset(objectType)
+      },
+      {
+        label: 'Delete',
+        icon: 'delete',
+        primary: false,
+        action: () => this.deletePreset(objectType)
+      }
+    ];
+  }
+
 }

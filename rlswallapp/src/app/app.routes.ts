@@ -32,7 +32,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   { 
-    path: 'walls/:id/manage', 
+    path: 'walls/:id/item-presets', 
     loadComponent: () => import('./features/walls/components/wall-item-presets/wall-item-presets.component').then(m => m.WallItemPresetsComponent),
     canActivate: [AuthGuard]
   },

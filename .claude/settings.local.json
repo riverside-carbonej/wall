@@ -31,7 +31,11 @@
       "Bash(npm start)",
       "Bash(npm test:*)",
       "Bash(timeout 15 npm start)",
-      "mcp__context7__get-library-docs"
+      "mcp__context7__get-library-docs",
+      "Bash(npm search:*)",
+      "Bash(timeout 15 npm run build)",
+      "Bash(timeout 20 npm run build)",
+      "Bash(timeout 30 npm run build)"
     ],
     "deny": []
   }

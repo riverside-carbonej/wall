@@ -1,9 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
+import { ThemedButtonComponent } from '../themed-button/themed-button.component';
+import { DividerComponent } from '../divider/divider.component';
 import { Subject, takeUntil } from 'rxjs';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 import { NavigationService } from '../../services/navigation.service';
 import { SideButtonComponent } from '../side-button/side-button.component';
@@ -14,9 +15,8 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
   standalone: true,
   imports: [
     CommonModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDividerModule,
+    ThemedButtonComponent,
+    DividerComponent,
     SideButtonComponent
   ],
   template: `
@@ -27,15 +27,16 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
         <!-- Add Button -->
         @if (canShowAddButton()) {
           <div class="add-section">
-            <button 
-              mat-raised-button 
+            <app-themed-button
+              variant="raised"
               color="primary"
-              class="add-button"
-              (click)="handleAddClick()"
-              [disabled]="!navigationService.canAdd()">
-              <mat-icon>edit</mat-icon>
-              {{ navigationService.getAddButtonText() }}
-            </button>
+              [fullWidth]="true"
+              height="56px"
+              [icon]="'edit'"
+              [label]="navigationService.getAddButtonText()"
+              [disabled]="!navigationService.canAdd()"
+              (buttonClick)="handleAddClick()">
+            </app-themed-button>
           </div>
         }
 
@@ -45,7 +46,7 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
             <app-side-button
               [title]="item.title"
               [icon]="item.icon"
-              [selected]="navigationService.isMenuItemSelected(item)"
+              [selected]="isItemSelected(item)"
               [badge]="getItemBadge(item)"
               (buttonClick)="handleMenuItemClick(item)">
             </app-side-button>
@@ -65,7 +66,7 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
               <app-side-button
                 [title]="objectType.pluralName"
                 [icon]="objectType.icon"
-                [selected]="isObjectTypeSelected(objectType.id)"
+                [selected]="isObjectTypeSelectedWithCD(objectType.id)"
                 (buttonClick)="handleObjectTypeClick(objectType.id)">
               </app-side-button>
             }
@@ -84,21 +85,21 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
             <app-side-button
               title="Wall Item Presets"
               icon="category"
-              [selected]="isAdminPathSelected('/manage')"
-              (buttonClick)="navigateToAdmin('/manage')">
+              [selected]="isAdminPathSelectedWithCD('/item-presets')"
+              (buttonClick)="navigateToAdmin('/item-presets')">
             </app-side-button>
             
             <app-side-button
               title="Wall Settings"
               icon="settings"
-              [selected]="isAdminPathSelected('/edit')"
+              [selected]="isAdminPathSelectedWithCD('/edit')"
               (buttonClick)="navigateToAdmin('/edit')">
             </app-side-button>
             
             <app-side-button
               title="Users & Permissions"
               icon="people"
-              [selected]="isAdminPathSelected('/permissions')"
+              [selected]="isAdminPathSelectedWithCD('/permissions')"
               (buttonClick)="navigateToAdmin('/permissions')">
             </app-side-button>
           </div>
@@ -245,46 +246,6 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
       margin-bottom: 1em;
     }
 
-    .add-button {
-      padding: 1.75em 2.5em;
-      font-size: 16px;
-      white-space: nowrap;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
-      border-radius: 50px;
-      background: var(--md-sys-color-primary) !important;
-      color: var(--md-sys-color-on-primary) !important;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      border: none;
-      font-weight: 500;
-    }
-
-    .add-button:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-      background: color-mix(
-        in srgb,
-        var(--md-sys-color-primary) 90%,
-        white 10%
-      ) !important;
-    }
-
-    .add-button:active:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
-    }
-
-    .add-button mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-      color: inherit;
-    }
-
     /* Menu Items */
     .menu-items {
       flex: 1;
@@ -361,8 +322,12 @@ export class NavigationMenuComponent implements OnInit, OnDestroy {
   isMenuOpen = false;
   currentContext: WallNavigationContext | null = null;
   activeMenuItems: WallMenuItem[] = [];
+  currentUrl = '';
 
-  constructor(public navigationService: NavigationService) {}
+  constructor(
+    public navigationService: NavigationService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     // Subscribe to menu state
@@ -380,7 +345,16 @@ export class NavigationMenuComponent implements OnInit, OnDestroy {
       this.updateActiveMenuItems();
     });
 
+    // Subscribe to router events to trigger change detection for selected state
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    ).subscribe((event: NavigationEnd) => {
+      this.currentUrl = event.url;
+    });
+
     // Initial load
+    this.currentUrl = this.router.url;
     this.updateActiveMenuItems();
   }
 
@@ -457,6 +431,22 @@ export class NavigationMenuComponent implements OnInit, OnDestroy {
   getItemBadge(item: WallMenuItem): string | undefined {
     // Could be extended to show counts, notifications, etc.
     return undefined;
+  }
+
+  // Check if menu item is selected (triggers change detection when currentUrl changes)
+  isItemSelected(item: WallMenuItem): boolean {
+    // Access currentUrl to ensure change detection triggers when route changes
+    return !!this.currentUrl && this.navigationService.isMenuItemSelected(item);
+  }
+
+  // Object type selection with change detection
+  isObjectTypeSelectedWithCD(objectTypeId: string): boolean {
+    return !!this.currentUrl && this.isObjectTypeSelected(objectTypeId);
+  }
+
+  // Admin path selection with change detection
+  isAdminPathSelectedWithCD(path: string): boolean {
+    return !!this.currentUrl && this.isAdminPathSelected(path);
   }
 
   // TrackBy functions for performance

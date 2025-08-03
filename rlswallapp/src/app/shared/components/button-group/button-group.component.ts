@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { ThemedButtonComponent } from '../themed-button/themed-button.component';
+import { MaterialIconComponent } from '../material-icon/material-icon.component';
 
 export interface ButtonGroupItem {
   id: string;
@@ -13,16 +13,15 @@ export interface ButtonGroupItem {
 @Component({
   selector: 'app-button-group',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, ThemedButtonComponent, MaterialIconComponent],
   template: `
     <div class="button-group-container">
       <button 
-        mat-button 
-        *ngFor="let item of items; trackBy: trackByFn"
         class="button-group-item"
         [class.active]="item.id === activeId"
         [disabled]="item.disabled"
-        (click)="onItemClick(item)">
+        (click)="onItemClick(item)"
+        *ngFor="let item of items; trackBy: trackByFn">
         <mat-icon *ngIf="item.icon">{{ item.icon }}</mat-icon>
         {{ item.label }}
       </button>

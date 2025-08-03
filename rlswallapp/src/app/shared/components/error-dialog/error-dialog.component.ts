@@ -1,8 +1,6 @@
-import { Component, Inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+// Note: This component is deprecated in favor of native browser alerts
 
 export interface ErrorDialogData {
   title: string;
@@ -14,52 +12,10 @@ export interface ErrorDialogData {
 @Component({
   selector: 'app-error-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatIconModule
-  ],
+  imports: [CommonModule],
   template: `
     <div class="error-dialog">
-      <div class="dialog-header">
-        <mat-icon class="error-icon">error</mat-icon>
-        <h2 mat-dialog-title>{{ data.title }}</h2>
-      </div>
-      
-      <mat-dialog-content class="dialog-content">
-        <p class="error-message">{{ data.message }}</p>
-        
-        @if (data.details) {
-          <div class="error-details">
-            <details>
-              <summary>Technical Details</summary>
-              <pre>{{ data.details }}</pre>
-            </details>
-          </div>
-        }
-      </mat-dialog-content>
-      
-      <mat-dialog-actions class="dialog-actions">
-        <button 
-          mat-outlined-button 
-          [mat-dialog-close]="false"
-          class="close-button">
-          <mat-icon>close</mat-icon>
-          Close
-        </button>
-        
-        @if (data.showRetry) {
-          <button 
-            mat-raised-button 
-            color="primary"
-            [mat-dialog-close]="true"
-            class="retry-button">
-            <mat-icon>refresh</mat-icon>
-            Retry
-          </button>
-        }
-      </mat-dialog-actions>
+      <p>This component is deprecated. Use native browser alerts instead.</p>
     </div>
   `,
   styles: [`
@@ -151,8 +107,7 @@ export interface ErrorDialogData {
   `]
 })
 export class ErrorDialogComponent {
-  constructor(
-    public dialogRef: MatDialogRef<ErrorDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ErrorDialogData
-  ) {}
+  constructor() {
+    // This component is deprecated - use native browser alerts instead
+  }
 }

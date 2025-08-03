@@ -10,7 +10,7 @@ import { Wall, WallObjectType } from '../models/wall.model';
 export class NavigationService {
   private _isMenuOpen = new BehaviorSubject<boolean>(false);
   private _currentContext = new BehaviorSubject<WallNavigationContext | null>(null);
-  private _currentAddMode = new BehaviorSubject<AddMode>(AddMode.WallItem);
+  private _currentAddMode = new BehaviorSubject<AddMode>(AddMode.None);
 
   public isMenuOpen$ = this._isMenuOpen.asObservable();
   public currentContext$ = this._currentContext.asObservable();
@@ -109,7 +109,7 @@ export class NavigationService {
   // Clear context when leaving wall
   clearWallContext() {
     this._currentContext.next(null);
-    this._currentAddMode.next(AddMode.Wall);
+    this._currentAddMode.next(AddMode.None);
   }
 
   // Update add mode based on current route
@@ -119,8 +119,17 @@ export class NavigationService {
       this._currentAddMode.next(AddMode.WallItem);
     } else if (url.includes('/walls') && url.includes('/object-types')) {
       this._currentAddMode.next(AddMode.ObjectType);
-    } else {
+    } else if (url.includes('/walls') && url.includes('/item-presets')) {
+      this._currentAddMode.next(AddMode.Preset);
+    } else if (url.match(/\/walls\/[^\/]+\/?$/)) {
+      // Wall home route (e.g., /walls/123 or /walls/123/)
+      this._currentAddMode.next(AddMode.WallItem);
+    } else if (url === '/walls' || url === '/walls/') {
+      // Walls list page
       this._currentAddMode.next(AddMode.Wall);
+    } else {
+      // Default: no add button
+      this._currentAddMode.next(AddMode.None);
     }
   }
 
@@ -151,7 +160,7 @@ export class NavigationService {
     // Wall-specific menu items (conditionally shown)
     const wallMenuItems: WallMenuItem[] = [
       {
-        title: 'Wall Overview',
+        title: 'Overview',
         icon: 'view_quilt',
         path: `/walls/${context.wallId}/overview`,
         condition: () => true
@@ -221,16 +230,26 @@ export class NavigationService {
       
       // Check query params if item has them
       if (item.params) {
-        const queryParams = this.activatedRoute.snapshot.queryParams;
+        // Parse query params from current URL instead of relying on activatedRoute
+        const urlParts = currentUrl.split('?');
+        const queryParams: { [key: string]: string } = {};
+        
+        if (urlParts.length > 1) {
+          const searchParams = new URLSearchParams(urlParts[1]);
+          searchParams.forEach((value, key) => {
+            queryParams[key] = value;
+          });
+        }
+        
         const paramsMatch = item.params.every(param => 
           queryParams[param.name] === param.value
         );
         return paramsMatch;
       }
       
-      // If item has no params, ensure current URL doesn't have query params that would conflict
-      const queryParams = this.activatedRoute.snapshot.queryParams;
-      return Object.keys(queryParams).length === 0;
+      // If item has no params, ensure current URL doesn't have conflicting query params
+      const hasQueryParams = currentUrl.includes('?');
+      return !hasQueryParams;
     });
   }
 
@@ -279,6 +298,14 @@ export class NavigationService {
           this.router.navigate([`/walls/${context.wallId}/object-types/add`]);
         }
         break;
+        
+      case AddMode.Preset:
+        if (context) {
+          // Navigate to preset page and let the component handle the creation
+          this.router.navigate([`/walls/${context.wallId}/item-presets`]);
+          // The preset page will handle creating a new preset via its createNewPreset() method
+        }
+        break;
     }
     
     this.isMenuOpen = false;
@@ -301,8 +328,12 @@ export class NavigationService {
       case AddMode.ObjectType:
         return 'Add Object Type';
         
+      case AddMode.Preset:
+        return 'Add Preset';
+        
+      case AddMode.None:
       default:
-        return 'Add';
+        return '';
     }
   }
 
@@ -320,6 +351,10 @@ export class NavigationService {
       case AddMode.ObjectType:
         return context?.canAdmin ?? false;
         
+      case AddMode.Preset:
+        return context?.canAdmin ?? false;
+        
+      case AddMode.None:
       default:
         return false;
     }

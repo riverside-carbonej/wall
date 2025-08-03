@@ -10,6 +10,7 @@ import { ImageUploadService } from '../../../wall-items/services/image-upload.se
 import { ItemImageGalleryComponent } from '../../../wall-items/components/item-image-gallery/item-image-gallery.component';
 import { MapViewComponent } from '../../../maps/components/map-view/map-view.component';
 import { Wall, WallItem, WallViewMode, FieldDefinition, WallItemImage } from '../../../../shared/models/wall.model';
+import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 
 @Component({
   selector: 'app-wall-viewer',
@@ -736,6 +737,7 @@ export class WallViewerComponent implements OnInit {
     private wallService: WallService,
     private wallItemService: WallItemService,
     private imageUploadService: ImageUploadService,
+    private confirmationDialog: ConfirmationDialogService,
     private fb: FormBuilder
   ) {}
 
@@ -821,18 +823,20 @@ export class WallViewerComponent implements OnInit {
   }
 
   deleteItem(itemId: string): void {
-    if (confirm('Are you sure you want to delete this item?')) {
-      this.wallItemService.deleteWallItem(itemId).subscribe({
-        next: () => {
-          // Refresh the wall items
-          this.wallItems$ = this.wallItemService.getWallItems(this.wallId);
-        },
-        error: (error) => {
-          console.error('Error deleting item:', error);
-          alert('Failed to delete item. Please try again.');
-        }
-      });
-    }
+    this.confirmationDialog.confirmDelete('this item').subscribe(confirmed => {
+      if (confirmed) {
+        this.wallItemService.deleteWallItem(itemId).subscribe({
+          next: () => {
+            // Refresh the wall items
+            this.wallItems$ = this.wallItemService.getWallItems(this.wallId);
+          },
+          error: (error) => {
+            console.error('Error deleting item:', error);
+            alert('Failed to delete item. Please try again.');
+          }
+        });
+      }
+    });
   }
 
   getItemBackgroundColor(wall: Wall): string {

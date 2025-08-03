@@ -1,19 +1,19 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatSliderModule } from '@angular/material/slider';
-import { MatDividerModule } from '@angular/material/divider';
+import { 
+  MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions, MatCardSubtitle,
+  MatCheckbox, MatSlideToggle, MatSlider, MatChipListbox, MatChipOption,
+  MatTabGroup, MatTab, MatExpansionPanel, MatExpansionPanelHeader, MatPanelTitle,
+  MatError
+} from '../../../../shared/components/material-stubs';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { FormFieldComponent } from '../../../../shared/components/input-field/input-field.component';
+import { SelectComponent } from '../../../../shared/components/select/select.component';
+import { OptionComponent } from '../../../../shared/components/autocomplete/autocomplete.component';
+import { DividerComponent } from '../../../../shared/components/divider/divider.component';
+import { AppFormFieldComponent } from '../../../../shared/components/app-form-field/app-form-field.component';
 import { FieldDefinition } from '../../../../shared/models/wall.model';
 
 export interface FieldValidationRule {
@@ -35,19 +35,11 @@ export interface FieldConfigurationOptions {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatChipsModule,
-    MatCheckboxModule,
-    MatSlideToggleModule,
-    MatTabsModule,
-    MatExpansionModule,
-    MatSliderModule,
-    MatDividerModule
+    MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions, MatCardSubtitle,
+    MatCheckbox, MatSlideToggle, MatSlider, MatChipListbox, MatChipOption,
+    MatTabGroup, MatTab, MatExpansionPanel, MatExpansionPanelHeader, MatPanelTitle,
+    MatError, ThemedButtonComponent, MaterialIconComponent, FormFieldComponent, 
+    SelectComponent, DividerComponent, OptionComponent, AppFormFieldComponent
   ],
   template: `
     <div class="field-configurator">
@@ -73,16 +65,15 @@ export interface FieldConfigurationOptions {
                       <h3>Basic Information</h3>
                       
                       <div class="form-row">
-                        <mat-form-field class="half-width">
-                          <mat-label>Field Name</mat-label>
+                        <app-form-field 
+                          class="half-width"
+                          label="Field Name"
+                          [required]="true"
+                          [error]="fieldForm.get('name')?.hasError('required') ? 'Field name is required' : ''">
                           <input matInput formControlName="name" placeholder="Enter field name">
-                          @if (fieldForm.get('name')?.hasError('required')) {
-                            <mat-error>Field name is required</mat-error>
-                          }
-                        </mat-form-field>
+                        </app-form-field>
 
-                        <mat-form-field class="half-width">
-                          <mat-label>Field Type</mat-label>
+                        <app-form-field class="half-width" label="Field Type">
                           <mat-select formControlName="type" (selectionChange)="onTypeChange($event.value)">
                             @for (type of supportedFieldTypes; track type.value) {
                               <mat-option [value]="type.value">
@@ -91,23 +82,21 @@ export interface FieldConfigurationOptions {
                               </mat-option>
                             }
                           </mat-select>
-                        </mat-form-field>
+                        </app-form-field>
                       </div>
 
                       <div class="form-row">
-                        <mat-form-field class="full-width">
-                          <mat-label>Description</mat-label>
+                        <app-form-field class="full-width" label="Description">
                           <textarea matInput formControlName="description" rows="2"
                                    placeholder="Describe what this field is for..."></textarea>
-                        </mat-form-field>
+                        </app-form-field>
                       </div>
 
                       <div class="form-row">
-                        <mat-form-field class="full-width">
-                          <mat-label>Placeholder Text</mat-label>
+                        <app-form-field class="full-width" label="Placeholder Text">
                           <input matInput formControlName="placeholder" 
                                  placeholder="Enter placeholder text...">
-                        </mat-form-field>
+                        </app-form-field>
                       </div>
 
                       <div class="form-row">
@@ -130,22 +119,21 @@ export interface FieldConfigurationOptions {
                           <h3>Text Field Settings</h3>
                           <div formGroupName="validation">
                             <div class="form-row">
-                              <mat-form-field class="half-width">
-                                <mat-label>Minimum Length</mat-label>
+                              <app-form-field class="half-width" label="Minimum Length">
                                 <input matInput type="number" formControlName="minLength" min="0">
-                              </mat-form-field>
-                              <mat-form-field class="half-width">
-                                <mat-label>Maximum Length</mat-label>
+                              </app-form-field>
+                              <app-form-field class="half-width" label="Maximum Length">
                                 <input matInput type="number" formControlName="maxLength" min="1">
-                              </mat-form-field>
+                              </app-form-field>
                             </div>
                             <div class="form-row">
-                              <mat-form-field class="full-width">
-                                <mat-label>Pattern (Regular Expression)</mat-label>
+                              <app-form-field 
+                                class="full-width" 
+                                label="Pattern (Regular Expression)"
+                                hint="Use regex to validate input format">
                                 <input matInput formControlName="pattern" 
                                        placeholder="e.g., ^[A-Za-z\s]+$ for letters and spaces only">
-                                <mat-hint>Use regex to validate input format</mat-hint>
-                              </mat-form-field>
+                              </app-form-field>
                             </div>
                           </div>
                         </div>
@@ -156,22 +144,21 @@ export interface FieldConfigurationOptions {
                           <h3>Number Field Settings</h3>
                           <div formGroupName="validation">
                             <div class="form-row">
-                              <mat-form-field class="half-width">
-                                <mat-label>Minimum Value</mat-label>
+                              <app-form-field class="half-width" label="Minimum Value">
                                 <input matInput type="number" formControlName="min">
-                              </mat-form-field>
-                              <mat-form-field class="half-width">
-                                <mat-label>Maximum Value</mat-label>
+                              </app-form-field>
+                              <app-form-field class="half-width" label="Maximum Value">
                                 <input matInput type="number" formControlName="max">
-                              </mat-form-field>
+                              </app-form-field>
                             </div>
                             <div class="form-row">
-                              <mat-form-field class="half-width">
-                                <mat-label>Step</mat-label>
+                              <app-form-field 
+                                class="half-width" 
+                                label="Step"
+                                hint="Increment/decrement amount">
                                 <input matInput type="number" formControlName="step" 
                                        placeholder="1" min="0.01">
-                                <mat-hint>Increment/decrement amount</mat-hint>
-                              </mat-form-field>
+                              </app-form-field>
                               <div class="half-width checkbox-group">
                                 <mat-slide-toggle formControlName="allowDecimals">
                                   Allow Decimal Values
@@ -187,13 +174,14 @@ export interface FieldConfigurationOptions {
                           <h3>Multiple Choice Settings</h3>
                           <div formGroupName="multiselectConfig">
                             <div class="form-row">
-                              <mat-form-field class="full-width">
-                                <mat-label>Options (one per line)</mat-label>
+                              <app-form-field 
+                                class="full-width" 
+                                label="Options (one per line)"
+                                hint="Enter each option on a new line">
                                 <textarea matInput [value]="getOptionsText()" 
                                          (input)="updateOptions($event)"
                                          rows="6" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
-                                <mat-hint>Enter each option on a new line</mat-hint>
-                              </mat-form-field>
+                              </app-form-field>
                             </div>
                             <div class="form-row">
                               <div class="checkbox-group">
@@ -203,15 +191,15 @@ export interface FieldConfigurationOptions {
                               </div>
                             </div>
                             <div class="form-row">
-                              <mat-form-field class="half-width">
-                                <mat-label>Minimum Selections</mat-label>
+                              <app-form-field class="half-width" label="Minimum Selections">
                                 <input matInput type="number" formControlName="minSelections" min="0">
-                              </mat-form-field>
-                              <mat-form-field class="half-width">
-                                <mat-label>Maximum Selections</mat-label>
+                              </app-form-field>
+                              <app-form-field 
+                                class="half-width" 
+                                label="Maximum Selections"
+                                hint="0 = unlimited">
                                 <input matInput type="number" formControlName="maxSelections" min="1">
-                                <mat-hint>0 = unlimited</mat-hint>
-                              </mat-form-field>
+                              </app-form-field>
                             </div>
                           </div>
                         </div>
@@ -222,8 +210,10 @@ export interface FieldConfigurationOptions {
                           <h3>File Upload Settings</h3>
                           <div formGroupName="fileConfig">
                             <div class="form-row">
-                              <mat-form-field class="full-width">
-                                <mat-label>Allowed File Types</mat-label>
+                              <app-form-field 
+                                class="full-width" 
+                                label="Allowed File Types"
+                                hint="Select which file types users can upload">
                                 <mat-select formControlName="allowedTypes" multiple>
                                   @for (fileType of fileTypeOptions; track fileType.value) {
                                     <mat-option [value]="fileType.value">
@@ -232,15 +222,13 @@ export interface FieldConfigurationOptions {
                                     </mat-option>
                                   }
                                 </mat-select>
-                                <mat-hint>Select which file types users can upload</mat-hint>
-                              </mat-form-field>
+                              </app-form-field>
                             </div>
                             <div class="form-row">
-                              <mat-form-field class="half-width">
-                                <mat-label>Maximum File Size (MB)</mat-label>
+                              <app-form-field class="half-width" label="Maximum File Size (MB)">
                                 <input matInput type="number" formControlName="maxSize" 
                                        min="1" max="100" placeholder="10">
-                              </mat-form-field>
+                              </app-form-field>
                               <div class="half-width checkbox-group">
                                 <mat-slide-toggle formControlName="multiple">
                                   Allow Multiple Files
@@ -248,12 +236,13 @@ export interface FieldConfigurationOptions {
                               </div>
                             </div>
                             <div class="form-row">
-                              <mat-form-field class="half-width">
-                                <mat-label>Maximum Files</mat-label>
+                              <app-form-field 
+                                class="half-width" 
+                                label="Maximum Files"
+                                hint="Only applies when multiple files allowed">
                                 <input matInput type="number" formControlName="maxFiles" 
                                        min="1" max="20" placeholder="5">
-                                <mat-hint>Only applies when multiple files allowed</mat-hint>
-                              </mat-form-field>
+                              </app-form-field>
                             </div>
                           </div>
                         </div>
@@ -264,14 +253,12 @@ export interface FieldConfigurationOptions {
                           <h3>Date Field Settings</h3>
                           <div formGroupName="dateConfig">
                             <div class="form-row">
-                              <mat-form-field class="half-width">
-                                <mat-label>Minimum Date</mat-label>
+                              <app-form-field class="half-width" label="Minimum Date">
                                 <input matInput type="date" formControlName="minDate">
-                              </mat-form-field>
-                              <mat-form-field class="half-width">
-                                <mat-label>Maximum Date</mat-label>
+                              </app-form-field>
+                              <app-form-field class="half-width" label="Maximum Date">
                                 <input matInput type="date" formControlName="maxDate">
-                              </mat-form-field>
+                              </app-form-field>
                             </div>
                             <div class="form-row">
                               <div class="checkbox-group">
@@ -303,12 +290,13 @@ export interface FieldConfigurationOptions {
                               </div>
                             </div>
                             <div class="form-row">
-                              <mat-form-field class="half-width">
-                                <mat-label>Maximum Length</mat-label>
+                              <app-form-field 
+                                class="half-width" 
+                                label="Maximum Length"
+                                hint="Character limit for content">
                                 <input matInput type="number" formControlName="maxLength" 
                                        min="100" placeholder="5000">
-                                <mat-hint>Character limit for content</mat-hint>
-                              </mat-form-field>
+                              </app-form-field>
                             </div>
                           </div>
                         </div>
@@ -325,14 +313,14 @@ export interface FieldConfigurationOptions {
                         <h3>Display Options</h3>
                         
                         <div class="form-row">
-                          <mat-form-field class="half-width">
-                            <mat-label>Display Order</mat-label>
+                          <app-form-field 
+                            class="half-width" 
+                            label="Display Order"
+                            hint="Lower numbers appear first">
                             <input matInput type="number" formControlName="displayOrder" 
                                    min="0" placeholder="0">
-                            <mat-hint>Lower numbers appear first</mat-hint>
-                          </mat-form-field>
-                          <mat-form-field class="half-width">
-                            <mat-label>Column Width</mat-label>
+                          </app-form-field>
+                          <app-form-field class="half-width" label="Column Width">
                             <mat-select formControlName="columnWidth">
                               <mat-option value="auto">Auto</mat-option>
                               <mat-option value="25%">Quarter (25%)</mat-option>
@@ -342,7 +330,7 @@ export interface FieldConfigurationOptions {
                               <mat-option value="75%">Three Quarters (75%)</mat-option>
                               <mat-option value="100%">Full Width (100%)</mat-option>
                             </mat-select>
-                          </mat-form-field>
+                          </app-form-field>
                         </div>
 
                         <div class="form-row">
@@ -378,7 +366,7 @@ export interface FieldConfigurationOptions {
                         <div class="form-row">
                           <div class="checkbox-group">
                             <mat-slide-toggle formControlName="conditional" 
-                                              (change)="onConditionalChange($event.checked)">
+                                              (change)="onConditionalChange($event)">
                               Show field conditionally
                             </mat-slide-toggle>
                           </div>
@@ -387,19 +375,17 @@ export interface FieldConfigurationOptions {
                         @if (fieldForm.get('conditional')?.value) {
                           <div class="conditional-logic">
                             <div class="form-row">
-                              <mat-form-field class="half-width">
-                                <mat-label>Show when field</mat-label>
+                              <app-form-field class="half-width" label="Show when field">
                                 <mat-select formControlName="conditionalField">
                                   @for (field of availableFields; track field.id) {
                                     <mat-option [value]="field.id">{{field.name}}</mat-option>
                                   }
                                 </mat-select>
-                              </mat-form-field>
-                              <mat-form-field class="half-width">
-                                <mat-label>Has value</mat-label>
+                              </app-form-field>
+                              <app-form-field class="half-width" label="Has value">
                                 <input matInput formControlName="conditionalValue" 
                                        placeholder="Enter value...">
-                              </mat-form-field>
+                              </app-form-field>
                             </div>
                           </div>
                         }
@@ -412,21 +398,21 @@ export interface FieldConfigurationOptions {
                           <h3>Custom Validation</h3>
                           
                           <div class="form-row">
-                            <mat-form-field class="full-width">
-                              <mat-label>Validation Function (JavaScript)</mat-label>
+                            <app-form-field 
+                              class="full-width" 
+                              label="Validation Function (JavaScript)"
+                              hint="Write a JavaScript function that returns true for valid values">
                               <textarea matInput formControlName="customValidation" 
                                        rows="4" placeholder="function validate(value) {&#10;  // Return true if valid, false if invalid&#10;  return value.length > 0;&#10;}">
                               </textarea>
-                              <mat-hint>Write a JavaScript function that returns true for valid values</mat-hint>
-                            </mat-form-field>
+                            </app-form-field>
                           </div>
 
                           <div class="form-row">
-                            <mat-form-field class="full-width">
-                              <mat-label>Custom Error Message</mat-label>
+                            <app-form-field class="full-width" label="Custom Error Message">
                               <input matInput formControlName="customErrorMessage" 
                                      placeholder="Enter error message for validation failures...">
-                            </mat-form-field>
+                            </app-form-field>
                           </div>
                         </div>
                       }
@@ -438,15 +424,15 @@ export interface FieldConfigurationOptions {
 
             <mat-card-actions>
               <div class="actions-container">
-                <button mat-button (click)="onReset()" [disabled]="!fieldForm.dirty">
+                <button type="button" class="btn btn-outline" (click)="onReset()" [disabled]="!fieldForm.dirty">
                   <mat-icon>refresh</mat-icon>
                   Reset
                 </button>
                 <div class="action-spacer"></div>
-                <button mat-button (click)="onCancel()">
+                <button type="button" class="btn btn-outline" (click)="onCancel()">
                   Cancel
                 </button>
-                <button mat-raised-button color="primary" 
+                <button type="button" class="btn btn-primary" 
                         (click)="onSave()" [disabled]="!fieldForm.valid">
                   <mat-icon>save</mat-icon>
                   Save Configuration

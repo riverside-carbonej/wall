@@ -2,18 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { map, debounceTime, distinctUntilChanged, switchMap, startWith } from 'rxjs/operators';
 import { WallService } from '../../services/wall.service';
 import { Wall } from '../../../../shared/models/wall.model';
 import { ButtonGroupComponent, ButtonGroupItem } from '../../../../shared/components/button-group/button-group.component';
+import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 
 @Component({
   selector: 'app-wall-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, MatButtonModule, MatIconModule, ButtonGroupComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ThemedButtonComponent, MaterialIconComponent, ButtonGroupComponent],
   template: `
     <div class="docs-homepage">
       <!-- Template Gallery -->
@@ -846,7 +847,11 @@ export class WallListComponent implements OnInit {
   ];
   openMenuId: string | null = null;
 
-  constructor(private wallService: WallService, private router: Router) {
+  constructor(
+    private wallService: WallService, 
+    private router: Router,
+    private confirmationDialog: ConfirmationDialogService
+  ) {
     this.filteredWalls$ = combineLatest([
       this.walls$,
       this.searchTerm$.pipe(
@@ -891,18 +896,20 @@ export class WallListComponent implements OnInit {
   }
 
   deleteWall(id: string): void {
-    if (confirm('Are you sure you want to delete this wall? This action cannot be undone.')) {
-      this.wallService.deleteWall(id).subscribe({
-        next: () => {
-          const currentWalls = this.walls$.value;
-          this.walls$.next(currentWalls.filter(wall => wall.id !== id));
-        },
-        error: (error) => {
-          console.error('Error deleting wall:', error);
-          alert('Failed to delete wall. Please try again.');
-        }
-      });
-    }
+    this.confirmationDialog.confirmDelete('this wall').subscribe(confirmed => {
+      if (confirmed) {
+        this.wallService.deleteWall(id).subscribe({
+          next: () => {
+            const currentWalls = this.walls$.value;
+            this.walls$.next(currentWalls.filter(wall => wall.id !== id));
+          },
+          error: (error) => {
+            console.error('Error deleting wall:', error);
+            alert('Failed to delete wall. Please try again.');
+          }
+        });
+      }
+    });
   }
 
   trackByWallId(index: number, wall: Wall): string {

@@ -1,11 +1,12 @@
 import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { SelectComponent } from '../../../../shared/components/select/select.component';
+import { FormFieldComponent } from '../../../../shared/components/input-field/input-field.component';
+import { TooltipDirective } from '../../../../shared/components/tooltip/tooltip.component';
+import { ProgressSpinnerComponent } from '../../../../shared/components/progress-spinner/progress-spinner.component';
+import { MatFormField, MatLabel, MatSelect, MatOption } from '../../../../shared/components/material-stubs';
 import { Observable, Subject, combineLatest, takeUntil } from 'rxjs';
 import { map } from 'rxjs/operators';
 import * as L from 'leaflet';
@@ -32,14 +33,18 @@ export interface MapItemClickEvent {
   standalone: true,
   imports: [
     CommonModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSelectModule,
-    MatFormFieldModule,
-    MatTooltipModule,
-    MatProgressSpinnerModule,
+    ThemedButtonComponent,
+    MaterialIconComponent,
+    SelectComponent,
+    FormFieldComponent,
+    TooltipDirective,
+    ProgressSpinnerComponent,
     LoadingStateComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption
   ],
   templateUrl: './map-view.component.html',
   styleUrls: ['./map-view.component.css']

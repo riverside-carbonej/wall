@@ -1,29 +1,15 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MatCheckbox, MatOption, MatSelect } from '../../../../shared/components/material-stubs';
 import { WallObjectType, FieldDefinition } from '../../../../shared/models/wall.model';
-import { ObjectTypeService } from '../../../walls/services/object-type.service';
-import { AuthService } from '../../../../core/services/auth.service';
 
 export interface ObjectTypeBuilderConfig {
-  mode: 'create' | 'edit' | 'template';
+  mode: 'create' | 'edit';
   initialData?: Partial<WallObjectType>;
   wallId: string;
-  templateId?: string;
 }
 
 @Component({
@@ -32,346 +18,693 @@ export interface ObjectTypeBuilderConfig {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatChipsModule,
-    MatCheckboxModule,
-    MatMenuModule,
-    MatTooltipModule,
-    MatDividerModule,
-    MatExpansionModule,
-    MatSlideToggleModule,
-    DragDropModule
+    MaterialIconComponent,
+    ThemedButtonComponent,
+    MatCheckbox,
+    MatOption,
+    MatSelect
   ],
   template: `
-    <div class="object-type-builder">
-      <mat-card class="builder-header">
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>{{config.mode === 'create' ? 'add' : 'edit'}}</mat-icon>
-            {{getBuilderTitle()}}
-          </mat-card-title>
-          <mat-card-subtitle>
-            {{getBuilderSubtitle()}}
-          </mat-card-subtitle>
-        </mat-card-header>
-      </mat-card>
-
-      <form [formGroup]="objectTypeForm" class="builder-form">
-        <!-- Basic Information -->
-        <mat-card class="section-card">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>info</mat-icon>
-              Basic Information
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="form-row">
-              <mat-form-field class="full-width">
-                <mat-label>Object Type Name</mat-label>
-                <input matInput formControlName="name" placeholder="e.g., Veteran, Product, Event">
-                <mat-icon matSuffix>label</mat-icon>
-                @if (objectTypeForm.get('name')?.hasError('required')) {
-                  <mat-error>Name is required</mat-error>
-                }
-              </mat-form-field>
+    <div class="preset-builder">
+      <form [formGroup]="objectTypeForm">
+        
+        <!-- Object Details Section -->
+        <div class="form-section">
+          <h2>Object Details</h2>
+          
+          <div class="form-field">
+            <label class="field-label">Object Name *</label>
+            <div class="input-container">
+              <mat-icon class="prefix-icon">label</mat-icon>
+              <input 
+                class="material-input" 
+                formControlName="name" 
+                placeholder="e.g., Veteran, Product, Event"
+                required>
             </div>
-
-            <div class="form-row">
-              <mat-form-field class="full-width">
-                <mat-label>Description</mat-label>
-                <textarea matInput formControlName="description" rows="3" 
-                         placeholder="Describe what this object type represents..."></textarea>
-                <mat-icon matSuffix>description</mat-icon>
-              </mat-form-field>
+          </div>
+          
+          <div class="form-field">
+            <label class="field-label">Icon</label>
+            <mat-select formControlName="icon" class="material-select" [displayValueFunction]="getIconDisplayValue" [showIcon]="true">
+              @for (option of iconOptions; track option.value) {
+                <mat-option [value]="option.value">
+                  <mat-icon class="option-icon" [icon]="option.value"></mat-icon>
+                  {{ option.label }}
+                </mat-option>
+              }
+            </mat-select>
+          </div>
+          
+          <div class="form-field">
+            <label class="field-label">Description</label>
+            <div class="input-container">
+              <mat-icon class="prefix-icon">description</mat-icon>
+              <textarea 
+                class="material-textarea" 
+                formControlName="description" 
+                rows="2" 
+                placeholder="Brief description of this object type"></textarea>
             </div>
-
-            <div class="form-row">
-              <mat-form-field class="half-width">
-                <mat-label>Icon</mat-label>
-                <mat-select formControlName="icon">
-                  @for (iconOption of iconOptions; track iconOption.value) {
-                    <mat-option [value]="iconOption.value">
-                      <mat-icon>{{iconOption.value}}</mat-icon>
-                      {{iconOption.label}}
-                    </mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-
-              <mat-form-field class="half-width">
-                <mat-label>Color</mat-label>
-                <mat-select formControlName="color">
-                  @for (colorOption of colorOptions; track colorOption.value) {
-                    <mat-option [value]="colorOption.value">
-                      <div class="color-option">
-                        <div class="color-swatch" [style.background-color]="colorOption.value"></div>
-                        {{colorOption.label}}
-                      </div>
-                    </mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Field Builder -->
-        <mat-card class="section-card">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>view_list</mat-icon>
-              Fields ({{fieldsArray.length}})
-            </mat-card-title>
-            <div class="header-actions">
-              <button mat-raised-button color="primary" type="button" 
-                      (click)="addField()" 
-                      [disabled]="!canAddField">
-                <mat-icon>add</mat-icon>
-                Add Field
-              </button>
-              <button mat-icon-button [matMenuTriggerFor]="fieldTemplatesMenu" 
-                      matTooltip="Add from template">
-                <mat-icon>library_add</mat-icon>
-              </button>
-              <mat-menu #fieldTemplatesMenu="matMenu">
-                @for (template of fieldTemplates; track template.id) {
-                  <button mat-menu-item (click)="addFieldFromTemplate(template)">
-                    <mat-icon>{{template.icon}}</mat-icon>
-                    <span>{{template.name}}</span>
-                  </button>
-                }
-              </mat-menu>
-            </div>
-          </mat-card-header>
-
-          <mat-card-content>
-            @if (fieldsArray.length === 0) {
-              <div class="empty-state">
-                <mat-icon class="empty-icon">view_list</mat-icon>
-                <h3>No fields yet</h3>
-                <p>Add fields to define what data this object type can store.</p>
-                <button mat-raised-button color="primary" (click)="addField()">
-                  <mat-icon>add</mat-icon>
-                  Add Your First Field
-                </button>
-              </div>
-            } @else {
-              <div cdkDropList (cdkDropListDropped)="onFieldReorder($event)" 
-                   class="fields-list">
-                @for (field of fieldsArray.controls; track field; let i = $index) {
-                  <div class="field-item" cdkDrag>
-                    <div class="field-drag-handle" cdkDragHandle>
-                      <mat-icon>drag_indicator</mat-icon>
-                    </div>
-                    
-                    <mat-expansion-panel [expanded]="expandedFieldIndex === i" 
-                                       (opened)="expandedFieldIndex = i"
-                                       (closed)="expandedFieldIndex = -1">
-                      <mat-expansion-panel-header>
-                        <mat-panel-title>
-                          <mat-icon class="field-type-icon">{{getFieldTypeIcon(field.get('type')?.value)}}</mat-icon>
-                          {{field.get('name')?.value || 'Untitled Field'}}
-                        </mat-panel-title>
-                        <mat-panel-description>
-                          {{getFieldTypeLabel(field.get('type')?.value)}}
-                          @if (field.get('required')?.value) {
-                            <mat-chip class="required-chip">Required</mat-chip>
-                          }
-                        </mat-panel-description>
-                      </mat-expansion-panel-header>
-
-                      <div class="field-editor" [formGroup]="$any(field)">
-                        <div class="form-row">
-                          <mat-form-field class="half-width">
-                            <mat-label>Field Name</mat-label>
-                            <input matInput formControlName="name" placeholder="Enter field name">
-                            @if (field.get('name')?.hasError('required')) {
-                              <mat-error>Field name is required</mat-error>
-                            }
-                          </mat-form-field>
-
-                          <mat-form-field class="half-width">
-                            <mat-label>Field Type</mat-label>
-                            <mat-select formControlName="type" (selectionChange)="onFieldTypeChange(i, $event.value)">
-                              @for (typeOption of fieldTypeOptions; track typeOption.value) {
-                                <mat-option [value]="typeOption.value">
-                                  <mat-icon>{{typeOption.icon}}</mat-icon>
-                                  {{typeOption.label}}
-                                </mat-option>
-                              }
-                            </mat-select>
-                          </mat-form-field>
-                        </div>
-
-                        <div class="form-row">
-                          <mat-form-field class="full-width">
-                            <mat-label>Description</mat-label>
-                            <textarea matInput formControlName="description" rows="2"
-                                     placeholder="Describe what this field is for..."></textarea>
-                          </mat-form-field>
-                        </div>
-
-                        <div class="form-row">
-                          <mat-form-field class="half-width">
-                            <mat-label>Placeholder Text</mat-label>
-                            <input matInput formControlName="placeholder" 
-                                   placeholder="Enter placeholder text...">
-                          </mat-form-field>
-
-                          <div class="half-width field-options">
-                            <mat-slide-toggle formControlName="required">
-                              Required Field
-                            </mat-slide-toggle>
-                          </div>
-                        </div>
-
-                        <!-- Type-specific configuration -->
-                        @if (field.get('type')?.value === 'multiselect') {
-                          <div class="type-specific-config">
-                            <h4>Multiple Choice Options</h4>
-                            <div formGroupName="multiselectConfig">
-                              <mat-form-field class="full-width">
-                                <mat-label>Options (one per line)</mat-label>
-                                <textarea matInput [value]="getMultiselectOptionsText($any(field))" 
-                                         (input)="updateMultiselectOptions($any(field), $event)"
-                                         rows="4" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
-                              </mat-form-field>
-                              <mat-slide-toggle formControlName="allowCustom">
-                                Allow custom values
-                              </mat-slide-toggle>
-                            </div>
-                          </div>
-                        }
-
-                        @if (field.get('type')?.value === 'file') {
-                          <div class="type-specific-config">
-                            <h4>File Configuration</h4>
-                            <div formGroupName="fileConfig">
-                              <mat-form-field class="full-width">
-                                <mat-label>Allowed File Types</mat-label>
-                                <mat-select formControlName="allowedTypes" multiple>
-                                  @for (fileType of fileTypeOptions; track fileType.value) {
-                                    <mat-option [value]="fileType.value">{{fileType.label}}</mat-option>
-                                  }
-                                </mat-select>
-                              </mat-form-field>
-                              <div class="form-row">
-                                <mat-form-field class="half-width">
-                                  <mat-label>Max File Size (MB)</mat-label>
-                                  <input matInput type="number" formControlName="maxSize" min="1" max="100">
-                                </mat-form-field>
-                                <div class="half-width field-options">
-                                  <mat-slide-toggle formControlName="multiple">
-                                    Allow multiple files
-                                  </mat-slide-toggle>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        }
-
-                        <div class="field-actions">
-                          <button mat-button color="warn" type="button" 
-                                  (click)="removeField(i)"
-                                  [disabled]="fieldsArray.length === 1">
-                            <mat-icon>delete</mat-icon>
-                            Remove Field
-                          </button>
-                          <button mat-button type="button" (click)="duplicateField(i)">
-                            <mat-icon>content_copy</mat-icon>
-                            Duplicate
-                          </button>
-                        </div>
-                      </div>
-                    </mat-expansion-panel>
-                  </div>
-                }
-              </div>
-            }
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Display Settings -->
-        <mat-card class="section-card">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>display_settings</mat-icon>
-              Display Settings
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div formGroupName="displaySettings">
-              <div class="form-row">
-                <mat-form-field class="third-width">
-                  <mat-label>Card Layout</mat-label>
-                  <mat-select formControlName="cardLayout">
-                    <mat-option value="compact">Compact</mat-option>
-                    <mat-option value="detailed">Detailed</mat-option>
-                    <mat-option value="timeline">Timeline</mat-option>
-                  </mat-select>
-                </mat-form-field>
-
-                <mat-form-field class="third-width">
-                  <mat-label>Primary Field</mat-label>
-                  <mat-select formControlName="primaryField">
-                    @for (field of fieldsArray.controls; track field) {
-                      <mat-option [value]="field.get('id')?.value">
-                        {{field.get('name')?.value}}
-                      </mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-
-                <mat-form-field class="third-width">
-                  <mat-label>Secondary Field</mat-label>
-                  <mat-select formControlName="secondaryField">
-                    <mat-option value="">None</mat-option>
-                    @for (field of fieldsArray.controls; track field) {
-                      <mat-option [value]="field.get('id')?.value">
-                        {{field.get('name')?.value}}
-                      </mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-              </div>
-
-              <div class="form-row">
-                <div class="full-width field-options">
-                  <mat-slide-toggle formControlName="showOnMap">
-                    Show items on map
-                  </mat-slide-toggle>
-                </div>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Actions -->
-        <div class="builder-actions">
-          <button mat-button type="button" (click)="onCancel()">
-            Cancel
-          </button>
-          <button mat-button type="button" (click)="saveAsDraft()" 
-                  [disabled]="!objectTypeForm.valid">
-            <mat-icon>save</mat-icon>
-            Save as Draft
-          </button>
-          <button mat-raised-button color="primary" type="button" 
-                  (click)="onSave()" [disabled]="!objectTypeForm.valid || isSaving">
-            <mat-icon>{{config.mode === 'create' ? 'add' : 'save'}}</mat-icon>
-            {{config.mode === 'create' ? 'Create Object Type' : 'Save Changes'}}
-          </button>
+            <div class="field-hint">Optional - what does this object represent?</div>
+          </div>
         </div>
+
+        <!-- Properties Section -->
+        <div class="form-section properties-section">
+          <div class="section-title-row">
+            <h2>Object Properties</h2>
+            <app-themed-button
+              variant="raised"
+              color="primary"
+              icon="add"
+              label="Add Property"
+              (buttonClick)="addField()">
+            </app-themed-button>
+          </div>
+          <div class="section-divider"></div>
+          
+          @if (fieldsArray.length === 0) {
+            <div class="empty-state">
+              <mat-icon>view_list</mat-icon>
+              <p>Add properties to define what information each object will contain (name, date, location, etc.)</p>
+            </div>
+          } @else {
+            <div class="properties-grid">
+              @for (field of fieldsArray.controls; track $index) {
+                <div class="property-chip" [formGroupName]="$index">
+                  <mat-icon class="property-icon">{{ getFieldIcon(field.get('type')?.value) }}</mat-icon>
+                  <div class="property-info">
+                    <span class="property-name">{{ field.get('name')?.value || 'Untitled Property' }}</span>
+                    <span class="property-meta">
+                      {{ getFieldTypeLabel(field.get('type')?.value) }}
+                      @if (field.get('required')?.value) {
+                        <mat-icon class="required-icon">star</mat-icon>
+                      }
+                    </span>
+                  </div>
+                  <div class="property-actions">
+                    <app-themed-button
+                      variant="icon"
+                      icon="edit"
+                      (buttonClick)="editField($index)">
+                    </app-themed-button>
+                    <app-themed-button
+                      variant="icon"
+                      color="warn"
+                      icon="delete"
+                      (buttonClick)="removeField($index)">
+                    </app-themed-button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar" *ngIf="!showFieldEditor">
+          @if (objectTypeForm.invalid) {
+            <div class="form-warning">
+              <mat-icon class="warning-icon">warning</mat-icon>
+              <span>Please complete all required fields to save the object type</span>
+            </div>
+          }
+          
+          <div class="action-buttons">
+            <app-themed-button
+              variant="stroked"
+              color="primary"
+              label="Cancel"
+              (buttonClick)="onCancel()">
+            </app-themed-button>
+            <app-themed-button
+              variant="raised"
+              color="primary"
+              label="Save Object Type"
+              [disabled]="objectTypeForm.invalid"
+              (buttonClick)="onSave()">
+            </app-themed-button>
+          </div>
+        </div>
+
       </form>
+
+      <!-- Property Editor Modal -->
+      @if (showFieldEditor) {
+        <div class="modal-backdrop" (click)="closeFieldEditor()">
+          <div class="property-modal" (click)="$event.stopPropagation()">
+            
+            <div class="modal-header">
+              <h2>{{ editingFieldIndex >= 0 ? 'Edit Property' : 'Add Property' }}</h2>
+              <app-themed-button
+                variant="icon"
+                icon="close"
+                (buttonClick)="closeFieldEditor()">
+              </app-themed-button>
+            </div>
+            
+            <div class="modal-content">
+              <form [formGroup]="fieldForm" class="property-form">
+                <div class="form-field">
+                  <label class="field-label">Property Name *</label>
+                  <div class="input-container">
+                    <mat-icon class="prefix-icon">label</mat-icon>
+                    <input 
+                      class="material-input" 
+                      formControlName="name" 
+                      placeholder="e.g., Full Name, Service Branch"
+                      required>
+                  </div>
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Property Type *</label>
+                  <mat-select formControlName="type" class="material-select" [displayValueFunction]="getFieldTypeDisplayValue">
+                    @for (option of fieldTypeOptions; track option.value) {
+                      <mat-option [value]="option.value">
+                        <mat-icon class="option-icon">{{ option.icon }}</mat-icon>
+                        {{ option.label }}
+                      </mat-option>
+                    }
+                  </mat-select>
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Description</label>
+                  <div class="input-container">
+                    <mat-icon class="prefix-icon">description</mat-icon>
+                    <textarea 
+                      class="material-textarea" 
+                      formControlName="description" 
+                      rows="2" 
+                      placeholder="What is this property for?"></textarea>
+                  </div>
+                  <div class="field-hint">Optional - provide context for this field</div>
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Placeholder Text</label>
+                  <div class="input-container">
+                    <mat-icon class="prefix-icon">edit</mat-icon>
+                    <input 
+                      class="material-input" 
+                      formControlName="placeholder" 
+                      placeholder="e.g., Enter full name">
+                  </div>
+                  <div class="field-hint">Optional - hint text shown in the input field</div>
+                </div>
+
+                <div class="checkbox-section">
+                  <mat-checkbox formControlName="required">
+                    Required field
+                  </mat-checkbox>
+                </div>
+              </form>
+            </div>
+
+            <div class="modal-actions">
+              <app-themed-button
+                variant="stroked"
+                color="primary"
+                label="Cancel"
+                (buttonClick)="closeFieldEditor()">
+              </app-themed-button>
+              <app-themed-button
+                variant="raised"
+                color="primary"
+                [label]="editingFieldIndex >= 0 ? 'Update Property' : 'Add Property'"
+                [disabled]="fieldForm.invalid"
+                (buttonClick)="saveField()">
+              </app-themed-button>
+            </div>
+            
+          </div>
+        </div>
+      }
     </div>
   `,
-  styleUrl: './object-type-builder.component.scss'
+  styles: [`
+    .preset-builder {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+    }
+
+    /* Form Sections */
+    .form-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .form-section h2 {
+      margin: 0 0 4px 0;
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+    }
+
+
+    /* Material 3 Form Fields */
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .field-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+      margin-bottom: 6px;
+    }
+
+    .input-container {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      border: 1px solid var(--md-sys-color-outline);
+      border-radius: var(--md-sys-shape-corner-small);
+      background: var(--md-sys-color-surface);
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      min-height: 56px;
+      padding: 16px;
+    }
+
+    .input-container:hover {
+      border-color: var(--md-sys-color-on-surface);
+    }
+
+    .input-container:focus-within {
+      border-color: var(--md-sys-color-primary);
+      border-width: 2px;
+      padding: 15px; /* Adjust for thicker border */
+    }
+
+    .prefix-icon {
+      color: var(--md-sys-color-on-surface-variant);
+      margin-right: 12px;
+      margin-top: 2px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .material-input,
+    .material-textarea {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 1rem;
+      color: var(--md-sys-color-on-surface);
+      font-family: 'Google Sans', 'Roboto', sans-serif;
+      padding: 0;
+      line-height: 1.5;
+    }
+
+    .material-input::placeholder,
+    .material-textarea::placeholder {
+      color: var(--md-sys-color-on-surface-variant);
+      line-height: 1.5;
+    }
+
+    .material-textarea {
+      resize: none;
+      padding: 0;
+      min-height: 48px;
+      line-height: 1.5;
+      vertical-align: top;
+    }
+
+    .material-select {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 1rem;
+      color: var(--md-sys-color-on-surface);
+      cursor: pointer;
+    }
+
+    .field-hint {
+      font-size: 0.75rem;
+      color: var(--md-sys-color-on-surface-variant);
+      margin-top: 4px;
+    }
+
+    .option-icon {
+      margin-right: 12px;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+
+    /* Section Title Row */
+    .section-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .section-title-row h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .section-divider {
+      height: 1px;
+      background: var(--md-sys-color-outline-variant);
+      margin-bottom: 12px;
+    }
+
+    /* Add extra spacing between Object Details and Properties sections within the form */
+    .form-section:nth-child(2) {
+      margin-top: 24px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px 24px;
+      color: var(--md-sys-color-on-surface-variant);
+      background: var(--md-sys-color-surface-container-low);
+      border-radius: var(--md-sys-shape-corner-medium);
+      border: 1px dashed var(--md-sys-color-outline-variant);
+    }
+
+    .empty-state mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+      opacity: 0.6;
+      color: var(--md-sys-color-primary);
+    }
+
+    .empty-state p {
+      margin: 0;
+      font-size: 0.875rem;
+      line-height: 1.4;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+
+    .properties-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .property-chip {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      background: var(--md-sys-color-surface-container);
+      border-radius: var(--md-sys-shape-corner-medium);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .property-chip:hover {
+      border-color: var(--md-sys-color-primary);
+      background: var(--md-sys-color-surface-container-high);
+    }
+
+    .property-icon {
+      color: var(--md-sys-color-primary);
+      margin-right: 12px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    .property-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .property-name {
+      display: block;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+      font-size: 0.9rem;
+      line-height: 1.2;
+    }
+
+    .property-meta {
+      display: flex;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--md-sys-color-on-surface-variant);
+      margin-top: 2px;
+      gap: 4px;
+    }
+
+    .required-icon {
+      font-size: 12px;
+      width: 12px;
+      height: 12px;
+      color: var(--md-sys-color-error);
+    }
+
+    .property-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .property-actions button {
+      width: 32px;
+      height: 32px;
+      line-height: 32px;
+    }
+
+    .property-actions mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Action Bar */
+    .action-bar {
+      padding: 16px 0 0 0;
+    }
+
+    .form-warning {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--md-sys-color-error-container);
+      color: var(--md-sys-color-on-error-container);
+      border-radius: var(--md-sys-shape-corner-small);
+      margin-bottom: 16px;
+      font-size: 0.875rem;
+    }
+
+    .warning-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      color: var(--md-sys-color-error);
+      flex-shrink: 0;
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+
+    /* Dialog */
+    .dialog-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .property-dialog {
+      background: var(--md-sys-color-surface-container-high);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      max-width: 480px;
+      width: 100%;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .property-dialog mat-toolbar {
+      min-height: 56px;
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .dialog-form {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .required-checkbox {
+      margin-top: 8px;
+    }
+
+    mat-dialog-actions {
+      padding: 16px;
+      border-top: 1px solid var(--md-sys-color-outline-variant);
+    }
+
+    /* Modal Styling - Proper Material 3 */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 24px;
+      backdrop-filter: blur(2px);
+    }
+
+    .property-modal {
+      background: var(--md-sys-color-surface-container-high);
+      border-radius: var(--md-sys-shape-corner-large);
+      box-shadow: var(--md-sys-elevation-5);
+      max-width: 520px;
+      width: 100%;
+      max-height: 85vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 24px 16px 24px;
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .modal-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .property-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 24px;
+    }
+
+    .checkbox-section {
+      margin-top: 8px;
+      padding: 12px 0;
+    }
+
+    .checkbox-section mat-checkbox {
+      font-size: 0.875rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 16px 24px 24px 24px;
+      border-top: 1px solid var(--md-sys-color-outline-variant);
+      background: var(--md-sys-color-surface-container);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 600px) {
+      .preset-builder {
+        padding: 12px;
+        gap: 32px;
+      }
+      
+      .section-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      
+      .property-chip {
+        padding: 12px;
+      }
+      
+      .property-actions {
+        margin-left: 8px;
+        gap: 4px;
+      }
+
+      .modal-backdrop {
+        padding: 16px;
+      }
+      
+      .property-modal {
+        max-height: 90vh;
+      }
+
+      .modal-header {
+        padding: 20px 20px 12px 20px;
+      }
+
+      .property-form {
+        padding: 20px;
+        gap: 16px;
+      }
+
+      .modal-actions {
+        flex-direction: column;
+        gap: 8px;
+        padding: 16px 20px 20px 20px;
+      }
+    }
+  `]
 })
 export class ObjectTypeBuilderComponent implements OnInit {
   @Input() config!: ObjectTypeBuilderConfig;
@@ -379,118 +712,73 @@ export class ObjectTypeBuilderComponent implements OnInit {
   @Output() cancel = new EventEmitter<void>();
 
   objectTypeForm!: FormGroup;
-  expandedFieldIndex = -1;
-  isSaving = false;
+  fieldForm!: FormGroup;
+  showFieldEditor = false;
+  editingFieldIndex = -1;
 
   iconOptions = [
     { value: 'person', label: 'Person' },
     { value: 'business', label: 'Business' },
     { value: 'event', label: 'Event' },
     { value: 'place', label: 'Place' },
-    { value: 'article', label: 'Article' },
-    { value: 'photo', label: 'Photo' },
     { value: 'military_tech', label: 'Military' },
     { value: 'school', label: 'Education' },
     { value: 'work', label: 'Work' },
-    { value: 'category', label: 'Category' },
-    { value: 'description', label: 'Document' },
     { value: 'star', label: 'Award' },
-    { value: 'flag', label: 'Flag' },
-    { value: 'public', label: 'Public' },
-    { value: 'groups', label: 'Group' }
+    { value: 'category', label: 'General' }
   ];
 
-  colorOptions = [
-    { value: '#6366f1', label: 'Indigo' },
-    { value: '#8b5cf6', label: 'Purple' },
-    { value: '#06b6d4', label: 'Cyan' },
-    { value: '#10b981', label: 'Emerald' },
-    { value: '#f59e0b', label: 'Amber' },
-    { value: '#ef4444', label: 'Red' },
-    { value: '#ec4899', label: 'Pink' },
-    { value: '#84cc16', label: 'Lime' },
-    { value: '#6b7280', label: 'Gray' },
-    { value: '#059669', label: 'Teal' }
-  ];
 
   fieldTypeOptions = [
     { value: 'text', label: 'Text', icon: 'text_fields' },
-    { value: 'longtext', label: 'Long Text', icon: 'notes' },
-    { value: 'richtext', label: 'Rich Text', icon: 'format_bold' },
+    { value: 'textarea', label: 'Long Text', icon: 'notes' },
     { value: 'number', label: 'Number', icon: 'numbers' },
     { value: 'date', label: 'Date', icon: 'calendar_today' },
     { value: 'email', label: 'Email', icon: 'email' },
-    { value: 'url', label: 'URL', icon: 'link' },
-    { value: 'boolean', label: 'Yes/No', icon: 'check_box' },
-    { value: 'multiselect', label: 'Multiple Choice', icon: 'checklist' },
-    { value: 'file', label: 'File Upload', icon: 'attach_file' },
+    { value: 'url', label: 'Website URL', icon: 'link' },
     { value: 'color', label: 'Color', icon: 'palette' },
-    { value: 'location', label: 'Location', icon: 'place' }
+    { value: 'location', label: 'Map Location', icon: 'place' }
   ];
 
-  fileTypeOptions = [
-    { value: 'image/*', label: 'Images' },
-    { value: '.pdf', label: 'PDF Documents' },
-    { value: '.doc,.docx', label: 'Word Documents' },
-    { value: '.xls,.xlsx', label: 'Excel Spreadsheets' },
-    { value: '.txt', label: 'Text Files' },
-    { value: 'video/*', label: 'Videos' },
-    { value: 'audio/*', label: 'Audio Files' }
-  ];
+  constructor(private fb: FormBuilder) {}
 
-  fieldTemplates = [
-    { id: 'name', name: 'Full Name', icon: 'person', type: 'text', required: true },
-    { id: 'email', name: 'Email Address', icon: 'email', type: 'email', required: false },
-    { id: 'phone', name: 'Phone Number', icon: 'phone', type: 'text', required: false },
-    { id: 'date', name: 'Date', icon: 'calendar_today', type: 'date', required: false },
-    { id: 'description', name: 'Description', icon: 'notes', type: 'longtext', required: false },
-    { id: 'photo', name: 'Photo', icon: 'photo', type: 'file', required: false }
-  ];
+  // Display value functions for selects
+  getIconDisplayValue = (value: string): string => {
+    const option = this.iconOptions.find(opt => opt.value === value);
+    return option?.label || 'Select icon';
+  };
 
-  constructor(
-    private fb: FormBuilder,
-    private objectTypeService: ObjectTypeService,
-    private authService: AuthService
-  ) {}
+  getFieldTypeDisplayValue = (value: string): string => {
+    const option = this.fieldTypeOptions.find(opt => opt.value === value);
+    return option?.label || 'Select type';
+  };
 
   ngOnInit(): void {
-    this.initializeForm();
+    this.initializeForms();
+    if (this.config.initialData) {
+      this.loadInitialData();
+    }
   }
 
   get fieldsArray(): FormArray {
     return this.objectTypeForm.get('fields') as FormArray;
   }
 
-  get canAddField(): boolean {
-    // For now, allow all authenticated users to add fields
-    // TODO: Implement proper permission checking
-    return true;
-  }
-
-  private initializeForm(): void {
+  private initializeForms(): void {
     this.objectTypeForm = this.fb.group({
       name: ['', Validators.required],
       description: [''],
       icon: ['category'],
-      color: ['#6366f1'],
-      fields: this.fb.array([]),
-      displaySettings: this.fb.group({
-        cardLayout: ['detailed'],
-        showOnMap: [false],
-        primaryField: [''],
-        secondaryField: ['']
-      }),
-      isActive: [true],
-      sortOrder: [0]
+      fields: this.fb.array([])
     });
 
-    // Load initial data if editing
-    if (this.config.initialData) {
-      this.loadInitialData();
-    } else {
-      // Add default first field for new object types
-      this.addField();
-    }
+    this.fieldForm = this.fb.group({
+      name: ['', Validators.required],
+      type: ['text', Validators.required],
+      description: [''],
+      placeholder: [''],
+      required: [false]
+    });
   }
 
   private loadInitialData(): void {
@@ -498,14 +786,9 @@ export class ObjectTypeBuilderComponent implements OnInit {
     this.objectTypeForm.patchValue({
       name: data.name,
       description: data.description,
-      icon: data.icon,
-      color: data.color,
-      displaySettings: data.displaySettings,
-      isActive: data.isActive,
-      sortOrder: data.sortOrder
+      icon: data.icon
     });
 
-    // Load fields
     if (data.fields) {
       data.fields.forEach(field => {
         this.fieldsArray.push(this.createFieldFormGroup(field));
@@ -513,106 +796,81 @@ export class ObjectTypeBuilderComponent implements OnInit {
     }
   }
 
-  private createFieldFormGroup(field?: Partial<FieldDefinition>): FormGroup {
-    const fieldGroup = this.fb.group({
-      id: [field?.id || this.generateFieldId()],
-      name: [field?.name || '', Validators.required],
-      type: [field?.type || 'text'],
-      required: [field?.required || false],
-      placeholder: [field?.placeholder || ''],
-      description: [field?.description || ''],
-      multiselectConfig: this.fb.group({
-        options: [field?.multiselectConfig?.options || []],
-        allowCustom: [field?.multiselectConfig?.allowCustom || false]
-      }),
-      fileConfig: this.fb.group({
-        allowedTypes: [field?.fileConfig?.allowedTypes || []],
-        maxSize: [field?.fileConfig?.maxSize || 10],
-        multiple: [field?.fileConfig?.multiple || false]
-      })
+  private createFieldFormGroup(field: FieldDefinition): FormGroup {
+    return this.fb.group({
+      id: [field.id || this.generateFieldId()],
+      name: [field.name, Validators.required],
+      type: [field.type],
+      description: [field.description || ''],
+      placeholder: [field.placeholder || ''],
+      required: [field.required || false]
     });
+  }
 
-    return fieldGroup;
+  getPropertyCardActions() {
+    if (this.fieldsArray.length === 0) {
+      return [];
+    }
+    return [
+      {
+        label: 'Add Property',
+        icon: 'add',
+        variant: 'stroked',
+        color: 'primary',
+        action: () => this.addField()
+      }
+    ];
   }
 
   addField(): void {
-    const newField = this.createFieldFormGroup();
-    this.fieldsArray.push(newField);
-    this.expandedFieldIndex = this.fieldsArray.length - 1;
+    this.fieldForm.reset({
+      name: '',
+      type: 'text',
+      description: '',
+      placeholder: '',
+      required: false
+    });
+    this.editingFieldIndex = -1;
+    this.showFieldEditor = true;
   }
 
-  addFieldFromTemplate(template: any): void {
-    const fieldData: Partial<FieldDefinition> = {
-      name: template.name,
-      type: template.type,
-      required: template.required,
-      placeholder: `Enter ${template.name.toLowerCase()}...`
-    };
-
-    if (template.type === 'file' && template.id === 'photo') {
-      fieldData.fileConfig = {
-        allowedTypes: ['image/*'],
-        maxSize: 5,
-        multiple: false
-      };
-    }
-
-    const newField = this.createFieldFormGroup(fieldData);
-    this.fieldsArray.push(newField);
-    this.expandedFieldIndex = this.fieldsArray.length - 1;
+  editField(index: number): void {
+    const field = this.fieldsArray.at(index);
+    this.fieldForm.patchValue(field.value);
+    this.editingFieldIndex = index;
+    this.showFieldEditor = true;
   }
 
   removeField(index: number): void {
     this.fieldsArray.removeAt(index);
-    if (this.expandedFieldIndex === index) {
-      this.expandedFieldIndex = -1;
-    } else if (this.expandedFieldIndex > index) {
-      this.expandedFieldIndex--;
-    }
   }
 
-  duplicateField(index: number): void {
-    const fieldToDuplicate = this.fieldsArray.at(index).value;
-    const duplicatedField = {
-      ...fieldToDuplicate,
-      id: this.generateFieldId(),
-      name: `${fieldToDuplicate.name} Copy`
+  saveField(): void {
+    if (this.fieldForm.invalid) return;
+
+    const fieldData = {
+      ...this.fieldForm.value,
+      id: this.generateFieldId()
     };
-    
-    const newFieldGroup = this.createFieldFormGroup(duplicatedField);
-    this.fieldsArray.insert(index + 1, newFieldGroup);
-    this.expandedFieldIndex = index + 1;
-  }
 
-  onFieldReorder(event: CdkDragDrop<string[]>): void {
-    moveItemInArray(this.fieldsArray.controls, event.previousIndex, event.currentIndex);
-    this.fieldsArray.updateValueAndValidity();
-  }
-
-  onFieldTypeChange(fieldIndex: number, newType: string): void {
-    const field = this.fieldsArray.at(fieldIndex);
-    
-    // Reset type-specific configurations when type changes
-    if (newType !== 'multiselect') {
-      field.get('multiselectConfig')?.reset({ options: [], allowCustom: false });
+    if (this.editingFieldIndex >= 0) {
+      // Edit existing field
+      this.fieldsArray.at(this.editingFieldIndex).patchValue(fieldData);
+    } else {
+      // Add new field
+      this.fieldsArray.push(this.createFieldFormGroup(fieldData));
     }
-    if (newType !== 'file') {
-      field.get('fileConfig')?.reset({ allowedTypes: [], maxSize: 10, multiple: false });
-    }
+
+    this.closeFieldEditor();
   }
 
-  getMultiselectOptionsText(field: FormGroup): string {
-    const options = field.get('multiselectConfig.options')?.value || [];
-    return options.join('\n');
+  closeFieldEditor(): void {
+    this.showFieldEditor = false;
+    this.editingFieldIndex = -1;
+    this.fieldForm.reset();
   }
 
-  updateMultiselectOptions(field: FormGroup, event: any): void {
-    const text = event.target.value;
-    const options = text.split('\n').filter((option: string) => option.trim());
-    field.get('multiselectConfig.options')?.setValue(options);
-  }
-
-  getFieldTypeIcon(type: string): string {
+  getFieldIcon(type: string): string {
     const option = this.fieldTypeOptions.find(opt => opt.value === type);
     return option?.icon || 'text_fields';
   }
@@ -622,66 +880,28 @@ export class ObjectTypeBuilderComponent implements OnInit {
     return option?.label || 'Text';
   }
 
-  getBuilderTitle(): string {
-    switch (this.config.mode) {
-      case 'create': return 'Create New Object Type';
-      case 'edit': return 'Edit Object Type';
-      case 'template': return 'Create from Template';
-      default: return 'Object Type Builder';
-    }
-  }
-
-  getBuilderSubtitle(): string {
-    switch (this.config.mode) {
-      case 'create': return 'Define a new type of content for your wall';
-      case 'edit': return 'Modify the structure and settings';
-      case 'template': return 'Customize the template to fit your needs';
-      default: return '';
-    }
-  }
-
   private generateFieldId(): string {
     return `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  async saveAsDraft(): Promise<void> {
-    // TODO: Implement draft saving functionality
-    console.log('Save as draft:', this.objectTypeForm.value);
-  }
+  onSave(): void {
+    if (this.objectTypeForm.invalid) return;
 
-  async onSave(): Promise<void> {
-    if (!this.objectTypeForm.valid) return;
+    const objectType: WallObjectType = {
+      id: this.config.initialData?.id || this.generateObjectTypeId(),
+      ...this.objectTypeForm.value,
+      createdAt: this.config.initialData?.createdAt || new Date(),
+      updatedAt: new Date()
+    };
 
-    this.isSaving = true;
-    try {
-      const formValue = this.objectTypeForm.value;
-      const objectTypeData: WallObjectType = {
-        id: this.config.initialData?.id || '', // Will be set by parent
-        wallId: this.config.wallId,
-        name: formValue.name,
-        description: formValue.description,
-        icon: formValue.icon,
-        color: formValue.color,
-        fields: formValue.fields,
-        relationships: [], // TODO: Add relationship support
-        displaySettings: formValue.displaySettings,
-        isActive: formValue.isActive,
-        sortOrder: formValue.sortOrder,
-        createdAt: this.config.initialData?.createdAt || new Date(),
-        updatedAt: new Date()
-      };
-
-      // Emit the object type data to parent component for saving
-      this.save.emit(objectTypeData);
-    } catch (error) {
-      console.error('Error preparing object type data:', error);
-      // TODO: Show error message to user
-    } finally {
-      this.isSaving = false;
-    }
+    this.save.emit(objectType);
   }
 
   onCancel(): void {
     this.cancel.emit();
+  }
+
+  private generateObjectTypeId(): string {
+    return `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 }

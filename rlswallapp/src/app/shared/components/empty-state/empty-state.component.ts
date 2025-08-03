@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
+import { MaterialIconComponent } from '../material-icon/material-icon.component';
+import { ThemedButtonComponent } from '../themed-button/themed-button.component';
 
 export interface EmptyStateAction {
   label: string;
@@ -13,7 +13,7 @@ export interface EmptyStateAction {
 @Component({
   selector: 'app-empty-state',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule],
+  imports: [CommonModule, MaterialIconComponent, ThemedButtonComponent],
   template: `
     <div class="empty-state" [class]="containerClass">
       <div class="empty-state-content">
@@ -32,26 +32,14 @@ export interface EmptyStateAction {
         @if (actions && actions.length > 0) {
           <div class="empty-actions">
             @for (action of actions; track action.label) {
-              @if (action.primary) {
-                <button 
-                  mat-raised-button
-                  color="primary"
-                  (click)="action.action()">
-                  @if (action.icon) {
-                    <mat-icon>{{ action.icon }}</mat-icon>
-                  }
-                  {{ action.label }}
-                </button>
-              } @else {
-                <button 
-                  mat-button
-                  (click)="action.action()">
-                  @if (action.icon) {
-                    <mat-icon>{{ action.icon }}</mat-icon>
-                  }
-                  {{ action.label }}
-                </button>
-              }
+              <app-themed-button
+                [variant]="action.primary ? 'flat' : 'stroked'"
+                [color]="action.primary ? 'primary' : undefined"
+                [icon]="action.icon"
+                [pill]="true"
+                [label]="action.label"
+                (buttonClick)="action.action()">
+              </app-themed-button>
             }
           </div>
         }
@@ -104,8 +92,8 @@ export interface EmptyStateAction {
       flex-wrap: wrap;
     }
 
-    .empty-actions button {
-      display: flex;
+    .empty-actions app-themed-button {
+      display: inline-flex;
       align-items: center;
       gap: var(--md-sys-spacing-2);
     }
@@ -135,7 +123,7 @@ export interface EmptyStateAction {
         align-items: center;
       }
 
-      .empty-actions button {
+      .empty-actions app-themed-button {
         width: 100%;
         max-width: 200px;
       }

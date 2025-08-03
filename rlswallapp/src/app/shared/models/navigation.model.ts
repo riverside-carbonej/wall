@@ -27,7 +27,9 @@ export interface WallObjectTypeNav {
 }
 
 export enum AddMode {
+  None = 'none',
   WallItem = 'wall-item',
-  ObjectType = 'object-type', 
+  ObjectType = 'object-type',
+  Preset = 'preset',
   Wall = 'wall'
 }

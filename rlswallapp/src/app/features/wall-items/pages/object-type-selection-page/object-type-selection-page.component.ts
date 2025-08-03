@@ -8,6 +8,7 @@ import { WallService } from '../../../walls/services/wall.service';
 import { Wall, WallObjectType } from '../../../../shared/models/wall.model';
 import { ObjectTypeSelectorComponent } from '../../components/object-type-selector/object-type-selector.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
+import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 
 @Component({
   selector: 'app-object-type-selection-page',
@@ -15,24 +16,33 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
   imports: [
     CommonModule,
     ObjectTypeSelectorComponent,
-    LoadingStateComponent
+    LoadingStateComponent,
+    PageLayoutComponent
   ],
   template: `
-    @if (isLoading) {
-      <app-loading-state
-        message="Loading item types..."
-        [spinnerSize]="60">
-      </app-loading-state>
-    } @else {
-      @if (wall$ | async; as wall) {
-        <app-object-type-selector
-          [objectTypes]="wall.objectTypes || []"
-          (objectTypeSelected)="onObjectTypeSelected($event)"
-          (cancel)="onCancel()"
-          (manageTypes)="onManageTypes()">
-        </app-object-type-selector>
+    <app-page-layout
+      title="Select Item Type"
+      subtitle="Choose the type of item you want to add to your wall"
+      [showBackButton]="true"
+      [actions]="pageActions"
+      (backClick)="onCancel()">
+      
+      @if (isLoading) {
+        <app-loading-state
+          message="Loading item types..."
+          [spinnerSize]="60">
+        </app-loading-state>
+      } @else {
+        @if (wall$ | async; as wall) {
+          <app-object-type-selector
+            [objectTypes]="wall.objectTypes || []"
+            (objectTypeSelected)="onObjectTypeSelected($event)"
+            (cancel)="onCancel()"
+            (manageTypes)="onManageTypes()">
+          </app-object-type-selector>
+        }
       }
-    }
+    </app-page-layout>
   `,
   styles: [`
     :host {
@@ -48,6 +58,15 @@ export class ObjectTypeSelectionPageComponent implements OnInit, OnDestroy {
   wall$!: Observable<Wall>;
   wallId!: string;
   isLoading = true;
+
+  pageActions: PageAction[] = [
+    {
+      label: 'Manage Types',
+      icon: 'settings',
+      variant: 'stroked',
+      action: () => this.onManageTypes()
+    }
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -93,6 +112,6 @@ export class ObjectTypeSelectionPageComponent implements OnInit, OnDestroy {
 
   onManageTypes(): void {
     // Navigate to wall item presets management
-    this.router.navigate(['/walls', this.wallId, 'manage']);
+    this.router.navigate(['/walls', this.wallId, 'item-presets']);
   }
 }

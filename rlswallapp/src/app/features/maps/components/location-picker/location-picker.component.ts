@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { FormFieldComponent } from '../../../../shared/components/input-field/input-field.component';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { ProgressBarComponent } from '../../../../shared/components/progress-bar/progress-bar.component';
+import { MatLabel, MatError } from '../../../../shared/components/material-stubs';
 import { Observable, Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs';
 import * as L from 'leaflet';
 import { MapsService, Coordinates, GeocodingResult } from '../../services/maps.service';
@@ -22,11 +22,12 @@ export interface LocationPickerResult {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressBarModule
+    FormFieldComponent,
+    ThemedButtonComponent,
+    MaterialIconComponent,
+    ProgressBarComponent,
+    MatLabel,
+    MatError
   ],
   templateUrl: './location-picker.component.html',
   styleUrls: ['./location-picker.component.css']

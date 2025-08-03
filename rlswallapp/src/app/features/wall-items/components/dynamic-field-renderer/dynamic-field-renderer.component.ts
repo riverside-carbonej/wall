@@ -1,17 +1,16 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
+import { MatFormField, MatLabel, MatError } from '../../../../shared/components/material-stubs';
+import { SelectComponent } from '../../../../shared/components/select/select.component';
+import { MatCheckbox } from '../../../../shared/components/material-stubs';
+import { MatChipListbox, MatChipOption } from '../../../../shared/components/material-stubs';
+import { MatDatepicker, MatDatepickerToggle } from '../../../../shared/components/material-stubs';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 import { FieldDefinition } from '../../../../shared/models/wall.model';
 import { LocationPickerComponent } from '../../../maps/components/location-picker/location-picker.component';
+import { FormFieldComponent } from '../../../../shared/components/form-field/form-field.component';
 
 @Component({
   selector: 'app-dynamic-field-renderer',
@@ -19,16 +18,15 @@ import { LocationPickerComponent } from '../../../maps/components/location-picke
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatCheckboxModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatChipsModule,
-    MatIconModule,
-    MatButtonModule,
-    LocationPickerComponent
+    MatFormField, MatLabel, MatError,
+    SelectComponent,
+    MatCheckbox,
+    MatChipListbox, MatChipOption,
+    MatDatepicker, MatDatepickerToggle,
+    MaterialIconComponent,
+    ThemedButtonComponent,
+    LocationPickerComponent,
+    FormFieldComponent
   ],
   templateUrl: './dynamic-field-renderer.component.html',
   styleUrls: ['./dynamic-field-renderer.component.css']

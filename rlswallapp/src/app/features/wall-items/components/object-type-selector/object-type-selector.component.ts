@@ -1,34 +1,36 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatRippleModule } from '@angular/material/core';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions } from '../../../../shared/components/material-stubs';
 import { WallObjectType } from '../../../../shared/models/wall.model';
 import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/components/empty-state/empty-state.component';
+import { CardComponent, CardAction } from '../../../../shared/components/card/card.component';
 
 @Component({
   selector: 'app-object-type-selector',
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatToolbarModule,
-    MatRippleModule,
-    EmptyStateComponent
+    ThemedButtonComponent,
+    MaterialIconComponent,
+    MatCard,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardContent,
+    MatCardActions,
+    EmptyStateComponent,
+    CardComponent
   ],
   template: `
     <div class="object-type-selector">
       <!-- Header -->
-      <mat-toolbar class="selector-header">
-        <button mat-icon-button (click)="onCancel()">
+      <div class="selector-header">
+        <app-themed-button variant="icon" (click)="onCancel()">
           <mat-icon>arrow_back</mat-icon>
-        </button>
+        </app-themed-button>
         <span class="header-title">Choose Item Type</span>
-      </mat-toolbar>
+      </div>
 
       <!-- Content -->
       <div class="selector-content">
@@ -40,52 +42,39 @@ import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/compon
 
           <div class="object-types-grid">
             @for (objectType of objectTypes; track objectType.id) {
-              <mat-card class="object-type-card" 
-                        matRipple
-                        (click)="onObjectTypeSelected(objectType)">
-                <div class="card-header">
-                  <div class="object-type-icon" [style.background-color]="objectType.color">
-                    <mat-icon>{{ objectType.icon }}</mat-icon>
+              <app-card
+                variant="elevated"
+                size="medium"
+                [clickable]="true"
+                [avatarIcon]="objectType.icon"
+                [title]="objectType.name"
+                [description]="objectType.description"
+                [metadata]="getObjectTypeMetadata(objectType)"
+                [actions]="getObjectTypeActions(objectType)"
+                [ariaLabel]="'Create ' + objectType.name + ' item'"
+                (cardClick)="onObjectTypeSelected(objectType)"
+                class="object-type-card">
+                
+                <!-- Field Preview in Content Slot -->
+                <div class="field-preview">
+                  <div class="sample-fields">
+                    @for (field of objectType.fields | slice:0:3; track field.id) {
+                      <span class="field-name">{{ field.name }}</span>
+                    }
+                    @if (objectType.fields.length > 3) {
+                      <span class="more-fields">+{{ objectType.fields.length - 3 }} more</span>
+                    }
                   </div>
                 </div>
-                
-                <mat-card-content>
-                  <h3>{{ objectType.name }}</h3>
-                  <p class="description">{{ objectType.description }}</p>
-                  
-                  <div class="field-preview">
-                    <div class="field-count">
-                      <mat-icon>view_list</mat-icon>
-                      <span>{{ objectType.fields.length }} fields</span>
-                    </div>
-                    
-                    <div class="sample-fields">
-                      @for (field of objectType.fields | slice:0:3; track field.id) {
-                        <span class="field-name">{{ field.name }}</span>
-                      }
-                      @if (objectType.fields.length > 3) {
-                        <span class="more-fields">+{{ objectType.fields.length - 3 }} more</span>
-                      }
-                    </div>
-                  </div>
-                </mat-card-content>
-                
-                <mat-card-actions>
-                  <button mat-raised-button color="primary" 
-                          (click)="onObjectTypeSelected(objectType); $event.stopPropagation()">
-                    <mat-icon>add</mat-icon>
-                    Create {{ objectType.name }}
-                  </button>
-                </mat-card-actions>
-              </mat-card>
+              </app-card>
             }
           </div>
 
           <div class="actions-section">
-            <button mat-button (click)="onManageTypes()">
+            <app-themed-button variant="stroked" (click)="onManageTypes()">
               <mat-icon>settings</mat-icon>
               Manage Item Types
-            </button>
+            </app-themed-button>
           </div>
         } @else {
           <app-empty-state
@@ -302,5 +291,23 @@ export class ObjectTypeSelectorComponent implements OnInit {
 
   onManageTypes(): void {
     this.manageTypes.emit();
+  }
+
+  // Helper methods for CardComponent
+  getObjectTypeMetadata(objectType: WallObjectType): Array<{key: string; value: string; icon?: string}> {
+    return [
+      { key: 'fields', value: `${objectType.fields.length} fields`, icon: 'view_list' }
+    ];
+  }
+
+  getObjectTypeActions(objectType: WallObjectType): CardAction[] {
+    return [
+      {
+        label: `Create ${objectType.name}`,
+        icon: 'add',
+        primary: true,
+        action: () => this.onObjectTypeSelected(objectType)
+      }
+    ];
   }
 }

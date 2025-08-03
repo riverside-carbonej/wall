@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WallItemImage } from '../../../../shared/models/wall.model';
+import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 
 @Component({
   selector: 'app-item-image-gallery',
@@ -451,10 +452,14 @@ export class ItemImageGalleryComponent {
     this.imageEdited.emit(image);
   }
 
+  private confirmationDialog = inject(ConfirmationDialogService);
+
   deleteImage(image: WallItemImage): void {
-    if (confirm('Are you sure you want to delete this image?')) {
-      this.imageDeleted.emit(image);
-    }
+    this.confirmationDialog.confirmDelete('this image').subscribe(confirmed => {
+      if (confirmed) {
+        this.imageDeleted.emit(image);
+      }
+    });
   }
 
   setPrimaryImage(image: WallItemImage): void {

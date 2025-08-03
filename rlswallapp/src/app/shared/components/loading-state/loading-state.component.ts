@@ -1,12 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSpinner, MatProgressBar } from '../material-stubs';
 
 @Component({
   selector: 'app-loading-state',
   standalone: true,
-  imports: [CommonModule, MatProgressSpinnerModule, MatProgressBarModule],
+  imports: [CommonModule, MatSpinner, MatProgressBar],
   template: `
     <div class="loading-state" [class]="containerClass">
       <div class="loading-content">

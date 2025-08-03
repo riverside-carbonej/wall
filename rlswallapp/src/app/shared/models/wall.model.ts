@@ -139,6 +139,8 @@ export interface Wall {
   // Branding
   logoUrl?: string;
   organizationName?: string;
+  organizationSubtitle?: string; // Configurable subtitle (defaults to "Riverside Local Schools")
+  organizationLogoUrl?: string; // Configurable organization logo (defaults to Riverside logo)
   galleryImages?: WallItemImage[]; // Gallery images for the overview page
   
   // Enhanced object-based system (Phase 2)

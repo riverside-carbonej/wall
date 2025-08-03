@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { WallObjectType, RelationshipDefinition, EnhancedWallItem } from '../../../../shared/models/wall.model';
 import { RelationshipService, RelationshipGraph, RelationshipPath } from '../../services/relationship.service';
+import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 
 export interface RelationshipFormData {
   name: string;
@@ -799,7 +800,8 @@ export class RelationshipManagerComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private relationshipService: RelationshipService
+    private relationshipService: RelationshipService,
+    private confirmationDialog: ConfirmationDialogService
   ) {
     this.initializeForm();
   }
@@ -869,9 +871,11 @@ export class RelationshipManagerComponent implements OnInit {
   }
 
   deleteRelationshipDefinition(definition: RelationshipDefinition): void {
-    if (confirm(`Are you sure you want to delete the relationship "${definition.name}"? This action cannot be undone.`)) {
-      this.relationshipDefinitionDeleted.emit(definition.id);
-    }
+    this.confirmationDialog.confirmDelete(definition.name).subscribe(confirmed => {
+      if (confirmed) {
+        this.relationshipDefinitionDeleted.emit(definition.id);
+      }
+    });
   }
 
   hideForm(): void {

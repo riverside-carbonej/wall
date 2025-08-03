@@ -1,11 +1,10 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { ProgressSpinnerComponent } from '../../../../shared/components/progress-spinner/progress-spinner.component';
+import { TooltipComponent } from '../../../../shared/components/tooltip/tooltip.component';
 import { Observable, Subject, takeUntil, combineLatest } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { WallItemService } from '../../services/wall-item.service';
@@ -13,19 +12,20 @@ import { WallService } from '../../../walls/services/wall.service';
 import { Wall, WallItem, WallObjectType } from '../../../../shared/models/wall.model';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/components/empty-state/empty-state.component';
+import { CardComponent, CardAction, CardMenuItem } from '../../../../shared/components/card/card.component';
 
 @Component({
   selector: 'app-wall-item-list',
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatTooltipModule,
+    ThemedButtonComponent,
+    MaterialIconComponent,
+    ProgressSpinnerComponent,
+    TooltipComponent,
     LoadingStateComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    CardComponent
   ],
   template: `
     <div class="wall-item-list" 
@@ -93,79 +93,34 @@ import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/compon
                [class.background-grid]="isBackgroundMode">
             
             @for (item of items; track item.id) {
-            <div class="item-card-wrapper"
-                 [class.clickable]="!isBackgroundMode"
-                 (click)="onItemClick(item)">
-              
-              <mat-card class="wall-item-card" 
-                        [class.background-card]="isBackgroundMode">
+              <div class="item-card-wrapper"
+                   [class.clickable]="!isBackgroundMode"
+                   (click)="onItemClick(item)">
                 
-                <!-- Primary Image -->
-                <div class="card-image-container">
-                  @if (getPrimaryImage(item); as primaryImage) {
-                    <img [src]="primaryImage.url" 
-                         [alt]="primaryImage.altText || getItemTitle(item)"
-                         class="primary-image"
-                         loading="lazy">
-                  } @else {
-                    <div class="placeholder-image">
-                      <mat-icon>{{ getObjectTypeIcon(item) }}</mat-icon>
-                    </div>
-                  }
+                <app-card
+                  variant="elevated"
+                  size="medium"
+                  [title]="getItemTitle(item)"
+                  [subtitle]="getItemSubtitle(item) || undefined"
+                  [avatarIcon]="getObjectTypeIcon(item)"
+                  [imageUrl]="getPrimaryImage(item)?.url"
+                  [imageAlt]="getPrimaryImage(item)?.altText || getItemTitle(item)"
+                  [metadata]="getMetadata(item)"
+                  [actions]="!isBackgroundMode ? getActions(item) : []"
+                  [clickable]="!isBackgroundMode"
+                  [class.background-card]="isBackgroundMode"
+                  class="wall-item-card">
                   
                   <!-- Object Type Badge -->
                   @if (!isBackgroundMode) {
-                    <div class="object-type-badge" 
+                    <div slot="media-overlay" class="object-type-badge" 
                          [style.background-color]="getObjectTypeColor(item)">
                       <mat-icon>{{ getObjectTypeIcon(item) }}</mat-icon>
                     </div>
                   }
-                </div>
-
-                <!-- Card Content -->
-                <mat-card-content class="card-content">
-                  <div class="item-title" 
-                       [matTooltip]="getItemTitle(item)"
-                       matTooltipPosition="above">
-                    {{ getItemTitle(item) }}
-                  </div>
-                  
-                  @if (!isBackgroundMode) {
-                    @if (getItemSubtitle(item); as subtitle) {
-                      <div class="item-subtitle">
-                        {{ subtitle }}
-                      </div>
-                    }
-                    
-                    <div class="item-metadata">
-                      <span class="object-type-name">
-                        {{ getObjectTypeName(item) }}
-                      </span>
-                      <span class="update-date">
-                        {{ item.updatedAt | date:'mediumDate' }}
-                      </span>
-                    </div>
-                  }
-                </mat-card-content>
-
-                <!-- Card Actions (only in normal mode) -->
-                @if (!isBackgroundMode) {
-                  <mat-card-actions class="card-actions">
-                    <button mat-button 
-                            (click)="onViewItem(item, $event)">
-                      <mat-icon>visibility</mat-icon>
-                      View
-                    </button>
-                    <button mat-button 
-                            (click)="onEditItem(item, $event)">
-                      <mat-icon>edit</mat-icon>
-                      Edit
-                    </button>
-                  </mat-card-actions>
-                }
-              </mat-card>
-            </div>
-          }
+                </app-card>
+              </div>
+            }
           </div>
         }
       }
@@ -247,27 +202,14 @@ import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/compon
 
     /* Item Cards */
     .item-card-wrapper {
-      transition: transform 200ms ease;
-    }
-
-    .clickable:hover {
-      transform: translateY(-2px);
-    }
-
-    .clickable {
-      cursor: pointer;
+      /* Card component handles hover and transition effects */
     }
 
     .wall-item-card {
       height: 100%;
-      display: flex;
-      flex-direction: column;
-      transition: all 200ms ease;
-      background: var(--md-sys-color-surface-container);
     }
 
     .background-card {
-      background: var(--md-sys-color-surface-container-low);
       opacity: 0.9;
     }
 
@@ -278,39 +220,6 @@ import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/compon
     .background-mode .wall-item-card {
       height: 200px;
       pointer-events: none;
-    }
-
-    /* Card Image */
-    .card-image-container {
-      position: relative;
-      width: 100%;
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      background: var(--md-sys-color-surface-variant);
-    }
-
-    .primary-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .placeholder-image {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 100%;
-      color: var(--md-sys-color-on-surface-variant);
-    }
-
-    .placeholder-image mat-icon {
-      font-size: 3rem;
-      width: 3rem;
-      height: 3rem;
     }
 
     .object-type-badge {
@@ -331,59 +240,6 @@ import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/compon
       font-size: 1rem;
       width: 1rem;
       height: 1rem;
-    }
-
-    /* Card Content */
-    .card-content {
-      padding: 1rem !important;
-      flex-shrink: 0;
-    }
-
-    .background-mode .card-content {
-      padding: 0.5rem !important;
-    }
-
-    .item-title {
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: var(--md-sys-color-on-surface);
-      margin-bottom: 0.25rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .background-mode .item-title {
-      font-size: 0.9rem;
-      text-align: center;
-    }
-
-    .item-subtitle {
-      font-size: 0.9rem;
-      color: var(--md-sys-color-on-surface-variant);
-      margin-bottom: 0.5rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .item-metadata {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.8rem;
-      color: var(--md-sys-color-on-surface-variant);
-    }
-
-    .object-type-name {
-      font-weight: 500;
-    }
-
-    /* Card Actions */
-    .card-actions {
-      padding: 0.5rem 1rem !important;
-      gap: 0.5rem;
-      flex-shrink: 0;
     }
 
     /* Loading and Empty States */
@@ -580,7 +436,7 @@ export class WallItemListComponent implements OnInit, OnDestroy {
 
   navigateToObjectTypes() {
     // Navigate to Wall Item Presets management
-    this.router.navigate(['/walls', this.wallId, 'manage']);
+    this.router.navigate(['/walls', this.wallId, 'item-presets']);
   }
 
   onItemClick(item: WallItem) {
@@ -601,5 +457,41 @@ export class WallItemListComponent implements OnInit, OnDestroy {
       event.stopPropagation();
     }
     this.router.navigate(['/walls', this.wallId, 'items', item.id, 'edit']);
+  }
+
+  getMetadata(item: WallItem): Array<{key: string; value: string; icon?: string}> {
+    if (this.isBackgroundMode) return [];
+    
+    return [
+      {
+        key: 'type',
+        value: this.getObjectTypeName(item),
+        icon: this.getObjectTypeIcon(item)
+      },
+      {
+        key: 'updated',
+        value: new Date(item.updatedAt).toLocaleDateString(),
+        icon: 'schedule'
+      }
+    ];
+  }
+
+  getActions(item: WallItem): CardAction[] {
+    if (this.isBackgroundMode) return [];
+    
+    return [
+      {
+        label: 'View',
+        icon: 'visibility',
+        primary: false,
+        action: () => this.onViewItem(item)
+      },
+      {
+        label: 'Edit',
+        icon: 'edit',
+        primary: false,
+        action: () => this.onEditItem(item)
+      }
+    ];
   }
 }

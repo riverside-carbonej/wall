@@ -27,10 +27,15 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
               </div>
             }
             
+            <!-- Organization Logo -->
+            <div class="organization-logo">
+              <img [src]="getLogoUrl(wall)" [alt]="wall.organizationName || 'Riverside'" />
+            </div>
+            
             <!-- Wall Title Group -->
             <div class="wall-title-group">
               <p class="organization-name" [style.color]="wall.theme.titleColor">
-                {{ wall.organizationName || 'Riverside' }}
+                {{ wall.organizationSubtitle || 'Riverside Local Schools' }}
               </p>
               <h1 class="wall-title" [style.color]="wall.theme.titleColor">
                 {{ wall.name }}
@@ -42,22 +47,6 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
                 </p>
               }
             </div>
-            
-            <!-- Quick Stats -->
-            @if (wallItems$ | async; as items) {
-              <div class="quick-stats">
-                <div class="stat-item">
-                  <span class="stat-number">{{ items.length }}</span>
-                  <span class="stat-label">{{ items.length === 1 ? 'Item' : 'Items' }}</span>
-                </div>
-                @if (objectTypes$ | async; as objectTypes) {
-                  <div class="stat-item">
-                    <span class="stat-number">{{ objectTypes.length }}</span>
-                    <span class="stat-label">{{ objectTypes.length === 1 ? 'Type' : 'Types' }}</span>
-                  </div>
-                }
-              </div>
-            }
           </div>
         }
       </div>
@@ -142,14 +131,26 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
       padding: 1rem;
     }
 
-    .wall-title-group {
+    .organization-logo {
       margin-bottom: 2rem;
+    }
+
+    .organization-logo img {
+      width: 10em;
+      height: 10em;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+      margin-bottom: -2.5em;
+    }
+
+    .wall-title-group {
+      margin-bottom: 0;
     }
 
     .organization-name {
       font-size: 1em;
       font-weight: 500;
-      margin: 0 0 0.5rem 0;
+      margin: 0 0 1.5rem 0;
       opacity: 0.9;
       text-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
@@ -173,35 +174,6 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
       line-height: 1.4;
     }
 
-    .quick-stats {
-      display: flex;
-      gap: 3rem;
-      margin-top: 1rem;
-    }
-
-    .stat-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .stat-number {
-      font-size: 2.5em;
-      font-weight: 700;
-      color: white;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.4);
-      line-height: 1;
-    }
-
-    .stat-label {
-      font-size: 0.9em;
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.8);
-      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
 
     /* Responsive adjustments */
     @media (max-width: 768px) {
@@ -209,6 +181,12 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
         min-width: 300px;
         font-size: 18px;
         padding: 0 1rem;
+      }
+      
+      .organization-logo img {
+        width: 8em;
+        height: 8em;
+        margin-bottom: -2em;
       }
       
       .wall-logo img {
@@ -226,17 +204,6 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
         font-size: 1em;
       }
 
-      .quick-stats {
-        gap: 2rem;
-      }
-
-      .stat-number {
-        font-size: 2em;
-      }
-
-      .stat-label {
-        font-size: 0.8em;
-      }
     }
 
     @media (max-width: 480px) {
@@ -249,8 +216,10 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
         font-size: 1.8em;
       }
 
-      .quick-stats {
-        gap: 1.5rem;
+      .organization-logo img {
+        width: 6em;
+        height: 6em;
+        margin-bottom: -1.5em;
       }
     }
   `]
@@ -326,6 +295,11 @@ export class WallHomeComponent implements OnInit, OnDestroy {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
     }
+  }
+
+  getLogoUrl(wall: Wall): string {
+    // Use organization logo if set, otherwise default to Riverside logo
+    return wall.organizationLogoUrl || '/assets/images/beaver-logo.png';
   }
 
   private getRandomAngle(): number {

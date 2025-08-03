@@ -3,28 +3,25 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { WallService } from '../../services/wall.service';
-import { Wall, FieldDefinition, DEFAULT_THEMES, WallTheme } from '../../../../shared/models/wall.model';
+import { Wall, DEFAULT_THEMES, WallTheme } from '../../../../shared/models/wall.model';
 import { WallPermissionsService } from '../../../../core/services/wall-permissions.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ButtonGroupComponent, ButtonGroupItem } from '../../../../shared/components/button-group/button-group.component';
+import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-wall-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, ButtonGroupComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ButtonGroupComponent, PageLayoutComponent],
   template: `
-    <div class="wall-form-container">
-      <header class="form-header">
-        <h1>{{ isEditMode ? 'Edit Wall' : 'Create New Wall' }}</h1>
-        <div class="header-actions">
-          <button type="button" (click)="onCancel()" class="cancel-button">Cancel</button>
-          <button type="submit" (click)="onSubmit()" [disabled]="wallForm.invalid || isSaving" class="save-button">
-            {{ isSaving ? 'Saving...' : 'Save Wall' }}
-          </button>
-        </div>
-      </header>
-
+    <app-page-layout
+      [title]="isEditMode ? 'Edit Wall' : 'Create New Wall'"
+      [subtitle]="isEditMode ? 'Update wall settings and appearance' : 'Configure your new wall'"
+      [showBackButton]="true"
+      [actions]="getPageActions()"
+      (backClick)="onCancel()">
+      
       <!-- Tab Navigation -->
       <app-button-group
         [items]="tabItems"
@@ -58,6 +55,67 @@ import { Observable } from 'rxjs';
               class="form-textarea"
               rows="3"
             ></textarea>
+          </div>
+
+          <!-- Organization Branding Section -->
+          <div class="form-section">
+            <h3>Organization Branding</h3>
+            
+            <div class="form-group">
+              <label for="organizationName">Organization Name</label>
+              <input 
+                id="organizationName" 
+                type="text" 
+                formControlName="organizationName" 
+                placeholder="e.g., Riverside High School"
+                class="form-input"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="organizationSubtitle">Organization Subtitle</label>
+              <input 
+                id="organizationSubtitle" 
+                type="text" 
+                formControlName="organizationSubtitle" 
+                placeholder="e.g., Riverside Local Schools"
+                class="form-input"
+              >
+              <div class="form-help-text">This appears below the logo on the wall home page</div>
+            </div>
+
+            <div class="form-group">
+              <label for="organizationLogo">Organization Logo</label>
+              <div class="logo-upload-container">
+                <div class="logo-preview" *ngIf="currentLogoUrl">
+                  <img [src]="currentLogoUrl" alt="Current logo" class="logo-preview-image">
+                </div>
+                <div class="logo-upload-actions">
+                  <input 
+                    #logoFileInput
+                    type="file" 
+                    accept="image/*" 
+                    (change)="onLogoFileSelected($event)"
+                    class="file-input"
+                    hidden
+                  >
+                  <button type="button" (click)="logoFileInput.click()" class="upload-button">
+                    {{ currentLogoUrl ? 'Change Logo' : 'Upload Logo' }}
+                  </button>
+                  <button 
+                    type="button" 
+                    (click)="resetToDefaultLogo()" 
+                    class="reset-button"
+                    *ngIf="currentLogoUrl && currentLogoUrl !== '/assets/images/beaver-logo.png'"
+                  >
+                    Reset to Riverside Logo
+                  </button>
+                </div>
+                <div class="logo-help-text">
+                  Recommended: SVG or PNG format, square aspect ratio, max 2MB
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -360,70 +418,8 @@ import { Observable } from 'rxjs';
           </div>
         </section>
 
-        <!-- Fields Tab -->
-        <section class="tab-content" *ngIf="activeTab === 2">
-          <div class="section-header">
-            <button type="button" (click)="addField()" class="add-field-button">
-              + Add Field
-            </button>
-          </div>
-
-          <div formArrayName="fields" class="fields-container">
-            <!-- Table Header -->
-            <div class="fields-header">
-              <div class="field-col-name">Field Name</div>
-              <div class="field-col-type">Type</div>
-              <div class="field-col-required">Required</div>
-              <div class="field-col-placeholder">Placeholder</div>
-              <div class="field-col-actions">Actions</div>
-            </div>
-            
-            <!-- Field Rows -->
-            <div 
-              *ngFor="let fieldGroup of fieldsFormArray.controls; let i = index" 
-              [formGroupName]="i" 
-              class="field-row"
-              (click)="editField(i)"
-            >
-              <div class="field-col-name">
-                <span class="field-name-text">{{ fieldGroup.get('name')?.value || 'Untitled Field' }}</span>
-              </div>
-              <div class="field-col-type">
-                <span class="field-type-text">{{ getFieldTypeLabel(fieldGroup.get('type')?.value) }}</span>
-              </div>
-              <div class="field-col-required">
-                <span class="field-required-text" *ngIf="fieldGroup.get('required')?.value">Yes</span>
-                <span class="field-optional-text" *ngIf="!fieldGroup.get('required')?.value">No</span>
-              </div>
-              <div class="field-col-placeholder">
-                <span class="field-placeholder-text">{{ fieldGroup.get('placeholder')?.value || '—' }}</span>
-              </div>
-              <div class="field-col-actions">
-                <button type="button" (click)="editField(i); $event.stopPropagation()" class="action-button edit-button" [attr.aria-label]="'Edit field ' + (i + 1)">
-                  <svg viewBox="0 0 24 24" width="16" height="16">
-                    <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                  </svg>
-                </button>
-                <button type="button" (click)="removeField(i); $event.stopPropagation()" class="action-button delete-button" [attr.aria-label]="'Remove field ' + (i + 1)">
-                  <svg viewBox="0 0 24 24" width="16" height="16">
-                    <path fill="currentColor" d="M19,6.41L17.59,5 12,10.59 6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 12,13.41 17.59,19 19,17.59 13.41,12 19,6.41Z"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div class="empty-fields" *ngIf="fieldsFormArray.length === 0">
-              <div class="empty-icon">📝</div>
-              <p>No fields defined yet</p>
-              <button type="button" (click)="addField()" class="add-first-field-button">
-                Add Your First Field
-              </button>
-            </div>
-          </div>
-        </section>
-
         <!-- Permissions Tab -->
-        <section class="tab-content" *ngIf="activeTab === 3">
+        <section class="tab-content" *ngIf="activeTab === 2">
           <div class="permissions-section">
             <h3>Who can edit this wall?</h3>
             <p class="section-description">Control who has permission to make changes to this wall.</p>
@@ -450,7 +446,7 @@ import { Observable } from 'rxjs';
         </section>
 
         <!-- Publishing Tab -->
-        <section class="tab-content" *ngIf="activeTab === 4">
+        <section class="tab-content" *ngIf="activeTab === 3">
           <div class="publishing-section">
             <h3>Publishing Options</h3>
             <p class="section-description">Control how and when this wall is visible to others.</p>
@@ -520,176 +516,12 @@ import { Observable } from 'rxjs';
         </section>
       </form>
 
-      <!-- Field Edit Modal -->
-      <div class="modal-overlay" *ngIf="editingFieldIndex !== null" (click)="closeEditModal()">
-        <div class="modal-container" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h3>Edit Field {{ (editingFieldIndex !== null ? editingFieldIndex : 0) + 1 }}</h3>
-            <button type="button" (click)="closeEditModal()" class="modal-close-button">
-              <svg viewBox="0 0 24 24" width="24" height="24">
-                <path fill="currentColor" d="M19,6.41L17.59,5 12,10.59 6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 12,13.41 17.59,19 19,17.59 13.41,12 19,6.41Z"/>
-              </svg>
-            </button>
-          </div>
-          
-          <div class="modal-content" *ngIf="editingFieldIndex !== null" [formGroup]="getEditingFieldGroup()">
-            <div class="form-group">
-              <label>Field Name</label>
-              <input 
-                type="text" 
-                formControlName="name" 
-                placeholder="e.g. Full Name, Email Address, Phone Number"
-                class="form-input"
-              >
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Type</label>
-                <select formControlName="type" class="form-select">
-                  <option value="text">Short Text</option>
-                  <option value="longtext">Long Text</option>
-                  <option value="date">Date</option>
-                  <option value="number">Number</option>
-                  <option value="email">Email</option>
-                  <option value="url">URL</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>Field Options</label>
-                <div class="checkbox-group-modal">
-                  <label class="toggle-label">
-                    <input type="checkbox" formControlName="required" class="toggle-input">
-                    <span class="toggle-slider"></span>
-                    <span class="toggle-text">Required</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Placeholder Text</label>
-              <input 
-                type="text" 
-                formControlName="placeholder" 
-                placeholder="Help text that appears in the field"
-                class="form-input"
-              >
-            </div>
-          </div>
-
-          <div class="modal-actions">
-            <button type="button" (click)="closeEditModal()" class="cancel-button">Cancel</button>
-            <button type="button" (click)="saveFieldEdit()" class="save-button">Save Changes</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </app-page-layout>
   `,
   styles: [`
-    .wall-form-container {
-      max-width: 1000px;
+    .wall-form {
+      max-width: 800px;
       margin: 0 auto;
-      padding: 32px 24px;
-      background: var(--md-sys-color-background);
-      min-height: 100vh;
-    }
-
-    .form-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 32px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--md-sys-color-outline);
-    }
-
-    .form-header h1 {
-      margin: 0;
-      color: var(--md-sys-color-on-background);
-      font-size: 28px;
-      font-weight: 400;
-      font-family: 'Google Sans', sans-serif;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 12px;
-    }
-
-    .cancel-button {
-      /* Material 3 Outlined Button */
-      padding: 16px 24px;
-      border: 1px solid var(--md-sys-color-outline);
-      background: transparent;
-      color: var(--md-sys-color-primary);
-      border-radius: 24px;
-      text-decoration: none;
-      font-weight: 500;
-      font-family: 'Google Sans', sans-serif;
-      font-size: 14px;
-      line-height: 20px;
-      letter-spacing: 0.1px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-      min-height: 40px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .cancel-button:hover {
-      background: var(--md-sys-color-primary-container);
-      border-color: var(--md-sys-color-primary);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
-    }
-
-    .cancel-button:focus {
-      outline: none;
-      background: var(--md-sys-color-primary-container);
-      border-color: var(--md-sys-color-primary);
-      box-shadow: 0 0 0 3px var(--md-sys-color-primary-container);
-    }
-
-    .save-button {
-      /* Material 3 Filled Button */
-      background: var(--md-sys-color-primary);
-      color: var(--md-sys-color-on-primary);
-      padding: 16px 24px;
-      border: none;
-      border-radius: 24px;
-      font-weight: 500;
-      font-family: 'Google Sans', sans-serif;
-      font-size: 14px;
-      line-height: 20px;
-      letter-spacing: 0.1px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-      min-height: 40px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .save-button:hover:not(:disabled) {
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
-      transform: translateY(-1px);
-      background: color-mix(in srgb, var(--md-sys-color-primary) 92%, var(--md-sys-color-on-primary) 8%);
-    }
-
-    .save-button:focus:not(:disabled) {
-      outline: none;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15), 0 0 0 3px var(--md-sys-color-primary-container);
-    }
-
-    .save-button:disabled {
-      background: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
-      color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
-      cursor: not-allowed;
-      box-shadow: none;
-      transform: none;
     }
 
 
@@ -1172,17 +1004,6 @@ import { Observable } from 'rxjs';
         padding: 12px 0;
       }
 
-      .header-actions {
-        flex-direction: column;
-        gap: 8px;
-        width: 100%;
-      }
-
-      .cancel-button,
-      .save-button {
-        width: 100%;
-        justify-content: center;
-      }
 
       .theme-grid {
         grid-template-columns: 1fr;
@@ -1244,9 +1065,6 @@ import { Observable } from 'rxjs';
         align-items: stretch;
       }
 
-      .header-actions {
-        justify-content: stretch;
-      }
 
       .form-row {
         grid-template-columns: 1fr;
@@ -2097,6 +1915,88 @@ import { Observable } from 'rxjs';
       .preview-card {
         padding: var(--md-sys-spacing-4);
       }
+
+      /* Logo Upload Styles */
+      .logo-upload-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .logo-preview {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 16px;
+        background: var(--md-sys-color-surface-variant);
+        border-radius: var(--md-sys-shape-corner-medium);
+        border: 2px dashed var(--md-sys-color-outline-variant);
+      }
+
+      .logo-preview-image {
+        max-width: 120px;
+        max-height: 120px;
+        object-fit: contain;
+        border-radius: var(--md-sys-shape-corner-small);
+      }
+
+      .logo-upload-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .upload-button {
+        background: var(--md-sys-color-primary);
+        color: var(--md-sys-color-on-primary);
+        border: none;
+        padding: 12px 24px;
+        border-radius: var(--md-sys-shape-corner-full);
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+
+      .upload-button:hover {
+        background: var(--md-sys-color-primary-container);
+        color: var(--md-sys-color-on-primary-container);
+      }
+
+      .reset-button {
+        background: var(--md-sys-color-surface-variant);
+        color: var(--md-sys-color-on-surface-variant);
+        border: 1px solid var(--md-sys-color-outline);
+        padding: 12px 24px;
+        border-radius: var(--md-sys-shape-corner-full);
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+
+      .reset-button:hover {
+        background: var(--md-sys-color-error-container);
+        color: var(--md-sys-color-on-error-container);
+        border-color: var(--md-sys-color-error);
+      }
+
+      .logo-help-text {
+        font-size: var(--md-sys-typescale-body-small-size);
+        color: var(--md-sys-color-on-surface-variant);
+        text-align: center;
+      }
+
+      .form-section h3 {
+        color: var(--md-sys-color-on-surface);
+        font-size: var(--md-sys-typescale-title-medium-size);
+        margin: 0 0 16px 0;
+        font-weight: 600;
+      }
+
+      .form-help-text {
+        font-size: var(--md-sys-typescale-body-small-size);
+        color: var(--md-sys-color-on-surface-variant);
+        margin-top: 4px;
+      }
     }
   `]
 })
@@ -2107,8 +2007,8 @@ export class WallFormComponent implements OnInit {
   wallId?: string;
   availableThemes = DEFAULT_THEMES;
   selectedTheme: WallTheme = DEFAULT_THEMES[0];
-  editingFieldIndex: number | null = null;
   activeTab = 0;
+  currentLogoUrl: string = '';
   tabs = [
     { label: 'Basic Info' },
     { label: 'Theme' },
@@ -2120,9 +2020,8 @@ export class WallFormComponent implements OnInit {
   tabItems: ButtonGroupItem[] = [
     { id: '0', label: 'Basic Info', icon: 'info' },
     { id: '1', label: 'Theme', icon: 'palette' },
-    { id: '2', label: 'Fields', icon: 'view_list' },
-    { id: '3', label: 'Permissions', icon: 'security' },
-    { id: '4', label: 'Publishing', icon: 'publish' }
+    { id: '2', label: 'Permissions', icon: 'security' },
+    { id: '3', label: 'Publishing', icon: 'publish' }
   ];
 
   constructor(
@@ -2155,7 +2054,11 @@ export class WallFormComponent implements OnInit {
     this.wallForm = this.fb.group({
       name: ['Untitled Wall', [Validators.required]],
       description: [''],
-      fields: this.fb.array([]),
+      
+      // Organization branding
+      organizationName: [''],
+      organizationSubtitle: [''],
+      organizationLogoUrl: [''],
       
       // Permission controls
       allowDepartmentEdit: [false],
@@ -2170,9 +2073,6 @@ export class WallFormComponent implements OnInit {
     });
   }
 
-  get fieldsFormArray(): FormArray {
-    return this.wallForm.get('fields') as FormArray;
-  }
 
   private loadTemplate(templateType: string): void {
     const templates = {
@@ -2233,17 +2133,6 @@ export class WallFormComponent implements OnInit {
         description: template.description
       });
 
-      // Add template fields
-      template.fields.forEach(fieldDef => {
-        const fieldGroup = this.createFieldFormGroup({
-          id: this.generateFieldId(),
-          name: fieldDef.name,
-          type: fieldDef.type as any,
-          required: fieldDef.required,
-          placeholder: fieldDef.placeholder
-        });
-        this.fieldsFormArray.push(fieldGroup);
-      });
     }
   }
 
@@ -2252,16 +2141,16 @@ export class WallFormComponent implements OnInit {
       next: (wall) => {
         if (wall) {
           this.selectedTheme = wall.theme;
+          this.currentLogoUrl = wall.organizationLogoUrl || '/assets/images/beaver-logo.png';
           this.wallForm.patchValue({
             name: wall.name,
             description: wall.description,
+            organizationName: wall.organizationName,
+            organizationSubtitle: wall.organizationSubtitle,
+            organizationLogoUrl: wall.organizationLogoUrl,
             isPublic: wall.isPublic
           });
 
-          // Load fields
-          (wall.fields || []).forEach(field => {
-            this.fieldsFormArray.push(this.createFieldFormGroup(field));
-          });
         }
       },
       error: (error) => {
@@ -2328,67 +2217,35 @@ export class WallFormComponent implements OnInit {
     this.setActiveTab(parseInt(item.id));
   }
 
-  addField(): void {
-    this.fieldsFormArray.push(this.createFieldFormGroup());
-  }
+  // Logo handling methods
+  onLogoFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        return;
+      }
 
-  removeField(index: number): void {
-    this.fieldsFormArray.removeAt(index);
-  }
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('File size must be less than 2MB.');
+        return;
+      }
 
-  private createFieldFormGroup(field?: FieldDefinition): FormGroup {
-    return this.fb.group({
-      id: [field?.id || this.generateFieldId()],
-      name: [field?.name || '', [Validators.required]],
-      type: [field?.type || 'text', [Validators.required]],
-      required: [field?.required || false],
-      placeholder: [field?.placeholder || '']
-    });
-  }
-
-  private generateFieldId(): string {
-    return 'field_' + Date.now().toString(36) + Math.random().toString(36).substr(2);
-  }
-
-  editField(index: number): void {
-    this.editingFieldIndex = index;
-  }
-
-  closeEditModal(): void {
-    this.editingFieldIndex = null;
-  }
-
-  saveFieldEdit(): void {
-    // Changes are automatically saved to the form since we're using reactive forms
-    this.closeEditModal();
-  }
-
-  getEditingFieldGroup(): FormGroup {
-    if (this.editingFieldIndex !== null) {
-      return this.fieldsFormArray.at(this.editingFieldIndex) as FormGroup;
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.currentLogoUrl = e.target.result;
+        this.wallForm.patchValue({ organizationLogoUrl: e.target.result });
+      };
+      reader.readAsDataURL(file);
     }
-    // Return empty form group as fallback
-    return this.fb.group({
-      name: [''],
-      type: ['text'],
-      required: [false],
-      placeholder: ['']
-    });
   }
 
-  getFieldTypeLabel(type: string): string {
-    const typeLabels: { [key: string]: string } = {
-      'text': 'Short Text',
-      'longtext': 'Long Text',
-      'textarea': 'Long Text',
-      'email': 'Email',
-      'number': 'Number',
-      'date': 'Date',
-      'url': 'URL',
-      'tel': 'Phone',
-      'select': 'Dropdown'
-    };
-    return typeLabels[type] || 'Text';
+  resetToDefaultLogo(): void {
+    this.currentLogoUrl = '/assets/images/beaver-logo.png';
+    this.wallForm.patchValue({ organizationLogoUrl: '' });
   }
 
   setVisibility(requiresLogin: boolean): void {
@@ -2469,7 +2326,9 @@ export class WallFormComponent implements OnInit {
           const updateData: Partial<Wall> = {
             name: this.wallForm.get('name')?.value,
             description: this.wallForm.get('description')?.value,
-            fields: this.wallForm.get('fields')?.value,
+            organizationName: this.wallForm.get('organizationName')?.value,
+            organizationSubtitle: this.wallForm.get('organizationSubtitle')?.value,
+            organizationLogoUrl: this.wallForm.get('organizationLogoUrl')?.value,
             theme: this.selectedTheme,
             permissions,
             visibility,
@@ -2493,6 +2352,9 @@ export class WallFormComponent implements OnInit {
           const wallData: Omit<Wall, 'id'> = {
             name: this.wallForm.get('name')?.value,
             description: this.wallForm.get('description')?.value,
+            organizationName: this.wallForm.get('organizationName')?.value,
+            organizationSubtitle: this.wallForm.get('organizationSubtitle')?.value,
+            organizationLogoUrl: this.wallForm.get('organizationLogoUrl')?.value,
             
             // Enhanced object system (Phase 2)
             objectTypes: [], // Will be populated later
@@ -2514,8 +2376,6 @@ export class WallFormComponent implements OnInit {
             updatedAt: new Date(),
             lastActivityAt: new Date(),
             
-            // Legacy fields for backward compatibility
-            fields: this.wallForm.get('fields')?.value,
             ownerId: user.email!, // Use email for consistency with queries
             isPublic: this.wallForm.get('isPublished')?.value && !this.wallForm.get('requiresLogin')?.value,
             sharedWith: []
@@ -2536,6 +2396,26 @@ export class WallFormComponent implements OnInit {
         }
       });
     }
+  }
+
+  getPageActions(): PageAction[] {
+    return [
+      {
+        label: 'Cancel',
+        icon: 'close',
+        variant: 'stroked',
+        color: 'primary',
+        action: () => this.onCancel()
+      },
+      {
+        label: this.isSaving ? 'Saving...' : 'Save Wall',
+        icon: 'save',
+        variant: 'raised',
+        color: 'primary',
+        disabled: this.wallForm?.invalid || this.isSaving,
+        action: () => this.onSubmit()
+      }
+    ];
   }
 
   onCancel(): void {
