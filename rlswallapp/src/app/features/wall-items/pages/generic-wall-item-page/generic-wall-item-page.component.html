@@ -5,36 +5,41 @@
     <div class="header-content">
       <h1 class="page-title">{{ title }}</h1>
       
-      <div class="header-actions" *ngIf="canEdit()">
+      @if (canEdit()) {
+        <div class="header-actions">
         <!-- Edit/Save Button -->
-        <button 
-          *ngIf="!editing && !isNewItem"
-          mat-raised-button 
-          color="primary"
-          (click)="onToggleEditMode()"
-          class="action-button">
-          <mat-icon>edit</mat-icon>
-          Edit
-        </button>
+        @if (!editing && !isNewItem) {
+          <button 
+            mat-raised-button 
+            color="primary"
+            (click)="onToggleEditMode()"
+            class="action-button">
+            <mat-icon>edit</mat-icon>
+            Edit
+          </button>
+        }
         
-        <button 
-          *ngIf="editing"
-          mat-raised-button 
-          color="primary"
-          (click)="onSaveItem()"
-          [disabled]="isSaving || itemForm.invalid"
-          class="action-button">
-          <mat-icon>{{ isSaving ? 'hourglass_empty' : 'save' }}</mat-icon>
-          {{ isNewItem ? 'Add Item' : 'Save Changes' }}
-        </button>
+        @if (editing) {
+          <button 
+            mat-raised-button 
+            color="primary"
+            (click)="onSaveItem()"
+            [disabled]="isSaving || itemForm.invalid"
+            class="action-button">
+            <mat-icon>{{ isSaving ? 'hourglass_empty' : 'save' }}</mat-icon>
+            {{ isNewItem ? 'Add Item' : 'Save Changes' }}
+          </button>
+        }
         
         <!-- Delete Button -->
-        <app-delete-button 
-          *ngIf="canDelete() && !editing"
-          [deleteItem]="onDeleteItem"
-          [name]="'item'">
-        </app-delete-button>
-      </div>
+        @if (canDelete() && !editing) {
+          <app-delete-button 
+            [deleteItem]="onDeleteItem.bind(this)"
+            [name]="'item'">
+          </app-delete-button>
+        }
+        </div>
+      }
     </div>
   </div>
 
@@ -56,7 +61,8 @@
       </div>
       
       <!-- Image Upload -->
-      <div class="image-upload" *ngIf="editing">
+      @if (editing) {
+        <div class="image-upload">
         <input 
           #imageInput
           type="file" 
@@ -72,12 +78,14 @@
           <mat-icon>add_photo_alternate</mat-icon>
           Add Images
         </button>
-      </div>
+        </div>
+      }
     </div>
 
     <!-- Form Section -->
     <div class="form-section">
-      <form [formGroup]="itemForm" *ngIf="objectType" class="item-form">
+      @if (objectType) {
+        <form [formGroup]="itemForm" class="item-form">
         
         <!-- Field Groups using Accordion -->
         <mat-accordion multi="false">
@@ -95,22 +103,23 @@
             </mat-expansion-panel-header>
             
             <div class="field-grid">
-              <app-dynamic-field-renderer
-                *ngFor="let field of getBasicFields(); track field.id"
-                [field]="field"
-                [formControl]="getFormControl(field.id)"
-                [readonly]="!editing"
-                [value]="wallItem.fieldData[field.id]">
-              </app-dynamic-field-renderer>
+              @for (field of getBasicFields(); track field.id) {
+                <app-dynamic-field-renderer
+                  [field]="field"
+                  [formControl]="getFormControl(field.id)"
+                  [readonly]="!editing"
+                  [value]="wallItem.fieldData[field.id]">
+                </app-dynamic-field-renderer>
+              }
             </div>
           </mat-expansion-panel>
 
           <!-- Location Panel (if has location field) -->
-          <mat-expansion-panel 
-            *ngIf="getLocationFields().length > 0"
-            [expanded]="currentPanelIndex === 1"
-            (opened)="currentPanelIndex = 1"
-            (closed)="currentPanelIndex = -1">
+          @if (getLocationFields().length > 0) {
+            <mat-expansion-panel 
+              [expanded]="currentPanelIndex === 1"
+              (opened)="currentPanelIndex = 1"
+              (closed)="currentPanelIndex = -1">
             <mat-expansion-panel-header>
               <mat-panel-title>
                 <mat-icon>place</mat-icon>
@@ -120,23 +129,25 @@
             
             <div class="location-section">
               <div class="field-grid">
-                <app-dynamic-field-renderer
-                  *ngFor="let field of getLocationFields(); track field.id"
-                  [field]="field"
-                  [formControl]="getFormControl(field.id)"
-                  [readonly]="!editing"
-                  [value]="wallItem.fieldData[field.id]">
-                </app-dynamic-field-renderer>
+                @for (field of getLocationFields(); track field.id) {
+                  <app-dynamic-field-renderer
+                    [field]="field"
+                    [formControl]="getFormControl(field.id)"
+                    [readonly]="!editing"
+                    [value]="wallItem.fieldData[field.id]">
+                  </app-dynamic-field-renderer>
+                }
               </div>
             </div>
-          </mat-expansion-panel>
+            </mat-expansion-panel>
+          }
 
           <!-- Custom Fields Panel -->
-          <mat-expansion-panel 
-            *ngIf="getCustomFields().length > 0"
-            [expanded]="currentPanelIndex === 2"
-            (opened)="currentPanelIndex = 2"
-            (closed)="currentPanelIndex = -1">
+          @if (getCustomFields().length > 0) {
+            <mat-expansion-panel 
+              [expanded]="currentPanelIndex === 2"
+              (opened)="currentPanelIndex = 2"
+              (closed)="currentPanelIndex = -1">
             <mat-expansion-panel-header>
               <mat-panel-title>
                 <mat-icon>tune</mat-icon>
@@ -145,22 +156,24 @@
             </mat-expansion-panel-header>
             
             <div class="field-grid">
-              <app-dynamic-field-renderer
-                *ngFor="let field of getCustomFields(); track field.id"
-                [field]="field"
-                [formControl]="getFormControl(field.id)"
-                [readonly]="!editing"
-                [value]="wallItem.fieldData[field.id]">
-              </app-dynamic-field-renderer>
+              @for (field of getCustomFields(); track field.id) {
+                <app-dynamic-field-renderer
+                  [field]="field"
+                  [formControl]="getFormControl(field.id)"
+                  [readonly]="!editing"
+                  [value]="wallItem.fieldData[field.id]">
+                </app-dynamic-field-renderer>
+              }
             </div>
-          </mat-expansion-panel>
+            </mat-expansion-panel>
+          }
 
           <!-- Relationships Panel (Future Enhancement) -->
-          <mat-expansion-panel 
-            *ngIf="false"
-            [expanded]="currentPanelIndex === 3"
-            (opened)="currentPanelIndex = 3"
-            (closed)="currentPanelIndex = -1">
+          @if (false) {
+            <mat-expansion-panel 
+              [expanded]="currentPanelIndex === 3"
+              (opened)="currentPanelIndex = 3"
+              (closed)="currentPanelIndex = -1">
             <mat-expansion-panel-header>
               <mat-panel-title>
                 <mat-icon>link</mat-icon>
@@ -172,15 +185,18 @@
               <!-- TODO: Implement relationship management -->
               <p>Relationship management coming soon...</p>
             </div>
-          </mat-expansion-panel>
+            </mat-expansion-panel>
+          }
 
         </mat-accordion>
-      </form>
+        </form>
+      }
     </div>
   </div>
 
   <!-- Metadata Section (View Mode Only) -->
-  <div class="metadata-section" *ngIf="!editing && !isNewItem">
+  @if (!editing && !isNewItem) {
+    <div class="metadata-section">
     <mat-card class="metadata-card">
       <mat-card-header>
         <mat-card-title>
@@ -202,21 +218,25 @@
             <strong>Updated:</strong>
             <span>{{ wallItem.updatedAt | date:'medium' }}</span>
           </div>
-          <div class="metadata-item" *ngIf="wallItem.tags && wallItem.tags.length > 0">
-            <strong>Tags:</strong>
-            <span>{{ wallItem.tags.join(', ') }}</span>
-          </div>
+          @if (wallItem.tags && wallItem.tags.length > 0) {
+            <div class="metadata-item">
+              <strong>Tags:</strong>
+              <span>{{ wallItem.tags.join(', ') }}</span>
+            </div>
+          }
         </div>
       </mat-card-content>
     </mat-card>
-  </div>
+    </div>
+  }
 </div>
 }
 
 <!-- Loading State -->
 @if (isLoading) {
-<div class="loading-container">
-  <mat-spinner diameter="60"></mat-spinner>
-  <p>Loading item...</p>
-</div>
+  <app-loading-state
+    type="spinner"
+    message="Loading item..."
+    [spinnerSize]="60">
+  </app-loading-state>
 }

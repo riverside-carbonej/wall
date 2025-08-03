@@ -20,6 +20,7 @@ import { ImageUploadService } from '../../services/image-upload.service';
 import { ItemImageGalleryComponent } from '../../components/item-image-gallery/item-image-gallery.component';
 import { DynamicFieldRendererComponent } from '../../components/dynamic-field-renderer/dynamic-field-renderer.component';
 import { DeleteButtonComponent } from '../../components/delete-button/delete-button.component';
+import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 
 import { Wall, WallItem, WallObjectType, FieldDefinition, WallItemImage } from '../../../../shared/models/wall.model';
 import { ErrorDialogComponent } from '../../../../shared/components/error-dialog/error-dialog.component';
@@ -40,7 +41,8 @@ import { ErrorDialogComponent } from '../../../../shared/components/error-dialog
     MatDialogModule,
     ItemImageGalleryComponent,
     DynamicFieldRendererComponent,
-    DeleteButtonComponent
+    DeleteButtonComponent,
+    LoadingStateComponent
   ],
   templateUrl: './generic-wall-item-page.component.html',
   styleUrls: ['./generic-wall-item-page.component.css']
@@ -100,7 +102,10 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   private initializeFromRoute() {
     this.wallId = this.route.snapshot.paramMap.get('wallId')!;
     this.itemId = this.route.snapshot.paramMap.get('itemId') || undefined;
-    this.objectTypeId = this.route.snapshot.paramMap.get('objectTypeId') || undefined;
+    // Get objectType from query params for new items, or from route params for existing items
+    this.objectTypeId = this.route.snapshot.queryParamMap.get('objectType') || 
+                      this.route.snapshot.paramMap.get('objectTypeId') || 
+                      undefined;
     
     if (!this.wallId) {
       this.router.navigate(['/walls']);
@@ -112,9 +117,12 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     
     if (this.itemId) {
       // Existing item - load it
+      this.isNewItem = false;
       this.loadExistingItem();
     } else if (this.objectTypeId) {
       // New item with specific object type
+      this.isNewItem = true;
+      this.editing = true; // Start in edit mode for new items
       this.loadObjectTypeForNewItem();
     } else {
       // New item - need to select object type
@@ -173,8 +181,8 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   }
   
   private redirectToObjectTypeSelection() {
-    // For now, redirect back to wall. Later we can add object type selection
-    this.router.navigate(['/walls', this.wallId]);
+    // Redirect to object type selection page
+    this.router.navigate(['/walls', this.wallId, 'items', 'select-type']);
   }
   
   private setupForm() {
@@ -495,11 +503,42 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     return !this.isNewItem;
   }
   
-  onDeleteItem() {
-    if (this.itemId) {
-      // TODO: Implement delete functionality
-      console.log('Delete item:', this.itemId);
+  async onDeleteItem() {
+    if (!this.itemId) return;
+    
+    try {
+      await firstValueFrom(this.wallItemService.deleteWallItem(this.itemId));
+      
+      // Success! Navigate back to wall view
+      this.router.navigate(['/walls', this.wallId]);
+      
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      this.handleDeleteError(error);
     }
+  }
+
+  private handleDeleteError(error: any) {
+    const errorMessage = this.getErrorMessage(error);
+    const errorDetails = this.getErrorDetails(error);
+    
+    const dialogRef = this.dialog.open(ErrorDialogComponent, {
+      width: '400px',
+      disableClose: false,
+      data: {
+        title: 'Failed to Delete Item',
+        message: errorMessage,
+        showRetry: true,
+        details: errorDetails
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        // User clicked retry - attempt delete again
+        this.onDeleteItem();
+      }
+    });
   }
   
   // Template helper methods
@@ -539,5 +578,28 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
       field.type !== 'date' &&
       field.type !== 'location'
     );
+  }
+
+  // Navigation methods
+  onBackClick() {
+    // Navigate back to wall overview
+    this.router.navigate(['/walls', this.wallId]);
+  }
+
+  onCancelEdit() {
+    if (this.isNewItem) {
+      // For new items, go back to wall
+      this.onBackClick();
+    } else {
+      // For existing items, exit edit mode
+      this.editing = false;
+      // Reset form to original values
+      this.setupForm();
+    }
+  }
+
+  onItemDeleted() {
+    // Navigate back to wall after successful deletion
+    this.router.navigate(['/walls', this.wallId]);
   }
 }

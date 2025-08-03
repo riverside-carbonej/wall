@@ -26,7 +26,12 @@
       "Bash(curl:*)",
       "Bash(git config:*)",
       "Bash(git add:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm start)",
+      "Bash(npm test:*)",
+      "Bash(timeout 15 npm start)",
+      "mcp__context7__get-library-docs"
     ],
     "deny": []
   }

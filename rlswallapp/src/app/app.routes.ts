@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
+import { wallContextGuard } from './core/guards/wall-context.guard';
+import { wallContextSimpleGuard } from './core/guards/wall-context-simple.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/walls', pathMatch: 'full' },
@@ -21,7 +23,22 @@ export const routes: Routes = [
   },
   { 
     path: 'walls/:id', 
-    loadComponent: () => import('./features/walls/components/wall-viewer/wall-viewer.component').then(m => m.WallViewerComponent),
+    loadComponent: () => import('./features/walls/components/wall-home/wall-home.component').then(m => m.WallHomeComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'walls/:id/overview', 
+    loadComponent: () => import('./features/walls/components/wall-overview/wall-overview.component').then(m => m.WallOverviewComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'walls/:id/manage', 
+    loadComponent: () => import('./features/walls/components/wall-item-presets/wall-item-presets.component').then(m => m.WallItemPresetsComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'walls/:id/permissions', 
+    loadComponent: () => import('./features/walls/components/users-permissions/users-permissions.component').then(m => m.UsersPermissionsComponent),
     canActivate: [AuthGuard]
   },
   
@@ -29,6 +46,11 @@ export const routes: Routes = [
   { 
     path: 'walls/:wallId/items', 
     loadComponent: () => import('./features/wall-items/pages/wall-item-list/wall-item-list.component').then(m => m.WallItemListComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'walls/:wallId/items/select-type', 
+    loadComponent: () => import('./features/wall-items/pages/object-type-selection-page/object-type-selection-page.component').then(m => m.ObjectTypeSelectionPageComponent),
     canActivate: [AuthGuard]
   },
   { 

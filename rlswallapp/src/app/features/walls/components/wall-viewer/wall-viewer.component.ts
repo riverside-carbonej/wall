@@ -33,19 +33,6 @@ import { Wall, WallItem, WallViewMode, FieldDefinition, WallItemImage } from '..
               <span class="material-icons md-20">add</span>
               Add Item
             </button>
-            <button 
-              (click)="toggleMapView()" 
-              class="btn-secondary touch-target interactive focusable map-toggle-button"
-              [class.active]="showMapView"
-              [style.background-color]="showMapView ? wall.theme.primaryColor : 'transparent'"
-              [style.color]="showMapView ? 'white' : wall.theme.primaryColor"
-            >
-              <span class="material-icons md-20">{{ showMapView ? 'list' : 'map' }}</span>
-              {{ showMapView ? 'List View' : 'Map View' }}
-            </button>
-            <a [routerLink]="['/walls', wall.id, 'edit']" class="btn-secondary touch-target interactive focusable settings-button">
-              <span class="material-icons md-24">settings</span>
-            </a>
           </div>
         </div>
       </header>

@@ -11,6 +11,8 @@ import { map } from 'rxjs/operators';
 import * as L from 'leaflet';
 import { MapsService, Coordinates, MapMarker } from '../../services/maps.service';
 import { WallItem, WallObjectType } from '../../../../shared/models/wall.model';
+import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 
 export interface MapViewSettings {
   tileProvider: 'openstreetmap' | 'satellite';
@@ -35,7 +37,9 @@ export interface MapItemClickEvent {
     MatSelectModule,
     MatFormFieldModule,
     MatTooltipModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    LoadingStateComponent,
+    EmptyStateComponent
   ],
   templateUrl: './map-view.component.html',
   styleUrls: ['./map-view.component.css']

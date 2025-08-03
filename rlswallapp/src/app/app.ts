@@ -1,10 +1,11 @@
 import { Component, signal, OnInit, inject } from '@angular/core';
-import { RouterOutlet, RouterModule, Router, NavigationEnd } from '@angular/router';
+import { RouterOutlet, RouterModule, Router, NavigationEnd, NavigationStart, NavigationError, NavigationCancel } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, state, style, transition, animate } from '@angular/animations';
-import { filter, switchMap } from 'rxjs/operators';
+import { filter, switchMap, map } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeService } from './shared/services/theme.service';
 import { UserAvatarComponent } from './shared/components/user-avatar.component';
 import { WallService } from './features/walls/services/wall.service';
@@ -166,6 +167,13 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
         
         <!-- Main content area -->
         <main class="app-main">
+          @if (isNavigating()) {
+            <div class="navigation-loading-bar">
+              <div class="loading-progress" 
+                   [style.width.%]="navigationProgress().progress">
+              </div>
+            </div>
+          }
           <router-outlet />
         </main>
       </div>
@@ -450,6 +458,33 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
       overflow: auto;
       transition: all 200ms;
       min-width: 0;
+      position: relative;
+    }
+
+    /* Navigation loading bar */
+    .navigation-loading-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--md-sys-color-surface-variant);
+      z-index: 1000;
+      overflow: hidden;
+    }
+
+    .loading-progress {
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        var(--md-sys-color-primary) 0%,
+        var(--md-sys-color-secondary) 50%,
+        var(--md-sys-color-tertiary) 100%
+      );
+      width: 0%;
+      transition: width 0.3s ease-out;
+      border-radius: 0 2px 2px 0;
+      box-shadow: 0 0 8px rgba(var(--md-sys-color-primary-rgb), 0.3);
     }
 
     /* Menu toggle button */
@@ -587,6 +622,28 @@ export class App implements OnInit {
   protected searchQuery = signal('');
   protected showMobileSearch = signal(false);
   protected searchSuggestions = signal<{icon: string, text: string}[]>([]);
+  
+  // Navigation loading state with proper progress tracking
+  protected navigationProgress = toSignal(this.router.events.pipe(
+    map(event => {
+      if (event instanceof NavigationStart) {
+        return { isNavigating: true, progress: 10 };
+      } else if (event instanceof NavigationEnd) {
+        return { isNavigating: false, progress: 100 };
+      } else if (event instanceof NavigationError || event instanceof NavigationCancel) {
+        return { isNavigating: false, progress: 0 };
+      } else {
+        // Intermediate progress for other events (Guards, Resolvers, etc.)
+        const currentNav = this.router.getCurrentNavigation();
+        if (currentNav) {
+          return { isNavigating: true, progress: 50 };
+        }
+        return { isNavigating: false, progress: 0 };
+      }
+    })
+  ), { initialValue: { isNavigating: false, progress: 0 } });
+
+  protected isNavigating = () => this.navigationProgress().isNavigating;
   
   // For ngModel binding
   get searchValue(): string {

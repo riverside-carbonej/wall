@@ -18,7 +18,7 @@ import { Observable } from 'rxjs';
       <header class="form-header">
         <h1>{{ isEditMode ? 'Edit Wall' : 'Create New Wall' }}</h1>
         <div class="header-actions">
-          <button type="button" routerLink="/walls" class="cancel-button">Cancel</button>
+          <button type="button" (click)="onCancel()" class="cancel-button">Cancel</button>
           <button type="submit" (click)="onSubmit()" [disabled]="wallForm.invalid || isSaving" class="save-button">
             {{ isSaving ? 'Saving...' : 'Save Wall' }}
           </button>
@@ -2479,7 +2479,8 @@ export class WallFormComponent implements OnInit {
           this.wallService.updateWall(this.wallId, updateData).subscribe({
             next: () => {
               this.isSaving = false;
-              this.router.navigate(['/walls']);
+              // Navigate to the wall home page after successful update
+              this.router.navigate(['/walls', this.wallId]);
             },
             error: (error: any) => {
               this.isSaving = false;
@@ -2523,7 +2524,8 @@ export class WallFormComponent implements OnInit {
           this.wallService.createWall(wallData).subscribe({
             next: (result: string) => {
               this.isSaving = false;
-              this.router.navigate(['/walls']);
+              // Navigate to the newly created wall
+              this.router.navigate(['/walls', result]);
             },
             error: (error: any) => {
               this.isSaving = false;
@@ -2533,6 +2535,16 @@ export class WallFormComponent implements OnInit {
           });
         }
       });
+    }
+  }
+
+  onCancel(): void {
+    if (this.isEditMode && this.wallId) {
+      // If editing, go back to the wall home page
+      this.router.navigate(['/walls', this.wallId]);
+    } else {
+      // If creating new wall, go to wall list
+      this.router.navigate(['/walls']);
     }
   }
 }

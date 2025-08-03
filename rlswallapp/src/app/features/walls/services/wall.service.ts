@@ -547,4 +547,19 @@ export class WallService {
       })
     );
   }
+
+  /**
+   * Update wall permissions
+   */
+  updateWallPermissions(wallId: string, permissions: Partial<any>): Observable<void> {
+    const wallDoc = doc(this.firestore, this.collectionName, wallId);
+    const updateData = {
+      'permissions.editors': permissions['editors'],
+      'permissions.department': permissions['department'],
+      'permissions.allowDepartmentEdit': permissions['allowDepartmentEdit'],
+      updatedAt: serverTimestamp()
+    };
+    
+    return from(updateDoc(wallDoc, updateData));
+  }
 }

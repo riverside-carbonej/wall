@@ -15,7 +15,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTabsModule } from '@angular/material/tabs';
 import { FormsModule } from '@angular/forms';
 import { ButtonGroupComponent, ButtonGroupItem } from '../../../../shared/components/button-group/button-group.component';
-import { ObjectTypeManagementService, ObjectTypeTemplate } from '../../../../shared/services/object-type-management.service';
+import { ObjectTypeService } from '../../../walls/services/object-type.service';
 import { WallObjectType } from '../../../../shared/models/wall.model';
 
 export interface WallTemplate {
@@ -353,7 +353,7 @@ export class TemplateLibraryComponent implements OnInit {
 
   constructor(
     private dialog: MatDialog,
-    private objectTypeService: ObjectTypeManagementService
+    private objectTypeService: ObjectTypeService
   ) {}
 
   ngOnInit(): void {
@@ -374,9 +374,8 @@ export class TemplateLibraryComponent implements OnInit {
 
   private async loadCustomTemplates(): Promise<void> {
     try {
-      const customTemplates = await this.objectTypeService.getCustomTemplates().toPromise();
-      // Convert ObjectTypeTemplate to WallTemplate format
-      this.customTemplates = customTemplates?.map(this.convertToWallTemplate) || [];
+      // For now, use empty array. TODO: Implement custom template storage
+      this.customTemplates = [];
     } catch (error) {
       console.error('Error loading custom templates:', error);
       this.customTemplates = [];

@@ -30,12 +30,14 @@ export interface ErrorDialogData {
       <mat-dialog-content class="dialog-content">
         <p class="error-message">{{ data.message }}</p>
         
-        <div *ngIf="data.details" class="error-details">
-          <details>
-            <summary>Technical Details</summary>
-            <pre>{{ data.details }}</pre>
-          </details>
-        </div>
+        @if (data.details) {
+          <div class="error-details">
+            <details>
+              <summary>Technical Details</summary>
+              <pre>{{ data.details }}</pre>
+            </details>
+          </div>
+        }
       </mat-dialog-content>
       
       <mat-dialog-actions class="dialog-actions">
@@ -47,15 +49,16 @@ export interface ErrorDialogData {
           Close
         </button>
         
-        <button 
-          *ngIf="data.showRetry"
-          mat-raised-button 
-          color="primary"
-          [mat-dialog-close]="true"
-          class="retry-button">
-          <mat-icon>refresh</mat-icon>
-          Retry
-        </button>
+        @if (data.showRetry) {
+          <button 
+            mat-raised-button 
+            color="primary"
+            [mat-dialog-close]="true"
+            class="retry-button">
+            <mat-icon>refresh</mat-icon>
+            Retry
+          </button>
+        }
       </mat-dialog-actions>
     </div>
   `,

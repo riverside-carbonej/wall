@@ -16,8 +16,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { WallObjectType, FieldDefinition } from '../../../../shared/models/wall.model';
-import { ObjectTypeManagementService } from '../../../../shared/services/object-type-management.service';
-import { UserService } from '../../../../shared/services/user.service';
+import { ObjectTypeService } from '../../../walls/services/object-type.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 export interface ObjectTypeBuilderConfig {
   mode: 'create' | 'edit' | 'template';
@@ -449,8 +449,8 @@ export class ObjectTypeBuilderComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private objectTypeService: ObjectTypeManagementService,
-    private userService: UserService
+    private objectTypeService: ObjectTypeService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -462,8 +462,9 @@ export class ObjectTypeBuilderComponent implements OnInit {
   }
 
   get canAddField(): boolean {
-    const user = this.userService.getCurrentUser();
-    return user ? user.canAddObjectTypes(this.config.wallId) : false;
+    // For now, allow all authenticated users to add fields
+    // TODO: Implement proper permission checking
+    return true;
   }
 
   private initializeForm(): void {
@@ -640,7 +641,7 @@ export class ObjectTypeBuilderComponent implements OnInit {
   }
 
   private generateFieldId(): string {
-    return this.objectTypeService.generateFieldId();
+    return `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   async saveAsDraft(): Promise<void> {
@@ -654,7 +655,8 @@ export class ObjectTypeBuilderComponent implements OnInit {
     this.isSaving = true;
     try {
       const formValue = this.objectTypeForm.value;
-      const objectTypeData: Omit<WallObjectType, 'id'> = {
+      const objectTypeData: WallObjectType = {
+        id: this.config.initialData?.id || '', // Will be set by parent
         wallId: this.config.wallId,
         name: formValue.name,
         description: formValue.description,
@@ -665,22 +667,14 @@ export class ObjectTypeBuilderComponent implements OnInit {
         displaySettings: formValue.displaySettings,
         isActive: formValue.isActive,
         sortOrder: formValue.sortOrder,
-        createdAt: new Date(),
+        createdAt: this.config.initialData?.createdAt || new Date(),
         updatedAt: new Date()
       };
 
-      if (this.config.mode === 'edit' && this.config.initialData?.id) {
-        await this.objectTypeService.updateObjectType(
-          this.config.initialData.id, 
-          objectTypeData
-        ).toPromise();
-        this.save.emit({ ...objectTypeData, id: this.config.initialData.id } as WallObjectType);
-      } else {
-        const id = await this.objectTypeService.createObjectType(objectTypeData).toPromise();
-        this.save.emit({ ...objectTypeData, id: id! } as WallObjectType);
-      }
+      // Emit the object type data to parent component for saving
+      this.save.emit(objectTypeData);
     } catch (error) {
-      console.error('Error saving object type:', error);
+      console.error('Error preparing object type data:', error);
       // TODO: Show error message to user
     } finally {
       this.isSaving = false;

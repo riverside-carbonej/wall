@@ -136,6 +136,11 @@ export interface Wall {
   name: string;
   description?: string;
   
+  // Branding
+  logoUrl?: string;
+  organizationName?: string;
+  galleryImages?: WallItemImage[]; // Gallery images for the overview page
+  
   // Enhanced object-based system (Phase 2)
   objectTypes: WallObjectType[];
   relationshipDefinitions?: RelationshipDefinition[]; // Relationship definitions for this wall
@@ -175,6 +180,7 @@ export interface Wall {
 export interface WallItemImage {
   id: string;
   url: string;
+  thumbnailUrl?: string; // Thumbnail URL for gallery previews
   fileName: string;
   filename?: string; // Legacy compatibility
   size: number; // in bytes

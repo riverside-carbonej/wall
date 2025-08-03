@@ -38,13 +38,13 @@ export class NavigationService {
   }
 
   // Update navigation context when user enters a wall
-  updateWallContext(wall: Wall, canEdit: boolean = false, canAdmin: boolean = false) {
+  updateWallContext(wall: Wall, canEdit: boolean = false, canAdmin: boolean = false, itemCount: number = 0) {
     const objectTypes: WallObjectTypeNav[] = (wall.objectTypes || []).map(ot => ({
       id: ot.id,
       name: ot.name,
       icon: ot.icon || 'category',
       pluralName: this.generatePluralName(ot.name),
-      itemCount: 0 // TODO: Get actual count from service
+      itemCount: 0 // TODO: Get actual count from service per object type
     }));
 
     const context: WallNavigationContext = {
@@ -52,11 +52,21 @@ export class NavigationService {
       wallName: wall.name,
       objectTypes,
       canEdit,
-      canAdmin
+      canAdmin,
+      totalItemCount: itemCount,
+      hasLocationEnabledTypes: this.hasLocationEnabledObjectTypes(wall.objectTypes || [])
     };
 
     this._currentContext.next(context);
     this.updateAddMode();
+  }
+
+  // Check if any object types have location fields
+  private hasLocationEnabledObjectTypes(objectTypes: WallObjectType[]): boolean {
+    return objectTypes.some(ot => 
+      ot.fields?.some(field => field.type === 'location') ||
+      ot.displaySettings?.showOnMap === true
+    );
   }
   
   // Generate plural names intelligently
@@ -122,77 +132,62 @@ export class NavigationService {
       {
         title: 'Home',
         icon: 'home',
-        path: '/',
+        path: context ? `/walls/${context.wallId}` : '/',
         condition: () => true
       }
     ];
 
-    // Only show "All Walls" when NOT in a wall context
+    // If no wall context, add "All Walls" and return basic menu
     if (!context) {
       baseMenuItems.push({
         title: 'All Walls',
-        icon: 'dashboard',
+        icon: 'dashboard', 
         path: '/walls',
         condition: () => true
       });
       return baseMenuItems;
     }
 
-    // Wall-specific menu items (only show when object types exist)
-    const wallMenuItems: WallMenuItem[] = context.objectTypes.length > 0 ? [
+    // Wall-specific menu items (conditionally shown)
+    const wallMenuItems: WallMenuItem[] = [
       {
         title: 'Wall Overview',
         icon: 'view_quilt',
-        path: `/walls/${context.wallId}`,
+        path: `/walls/${context.wallId}/overview`,
         condition: () => true
-      },
-      {
+      }
+    ];
+
+    // Only show "All Items" if there are items or object types configured
+    if ((context.totalItemCount && context.totalItemCount > 0) || (context.objectTypes && context.objectTypes.length > 0)) {
+      wallMenuItems.push({
         title: 'All Items',
         icon: 'view_list',
         path: `/walls/${context.wallId}/items`,
         condition: () => true
-      },
-      {
+      });
+    }
+
+    // Only show "Map View" if there are object types with location fields and items exist
+    if (context.hasLocationEnabledTypes && context.totalItemCount && context.totalItemCount > 0) {
+      wallMenuItems.push({
         title: 'Map View',
         icon: 'map',
         path: `/walls/${context.wallId}/map`,
         condition: () => true
-      }
-    ] : [];
-
-    // Add object type specific menu items
-    const objectTypeMenuItems: WallMenuItem[] = context.objectTypes.map(ot => ({
-      title: ot.pluralName,
-      icon: ot.icon,
-      path: `/walls/${context.wallId}/items`,
-      condition: () => true,
-      params: [{ name: 'objectType', value: ot.id }]
-    }));
-
-    // Admin menu items
-    const adminMenuItems: WallMenuItem[] = [];
-    if (context.canAdmin) {
-      adminMenuItems.push(
-        {
-          title: 'Object Types',
-          icon: 'category',
-          path: `/walls/${context.wallId}/object-types`,
-          condition: () => true
-        },
-        {
-          title: 'Wall Settings',
-          icon: 'settings',
-          path: `/walls/${context.wallId}/settings`,
-          condition: () => true
-        },
-        {
-          title: 'Users & Permissions',
-          icon: 'people',
-          path: `/walls/${context.wallId}/users`,
-          condition: () => true
-        }
-      );
+      });
     }
+
+    // Add object type specific menu items (only if they have items)
+    const objectTypeMenuItems: WallMenuItem[] = context.objectTypes
+      .filter(ot => ot.itemCount > 0) // Only show object types that have items
+      .map(ot => ({
+        title: ot.pluralName,
+        icon: ot.icon,
+        path: `/walls/${context.wallId}/items`,
+        condition: () => true,
+        params: [{ name: 'objectType', value: ot.id }]
+      }));
 
     return [
       ...baseMenuItems,
@@ -212,20 +207,30 @@ export class NavigationService {
     const paths = Array.isArray(item.path) ? item.path : [item.path];
     
     return paths.some(path => {
-      // Check if path matches
-      const pathMatches = (currentUrl.includes(path) && path !== '' && path !== '/') || 
-                         (currentUrl === path && (path === '' || path === '/'));
+      // Split both URLs to compare segments more precisely
+      const currentSegments = currentUrl.split('?')[0].split('/').filter(s => s);
+      const pathSegments = path.split('/').filter(s => s);
       
-      // Check if query params match
+      // For exact path matches only
+      const isExactMatch = currentSegments.length === pathSegments.length && 
+                          pathSegments.every((segment, index) => segment === currentSegments[index]);
+      
+      if (!isExactMatch) {
+        return false;
+      }
+      
+      // Check query params if item has them
+      if (item.params) {
+        const queryParams = this.activatedRoute.snapshot.queryParams;
+        const paramsMatch = item.params.every(param => 
+          queryParams[param.name] === param.value
+        );
+        return paramsMatch;
+      }
+      
+      // If item has no params, ensure current URL doesn't have query params that would conflict
       const queryParams = this.activatedRoute.snapshot.queryParams;
-      const paramsMatch = item.params?.every(param => 
-        queryParams[param.name] === param.value
-      ) ?? true;
-      
-      // If item has no params, ensure no unexpected query params
-      const noUnexpectedParams = !item.params || Object.keys(queryParams).length === 0;
-      
-      return pathMatches && paramsMatch && (item.params || noUnexpectedParams);
+      return Object.keys(queryParams).length === 0;
     });
   }
 

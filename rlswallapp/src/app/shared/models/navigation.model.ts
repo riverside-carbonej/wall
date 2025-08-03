@@ -14,6 +14,8 @@ export interface WallNavigationContext {
   objectTypes: WallObjectTypeNav[];
   canEdit: boolean;
   canAdmin: boolean;
+  totalItemCount?: number;
+  hasLocationEnabledTypes?: boolean;
 }
 
 export interface WallObjectTypeNav {

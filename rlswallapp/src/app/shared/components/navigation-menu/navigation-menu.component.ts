@@ -23,15 +23,6 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
     <div class="navigation-menu" [class.open]="isMenuOpen" [class.closed]="!isMenuOpen">
       <div class="menu-content">
         
-        <!-- Header Section -->
-        @if (currentContext) {
-          <div class="menu-header">
-            <div class="wall-info">
-              <h2 class="wall-name">{{ currentContext.wallName }}</h2>
-              <p class="wall-subtitle">{{ getWallSubtitle() }}</p>
-            </div>
-          </div>
-        }
 
         <!-- Add Button -->
         @if (canShowAddButton()) {
@@ -91,24 +82,24 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
             </div>
             
             <app-side-button
-              title="Object Types"
+              title="Wall Item Presets"
               icon="category"
-              [selected]="isAdminPathSelected('/object-types')"
-              (buttonClick)="navigateToAdmin('/object-types')">
+              [selected]="isAdminPathSelected('/manage')"
+              (buttonClick)="navigateToAdmin('/manage')">
             </app-side-button>
             
             <app-side-button
               title="Wall Settings"
               icon="settings"
-              [selected]="isAdminPathSelected('/settings')"
-              (buttonClick)="navigateToAdmin('/settings')">
+              [selected]="isAdminPathSelected('/edit')"
+              (buttonClick)="navigateToAdmin('/edit')">
             </app-side-button>
             
             <app-side-button
               title="Users & Permissions"
               icon="people"
-              [selected]="isAdminPathSelected('/users')"
-              (buttonClick)="navigateToAdmin('/users')">
+              [selected]="isAdminPathSelected('/permissions')"
+              (buttonClick)="navigateToAdmin('/permissions')">
             </app-side-button>
           </div>
         }
@@ -400,13 +391,6 @@ export class NavigationMenuComponent implements OnInit, OnDestroy {
 
   private updateActiveMenuItems() {
     this.activeMenuItems = this.navigationService.getActiveMenuItems();
-  }
-
-  getWallSubtitle(): string {
-    if (!this.currentContext) return '';
-    
-    // Just return the wall description or a simple subtitle
-    return 'Content Management';
   }
 
   canShowAddButton(): boolean {
