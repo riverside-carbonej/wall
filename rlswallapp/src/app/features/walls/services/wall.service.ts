@@ -146,11 +146,11 @@ export class WallService {
         return user.email!;
       }),
       switchMap(userEmail => {
-        return runInInjectionContext(this.injector, () => {
-          const wallDoc = doc(this.firestore, this.collectionName, id);
-          
-          return new Observable<Wall | null>(subscriber => {
-            const unsubscribe = onSnapshot(wallDoc, 
+        const wallDoc = doc(this.firestore, this.collectionName, id);
+        
+        return new Observable<Wall | null>(subscriber => {
+          const unsubscribe = runInInjectionContext(this.injector, () => {
+            return onSnapshot(wallDoc, 
               (docSnap) => {
                 if (docSnap.exists()) {
                   const data = docSnap.data();
@@ -177,10 +177,10 @@ export class WallService {
                 subscriber.error(error);
               }
             );
-
-            // Return cleanup function
-            return () => unsubscribe();
           });
+
+          // Return cleanup function
+          return () => unsubscribe();
         });
       }),
       catchError(error => {

@@ -85,8 +85,8 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
             <app-side-button
               title="Wall Item Presets"
               icon="category"
-              [selected]="isAdminPathSelectedWithCD('/item-presets')"
-              (buttonClick)="navigateToAdmin('/item-presets')">
+              [selected]="isAdminPathSelectedWithCD('/presets')"
+              (buttonClick)="navigateToAdmin('/presets')">
             </app-side-button>
             
             <app-side-button

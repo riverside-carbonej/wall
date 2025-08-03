@@ -73,7 +73,6 @@ export class MatCardContent {}
     .mat-card-actions {
       display: flex;
       gap: 8px;
-      margin-top: 16px;
     }
   `]
 })

@@ -1,8 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
-import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 import { MatCheckbox, MatOption, MatSelect } from '../../../../shared/components/material-stubs';
 import { WallObjectType, FieldDefinition } from '../../../../shared/models/wall.model';
 
@@ -19,7 +18,6 @@ export interface ObjectTypeBuilderConfig {
     CommonModule,
     ReactiveFormsModule,
     MaterialIconComponent,
-    ThemedButtonComponent,
     MatCheckbox,
     MatOption,
     MatSelect
@@ -34,7 +32,7 @@ export interface ObjectTypeBuilderConfig {
         <div class="form-field">
           <label class="field-label">Object Name *</label>
           <div class="input-container">
-            <mat-icon class="prefix-icon">label</mat-icon>
+            <mat-icon class="prefix-icon" [icon]="'label'"></mat-icon>
             <input 
               class="material-input" 
               formControlName="name" 
@@ -58,7 +56,7 @@ export interface ObjectTypeBuilderConfig {
         <div class="form-field">
           <label class="field-label">Description</label>
           <div class="input-container">
-            <mat-icon class="prefix-icon">description</mat-icon>
+            <mat-icon class="prefix-icon" [icon]="'description'"></mat-icon>
             <textarea 
               class="material-textarea" 
               formControlName="description" 
@@ -73,47 +71,73 @@ export interface ObjectTypeBuilderConfig {
       <div class="form-section properties-section">
         <div class="section-title-row">
           <h2>Object Properties</h2>
-          <app-themed-button
-            variant="raised"
-            color="primary"
-            icon="add"
-            label="Add Property"
-            (buttonClick)="addField()">
-          </app-themed-button>
+          <button 
+            class="themed-button raised-button"
+            type="button"
+            (click)="addField()">
+            <mat-icon style="margin-right: 8px; font-size: 18px; width: 18px; height: 18px;" [icon]="'add'"></mat-icon>
+            Add Property
+          </button>
         </div>
         <div class="section-divider"></div>
         
         @if (fieldsArray.length === 0) {
           <div class="empty-state">
-            <mat-icon>view_list</mat-icon>
+            <mat-icon [icon]="'view_list'"></mat-icon>
             <p>Add properties to define what information each object will contain (name, date, location, etc.)</p>
           </div>
         } @else {
-          <div class="properties-grid">
+          <div class="properties-table" formArrayName="fields">
+            <!-- Table Header -->
+            <div class="table-header">
+              <div class="header-cell name-column">Name</div>
+              <div class="header-cell type-column">Type</div>
+              <div class="header-cell required-column">Required</div>
+              <div class="header-cell actions-column">Actions</div>
+            </div>
+            
+            <!-- Table Rows -->
             @for (field of fieldsArray.controls; track $index) {
-              <div class="property-chip" [formGroupName]="$index">
-                <mat-icon class="property-icon">{{ getFieldIcon(field.get('type')?.value) }}</mat-icon>
-                <div class="property-info">
-                  <span class="property-name">{{ field.get('name')?.value || 'Untitled Property' }}</span>
-                  <span class="property-meta">
-                    {{ getFieldTypeLabel(field.get('type')?.value) }}
-                    @if (field.get('required')?.value) {
-                      <mat-icon class="required-icon">star</mat-icon>
-                    }
-                  </span>
+              <div class="table-row" [formGroupName]="$index">
+                <div class="table-cell name-column">
+                  <div class="property-name">
+                    <mat-icon class="property-icon" [icon]="getFieldIcon(field.get('type')?.value)"></mat-icon>
+                    <span class="property-title">{{ field.get('name')?.value || 'Untitled Property' }}</span>
+                  </div>
                 </div>
-                <div class="property-actions">
-                  <app-themed-button
-                    variant="icon"
-                    icon="edit"
-                    (buttonClick)="editField($index)">
-                  </app-themed-button>
-                  <app-themed-button
-                    variant="icon"
-                    color="warn"
-                    icon="delete"
-                    (buttonClick)="removeField($index)">
-                  </app-themed-button>
+                
+                <div class="table-cell type-column">
+                  <span class="property-type">{{ getFieldTypeLabel(field.get('type')?.value) }}</span>
+                </div>
+                
+                <div class="table-cell required-column">
+                  @if (field.get('required')?.value) {
+                    <div class="required-indicator">
+                      <mat-icon class="required-icon" [icon]="'star'"></mat-icon>
+                      <span class="required-text">Required</span>
+                    </div>
+                  } @else {
+                    <span class="optional-text">Optional</span>
+                  }
+                </div>
+                
+                <div class="table-cell actions-column">
+                  <div class="property-actions">
+                    <button 
+                      class="action-button"
+                      type="button"
+                      (click)="editField($index)"
+                      title="Edit field">
+                      <mat-icon [icon]="'edit'"></mat-icon>
+                    </button>
+                    <button 
+                      class="action-button delete-action"
+                      type="button"
+                      (click)="removeField($index)"
+                      title="Delete field">
+                      <mat-icon [icon]="'delete'"></mat-icon>
+                    </button>
+                  </div>
                 </div>
               </div>
             }
@@ -125,25 +149,25 @@ export interface ObjectTypeBuilderConfig {
       <div class="action-bar" *ngIf="!showFieldEditor">
         @if (objectTypeForm.invalid) {
           <div class="form-warning">
-            <mat-icon class="warning-icon">warning</mat-icon>
+            <mat-icon class="warning-icon" [icon]="'warning'"></mat-icon>
             <span>Please complete all required fields to save the object type</span>
           </div>
         }
         
         <div class="action-buttons">
-          <app-themed-button
-            variant="stroked"
-            color="primary"
-            label="Cancel"
-            (buttonClick)="onCancel()">
-          </app-themed-button>
-          <app-themed-button
-            variant="raised"
-            color="primary"
-            label="Save Object Type"
+          <button 
+            class="themed-button stroked-button"
+            type="button"
+            (click)="onCancel()">
+            Cancel
+          </button>
+          <button 
+            class="themed-button raised-button"
+            type="button"
             [disabled]="objectTypeForm.invalid"
-            (buttonClick)="onSave()">
-          </app-themed-button>
+            (click)="onSave()">
+            Save Object Type
+          </button>
         </div>
       </div>
 
@@ -154,11 +178,12 @@ export interface ObjectTypeBuilderConfig {
             
             <div class="modal-header">
               <h2>{{ editingFieldIndex >= 0 ? 'Edit Property' : 'Add Property' }}</h2>
-              <app-themed-button
-                variant="icon"
-                icon="close"
-                (buttonClick)="closeFieldEditor()">
-              </app-themed-button>
+              <button 
+                class="icon-button"
+                type="button"
+                (click)="closeFieldEditor()">
+                <mat-icon [icon]="'close'"></mat-icon>
+              </button>
             </div>
             
             <div class="modal-content">
@@ -166,7 +191,7 @@ export interface ObjectTypeBuilderConfig {
                 <div class="form-field">
                   <label class="field-label">Property Name *</label>
                   <div class="input-container">
-                    <mat-icon class="prefix-icon">label</mat-icon>
+                    <mat-icon class="prefix-icon" [icon]="'label'"></mat-icon>
                     <input 
                       class="material-input" 
                       formControlName="name" 
@@ -180,7 +205,7 @@ export interface ObjectTypeBuilderConfig {
                   <mat-select formControlName="type" class="material-select" [displayValueFunction]="getFieldTypeDisplayValue">
                     @for (option of fieldTypeOptions; track option.value) {
                       <mat-option [value]="option.value">
-                        <mat-icon class="option-icon">{{ option.icon }}</mat-icon>
+                        <mat-icon class="option-icon" [icon]="option.icon"></mat-icon>
                         {{ option.label }}
                       </mat-option>
                     }
@@ -190,7 +215,7 @@ export interface ObjectTypeBuilderConfig {
                 <div class="form-field">
                   <label class="field-label">Description</label>
                   <div class="input-container">
-                    <mat-icon class="prefix-icon">description</mat-icon>
+                    <mat-icon class="prefix-icon" [icon]="'description'"></mat-icon>
                     <textarea 
                       class="material-textarea" 
                       formControlName="description" 
@@ -203,7 +228,7 @@ export interface ObjectTypeBuilderConfig {
                 <div class="form-field">
                   <label class="field-label">Placeholder Text</label>
                   <div class="input-container">
-                    <mat-icon class="prefix-icon">edit</mat-icon>
+                    <mat-icon class="prefix-icon" [icon]="'edit'"></mat-icon>
                     <input 
                       class="material-input" 
                       formControlName="placeholder" 
@@ -221,19 +246,19 @@ export interface ObjectTypeBuilderConfig {
             </div>
 
             <div class="modal-actions">
-              <app-themed-button
-                variant="stroked"
-                color="primary"
-                label="Cancel"
-                (buttonClick)="closeFieldEditor()">
-              </app-themed-button>
-              <app-themed-button
-                variant="raised"
-                color="primary"
-                [label]="editingFieldIndex >= 0 ? 'Update Property' : 'Add Property'"
+              <button 
+                class="themed-button stroked-button"
+                type="button"
+                (click)="closeFieldEditor()">
+                Cancel
+              </button>
+              <button 
+                class="themed-button raised-button"
+                type="button"
                 [disabled]="fieldForm.invalid"
-                (buttonClick)="saveField()">
-              </app-themed-button>
+                (click)="saveField()">
+                {{ editingFieldIndex >= 0 ? 'Update Property' : 'Add Property' }}
+              </button>
             </div>
             
           </div>
@@ -413,80 +438,173 @@ export interface ObjectTypeBuilderConfig {
       margin: 0 auto;
     }
 
-    .properties-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+    /* Table Styling */
+    .properties-table {
+      background: var(--md-sys-color-surface);
+      border-radius: var(--md-sys-shape-corner-medium);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      overflow: hidden;
       margin-top: 12px;
     }
 
-    .property-chip {
-      display: flex;
-      align-items: center;
+    .table-header {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 16px;
       padding: 16px;
       background: var(--md-sys-color-surface-container);
-      border-radius: var(--md-sys-shape-corner-medium);
-      border: 1px solid var(--md-sys-color-outline-variant);
-      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
     }
 
-    .property-chip:hover {
-      border-color: var(--md-sys-color-primary);
-      background: var(--md-sys-color-surface-container-high);
+    .header-cell {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .table-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 16px;
+      padding: 16px;
+      min-height: 56px;
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+      transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+      align-items: center;
+    }
+
+    .table-row:last-child {
+      border-bottom: none;
+    }
+
+    .table-row:hover {
+      background-color: var(--md-sys-color-surface-container);
+    }
+
+    .table-cell {
+      display: flex;
+      align-items: center;
+    }
+
+    /* Column-specific styling */
+    .name-column {
+      min-width: 200px;
+    }
+
+    .type-column {
+      min-width: 120px;
+      justify-content: center;
+    }
+
+    .required-column {
+      min-width: 100px;
+      justify-content: center;
+    }
+
+    .actions-column {
+      min-width: 120px;
+      justify-content: flex-end;
+    }
+
+    /* Property name styling */
+    .property-name {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .property-icon {
-      color: var(--md-sys-color-primary);
-      margin-right: 12px;
       font-size: 20px;
       width: 20px;
       height: 20px;
+      color: var(--md-sys-color-on-surface-variant);
+      flex-shrink: 0;
     }
 
-    .property-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .property-name {
-      display: block;
-      font-weight: 500;
+    .property-title {
+      font-size: 1rem;
+      font-weight: 400;
       color: var(--md-sys-color-on-surface);
-      font-size: 0.9rem;
-      line-height: 1.2;
+      line-height: 1.5;
     }
 
-    .property-meta {
+    /* Type styling */
+    .property-type {
+      font-size: 0.875rem;
+      color: var(--md-sys-color-on-surface-variant);
+      background: var(--md-sys-color-surface-container-high);
+      padding: 4px 12px;
+      border-radius: var(--md-sys-shape-corner-small);
+      font-weight: 500;
+    }
+
+    /* Required indicator styling */
+    .required-indicator {
       display: flex;
       align-items: center;
-      font-size: 0.8rem;
-      color: var(--md-sys-color-on-surface-variant);
-      margin-top: 2px;
-      gap: 4px;
+      gap: 6px;
     }
 
     .required-icon {
-      font-size: 12px;
-      width: 12px;
-      height: 12px;
-      color: var(--md-sys-color-error);
-    }
-
-    .property-actions {
-      display: flex;
-      gap: 4px;
-    }
-
-    .property-actions button {
-      width: 32px;
-      height: 32px;
-      line-height: 32px;
-    }
-
-    .property-actions mat-icon {
       font-size: 16px;
       width: 16px;
       height: 16px;
+      color: var(--md-sys-color-primary);
+    }
+
+    .required-text {
+      font-size: 0.75rem;
+      color: var(--md-sys-color-primary);
+      font-weight: 500;
+    }
+
+    .optional-text {
+      font-size: 0.75rem;
+      color: var(--md-sys-color-on-surface-variant);
+      opacity: 0.7;
+    }
+
+    /* Actions styling */
+    .property-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 1;
+    }
+
+    .action-button {
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--md-sys-color-on-surface-variant);
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .action-button:hover {
+      background-color: var(--md-sys-color-surface-container-highest);
+      color: var(--md-sys-color-primary);
+    }
+
+    .action-button.delete-action {
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .action-button.delete-action:hover {
+      background-color: color-mix(in srgb, var(--md-sys-color-error) 12%, transparent);
+      color: var(--md-sys-color-error);
+    }
+
+    .action-button mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
 
     /* Action Bar */
@@ -653,25 +771,72 @@ export interface ObjectTypeBuilderConfig {
     }
 
     /* Responsive Design */
-    @media (max-width: 600px) {
-      .preset-builder {
+    @media (max-width: 768px) {
+      .table-header {
+        grid-template-columns: 1fr auto auto;
+        gap: 12px;
         padding: 12px;
-        gap: 32px;
       }
-      
+
+      .table-row {
+        grid-template-columns: 1fr auto auto;
+        gap: 12px;
+        padding: 12px;
+      }
+
+      .type-column {
+        display: none;
+      }
+
+      .name-column {
+        min-width: auto;
+      }
+
+      .property-name {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .property-type {
+        font-size: 0.75rem;
+        padding: 2px 8px;
+        margin-top: 4px;
+      }
+
+      .property-title::after {
+        content: " • " attr(data-type);
+        font-size: 0.75rem;
+        color: var(--md-sys-color-on-surface-variant);
+        font-weight: 400;
+      }
+    }
+
+    @media (max-width: 600px) {
       .section-title-row {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
       }
-      
-      .property-chip {
-        padding: 12px;
+
+      .table-header {
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        padding: 8px;
       }
-      
+
+      .table-row {
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        padding: 12px 8px;
+      }
+
+      .required-column {
+        display: none;
+      }
+
       .property-actions {
-        margin-left: 8px;
-        gap: 4px;
+        opacity: 1; /* Always visible on mobile */
       }
 
       .modal-backdrop {
@@ -696,6 +861,103 @@ export interface ObjectTypeBuilderConfig {
         gap: 8px;
         padding: 16px 20px 20px 20px;
       }
+    }
+
+    /* Button Styles */
+    .themed-button {
+      border: none;
+      cursor: pointer;
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 500;
+      text-transform: none;
+      transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+      outline: none;
+      position: relative;
+      overflow: hidden;
+      border-radius: 200px;
+      height: 40px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      white-space: nowrap;
+      min-width: 64px;
+    }
+
+    .themed-button:hover:not(:disabled) {
+      box-shadow: var(--md-sys-elevation-1);
+    }
+
+    .themed-button:focus-visible {
+      outline: 2px solid var(--md-sys-color-primary);
+      outline-offset: 2px;
+    }
+
+    .themed-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .stroked-button {
+      background-color: transparent;
+      border: 1px solid var(--md-sys-color-outline);
+      color: var(--md-sys-color-primary);
+    }
+
+    .stroked-button:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+    }
+
+    .raised-button {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      box-shadow: var(--md-sys-elevation-1);
+    }
+
+    .raised-button:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--md-sys-color-primary) 92%, var(--md-sys-color-on-primary) 8%);
+      box-shadow: var(--md-sys-elevation-2);
+    }
+
+    .raised-button:disabled {
+      background-color: var(--md-sys-color-on-surface);
+      color: var(--md-sys-color-surface);
+      opacity: 0.38;
+    }
+
+    .icon-button {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--md-sys-color-on-surface-variant);
+      transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+      width: 40px;
+      height: 40px;
+    }
+
+    .icon-button:hover {
+      background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .icon-button:focus-visible {
+      outline: 2px solid var(--md-sys-color-primary);
+      outline-offset: 2px;
+    }
+
+    .icon-button.delete-button {
+      color: var(--md-sys-color-error);
+    }
+
+    .icon-button.delete-button:hover {
+      background-color: color-mix(in srgb, var(--md-sys-color-error) 8%, transparent);
+      color: var(--md-sys-color-error);
     }
   `]
 })
@@ -733,7 +995,7 @@ export class ObjectTypeBuilderComponent implements OnInit {
     { value: 'location', label: 'Map Location', icon: 'place' }
   ];
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder, private cdr: ChangeDetectorRef) {}
 
   // Display value functions for selects
   getIconDisplayValue = (value: string): string => {
@@ -835,25 +1097,45 @@ export class ObjectTypeBuilderComponent implements OnInit {
   }
 
   removeField(index: number): void {
+    console.log('Removing field at index:', index);
     this.fieldsArray.removeAt(index);
+    console.log('Fields array length after removal:', this.fieldsArray.length);
+    this.cdr.detectChanges();
   }
 
-  saveField(): void {
-    if (this.fieldForm.invalid) return;
 
-    const fieldData = {
-      ...this.fieldForm.value,
-      id: this.generateFieldId()
+  saveField(): void {
+    if (this.fieldForm.invalid) {
+      console.log('Field form is invalid:', this.fieldForm.errors);
+      return;
+    }
+
+    const fieldData: FieldDefinition = {
+      id: this.generateFieldId(),
+      name: this.fieldForm.get('name')?.value || '',
+      type: this.fieldForm.get('type')?.value || 'text',
+      description: this.fieldForm.get('description')?.value || '',
+      placeholder: this.fieldForm.get('placeholder')?.value || '',
+      required: this.fieldForm.get('required')?.value || false
     };
+
+    console.log('Creating field with data:', fieldData);
 
     if (this.editingFieldIndex >= 0) {
       // Edit existing field
       this.fieldsArray.at(this.editingFieldIndex).patchValue(fieldData);
+      console.log('Updated existing field at index:', this.editingFieldIndex);
     } else {
       // Add new field
-      this.fieldsArray.push(this.createFieldFormGroup(fieldData));
+      const fieldFormGroup = this.createFieldFormGroup(fieldData);
+      this.fieldsArray.push(fieldFormGroup);
+      console.log('Added field to array. Current fields:', this.fieldsArray.controls.map(c => c.value));
+      console.log('Fields array length:', this.fieldsArray.length);
     }
 
+    // Force change detection
+    this.cdr.detectChanges();
+    
     this.closeFieldEditor();
   }
 

@@ -32,8 +32,18 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   { 
-    path: 'walls/:id/item-presets', 
+    path: 'walls/:id/presets', 
     loadComponent: () => import('./features/walls/components/wall-item-presets/wall-item-presets.component').then(m => m.WallItemPresetsComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'walls/:id/presets/add', 
+    loadComponent: () => import('./features/walls/pages/add-preset/add-preset.component').then(m => m.AddPresetComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'walls/:id/presets/:presetId/edit', 
+    loadComponent: () => import('./features/walls/pages/edit-preset/edit-preset.component').then(m => m.EditPresetComponent),
     canActivate: [AuthGuard]
   },
   { 
@@ -42,7 +52,29 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   
-  // Wall Item Management Routes
+  // Preset-based Wall Item Management Routes
+  { 
+    path: 'walls/:wallId/preset/:presetId/items', 
+    loadComponent: () => import('./features/wall-items/pages/preset-item-list/preset-item-list.component').then(m => m.PresetItemListComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'walls/:wallId/preset/:presetId/items/add', 
+    loadComponent: () => import('./features/wall-items/pages/preset-item-add/preset-item-add.component').then(m => m.PresetItemAddComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'walls/:wallId/preset/:presetId/items/:itemId', 
+    loadComponent: () => import('./features/wall-items/pages/preset-item-view/preset-item-view.component').then(m => m.PresetItemViewComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'walls/:wallId/preset/:presetId/items/:itemId/edit', 
+    loadComponent: () => import('./features/wall-items/pages/preset-item-edit/preset-item-edit.component').then(m => m.PresetItemEditComponent),
+    canActivate: [AuthGuard]
+  },
+  
+  // Legacy Wall Item Management Routes (kept for backwards compatibility)
   { 
     path: 'walls/:wallId/items', 
     loadComponent: () => import('./features/wall-items/pages/wall-item-list/wall-item-list.component').then(m => m.WallItemListComponent),

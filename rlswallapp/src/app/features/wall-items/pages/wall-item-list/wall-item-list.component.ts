@@ -436,7 +436,7 @@ export class WallItemListComponent implements OnInit, OnDestroy {
 
   navigateToObjectTypes() {
     // Navigate to Wall Item Presets management
-    this.router.navigate(['/walls', this.wallId, 'item-presets']);
+    this.router.navigate(['/walls', this.wallId, 'presets']);
   }
 
   onItemClick(item: WallItem) {

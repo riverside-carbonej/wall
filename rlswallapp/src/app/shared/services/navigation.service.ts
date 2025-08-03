@@ -119,7 +119,7 @@ export class NavigationService {
       this._currentAddMode.next(AddMode.WallItem);
     } else if (url.includes('/walls') && url.includes('/object-types')) {
       this._currentAddMode.next(AddMode.ObjectType);
-    } else if (url.includes('/walls') && url.includes('/item-presets')) {
+    } else if (url.includes('/walls') && url.includes('/presets')) {
       this._currentAddMode.next(AddMode.Preset);
     } else if (url.match(/\/walls\/[^\/]+\/?$/)) {
       // Wall home route (e.g., /walls/123 or /walls/123/)
@@ -279,17 +279,14 @@ export class NavigationService {
         
       case AddMode.WallItem:
         if (context && objectTypeId) {
-          this.router.navigate([`/walls/${context.wallId}/items/add`], {
-            queryParams: { objectType: objectTypeId }
-          });
+          // Navigate directly to preset-based add page
+          this.router.navigate([`/walls/${context.wallId}/preset/${objectTypeId}/items/add`]);
         } else if (context && context.objectTypes.length === 1) {
-          // Auto-select single object type
-          this.router.navigate([`/walls/${context.wallId}/items/add`], {
-            queryParams: { objectType: context.objectTypes[0].id }
-          });
+          // Auto-select single object type and navigate to preset-based add page
+          this.router.navigate([`/walls/${context.wallId}/preset/${context.objectTypes[0].id}/items/add`]);
         } else if (context) {
-          // Let user choose object type
-          this.router.navigate([`/walls/${context.wallId}/items/add`]);
+          // Let user choose preset from presets page
+          this.router.navigate([`/walls/${context.wallId}/presets`]);
         }
         break;
         
@@ -301,9 +298,8 @@ export class NavigationService {
         
       case AddMode.Preset:
         if (context) {
-          // Navigate to preset page and let the component handle the creation
-          this.router.navigate([`/walls/${context.wallId}/item-presets`]);
-          // The preset page will handle creating a new preset via its createNewPreset() method
+          // Navigate directly to the add preset page
+          this.router.navigate([`/walls/${context.wallId}/presets/add`]);
         }
         break;
     }

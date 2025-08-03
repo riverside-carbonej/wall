@@ -54,6 +54,33 @@ export class WallItemService {
     });
   }
 
+  getWallItemsByObjectType(wallId: string, objectTypeId: string): Observable<WallItem[]> {
+    return runInInjectionContext(this.injector, () => {
+      const wallItemsCollection = collection(this.firestore, this.collectionName);
+      const q = query(
+        wallItemsCollection,
+        where('wallId', '==', wallId),
+        where('objectTypeId', '==', objectTypeId),
+        orderBy('createdAt', 'desc')
+      );
+      
+      return from(getDocs(q)).pipe(
+        map(snapshot => 
+          snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: this.timestampToDate(doc.data()['createdAt']),
+            updatedAt: this.timestampToDate(doc.data()['updatedAt'])
+          } as WallItem))
+        ),
+        catchError(error => {
+          console.error('Error getting wall items by object type:', error);
+          return of([]);
+        })
+      );
+    });
+  }
+
   getWallItemById(id: string): Observable<WallItem | null> {
     return runInInjectionContext(this.injector, () => {
       const docRef = doc(this.firestore, this.collectionName, id);

@@ -112,6 +112,6 @@ export class ObjectTypeSelectionPageComponent implements OnInit, OnDestroy {
 
   onManageTypes(): void {
     // Navigate to wall item presets management
-    this.router.navigate(['/walls', this.wallId, 'item-presets']);
+    this.router.navigate(['/walls', this.wallId, 'presets']);
   }
 }

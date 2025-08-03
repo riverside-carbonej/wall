@@ -1,18 +1,15 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
-import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
-import { ProgressSpinnerComponent } from '../../../../shared/components/progress-spinner/progress-spinner.component';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { switchMap, filter } from 'rxjs/operators';
 
 import { WallService } from '../../services/wall.service';
 import { Wall, WallObjectType } from '../../../../shared/models/wall.model';
-import { ObjectTypeBuilderComponent, ObjectTypeBuilderConfig } from '../../../object-types/components/object-type-builder/object-type-builder.component';
 import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/components/empty-state/empty-state.component';
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
-import { CardComponent, CardAction, CardMenuItem } from '../../../../shared/components/card/card.component';
+import { CardComponent, CardAction } from '../../../../shared/components/card/card.component';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 
 @Component({
@@ -20,13 +17,10 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
   standalone: true,
   imports: [
     CommonModule,
-    ThemedButtonComponent,
-    MaterialIconComponent,
-    ProgressSpinnerComponent,
-    ObjectTypeBuilderComponent,
     EmptyStateComponent,
     PageLayoutComponent,
-    CardComponent
+    CardComponent,
+    ThemedButtonComponent
   ],
   template: `
     <div *ngIf="wall$ | async as wall">
@@ -37,51 +31,36 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
         [actions]="getPageActions()"
         (backClick)="goBack()">
         
-        <!-- Content Section -->
-        @if (showBuilder) {
-          <app-object-type-builder
-            [config]="{
-              mode: editingObjectType ? 'edit' : 'create',
-              wallId: wall.id,
-              initialData: editingObjectType || undefined
-            }"
-            (save)="onObjectTypeSaved($event)"
-            (cancel)="onBuilderCancelled()">
-          </app-object-type-builder>
+        @if (wall.objectTypes && wall.objectTypes.length > 0) {
+          <div class="presets-grid">
+            @for (objectType of wall.objectTypes; track objectType.id) {
+              <app-card
+                variant="elevated"
+                size="medium"
+                [title]="objectType.name"
+                [subtitle]="objectType.fields.length + ' fields'"
+                [avatarIcon]="objectType.icon"
+                [actions]="getActions(objectType)"
+                class="preset-card">
+                
+                <div class="field-summary">
+                  @for (field of objectType.fields | slice:0:3; track field.id) {
+                    <span class="field-chip">{{ field.name }}</span>
+                  }
+                  @if (objectType.fields.length > 3) {
+                    <span class="field-chip more">+{{ objectType.fields.length - 3 }} more</span>
+                  }
+                </div>
+              </app-card>
+            }
+          </div>
         } @else {
-          @if (wall.objectTypes && wall.objectTypes.length > 0) {
-            <div class="presets-grid">
-              @for (objectType of wall.objectTypes; track objectType.id) {
-                <app-card
-                  variant="elevated"
-                  size="medium"
-                  [title]="objectType.name"
-                  [subtitle]="objectType.fields.length + ' fields'"
-                  [avatarIcon]="objectType.icon"
-                  [description]="objectType.description"
-                  [metadata]="getMetadata(objectType)"
-                  [actions]="getActions(objectType)"
-                  class="preset-card">
-                  
-                  <div class="field-summary">
-                    @for (field of objectType.fields | slice:0:3; track field.id) {
-                      <span class="field-chip">{{ field.name }}</span>
-                    }
-                    @if (objectType.fields.length > 3) {
-                      <span class="field-chip more">+{{ objectType.fields.length - 3 }} more</span>
-                    }
-                  </div>
-                </app-card>
-              }
-            </div>
-          } @else {
-            <app-empty-state
-              icon="category"
-              title="No Wall Item Presets Yet"
-              message="Create your first preset to define the structure of items in this wall."
-              [actions]="emptyStateActions">
-            </app-empty-state>
-          }
+          <app-empty-state
+            icon="category"
+            title="No Wall Item Presets Yet"
+            message="Create your first preset to define the structure of items in this wall."
+            [actions]="emptyStateActions">
+          </app-empty-state>
         }
         
       </app-page-layout>
@@ -96,15 +75,28 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
     }
 
     .preset-card {
-      /* Card component handles styling */
       height: fit-content;
+      max-height: 280px;
+    }
+
+    .preset-card ::ng-deep .card-actions {
+      padding: 12px 16px 16px;
+      gap: 8px;
+    }
+
+    .preset-card ::ng-deep .card-content {
+      padding: 8px 16px;
+    }
+
+    .preset-card ::ng-deep mat-card-header {
+      padding: 16px 16px 8px;
     }
 
     .field-summary {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
+      gap: 4px;
+      margin-top: 4px;
     }
 
     .field-chip {
@@ -134,9 +126,6 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   
   wall$!: Observable<Wall>;
-  showBuilder = false;
-  editingObjectType: WallObjectType | null = null;
-  
   
   emptyStateActions: EmptyStateAction[] = [
     {
@@ -175,10 +164,6 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
   }
 
   getPageActions(): PageAction[] {
-    if (this.showBuilder) {
-      return []; // No header actions when showing builder (builder has its own controls)
-    }
-    
     return [
       {
         label: 'New Preset',
@@ -191,13 +176,11 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
   }
 
   createNewPreset() {
-    this.editingObjectType = null;
-    this.showBuilder = true;
+    this.router.navigate(['add'], { relativeTo: this.route });
   }
 
   editPreset(objectType: WallObjectType) {
-    this.editingObjectType = objectType;
-    this.showBuilder = true;
+    this.router.navigate([objectType.id, 'edit'], { relativeTo: this.route });
   }
 
   deletePreset(objectType: WallObjectType) {
@@ -224,47 +207,19 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
   }
 
 
-  onObjectTypeSaved(objectType: WallObjectType) {
-    this.wall$.pipe(
-      switchMap(wall => {
-        if (!wall) throw new Error('Wall not found');
-        
-        if (this.editingObjectType && this.editingObjectType.id) {
-          // Update existing object type
-          return this.wallService.updateObjectTypeInWall(wall.id, this.editingObjectType.id, objectType);
-        } else {
-          // Add new object type
-          return this.wallService.addObjectTypeToWall(wall.id, objectType);
-        }
-      }),
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: () => {
-        console.log('Object type saved successfully');
-        this.showBuilder = false;
-        this.editingObjectType = null;
-        // The wall$ observable will automatically update
-      },
-      error: (error) => {
-        console.error('Error saving object type:', error);
-        alert('Failed to save preset. Please try again.');
-      }
-    });
-  }
-
-  onBuilderCancelled() {
-    this.showBuilder = false;
-    this.editingObjectType = null;
-  }
 
   getMetadata(objectType: WallObjectType): Array<{key: string; value: string; icon?: string}> {
-    return [
-      { key: 'fields', value: `${objectType.fields.length} fields`, icon: 'list' }
-    ];
+    return [];
   }
 
   getActions(objectType: WallObjectType): CardAction[] {
     return [
+      {
+        label: 'View Items',
+        icon: 'inventory_2',
+        primary: true,
+        action: () => this.viewItems(objectType)
+      },
       {
         label: 'Edit',
         icon: 'edit',
@@ -278,6 +233,17 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
         action: () => this.deletePreset(objectType)
       }
     ];
+  }
+
+  viewItems(objectType: WallObjectType) {
+    this.wall$.pipe(
+      switchMap(wall => {
+        if (!wall) throw new Error('Wall not found');
+        this.router.navigate(['/walls', wall.id, 'preset', objectType.id, 'items']);
+        return [];
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe();
   }
 
 }
