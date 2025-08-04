@@ -36,7 +36,8 @@
       "Bash(timeout 15 npm run build)",
       "Bash(timeout 20 npm run build)",
       "Bash(timeout 30 npm run build)",
-      "Bash(timeout 10 npm start)"
+      "Bash(timeout 10 npm start)",
+      "Bash(firebase:*)"
     ],
     "deny": []
   }

@@ -10,6 +10,7 @@ import { DynamicFieldRendererComponent } from '../dynamic-field-renderer/dynamic
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 import { WallItemImageComponent } from '../../../../shared/components/wall-item-image/wall-item-image.component';
+import { ImageGalleryComponent } from '../../../../shared/components/image-gallery/image-gallery.component';
 
 export type PageMode = 'create' | 'view' | 'edit';
 
@@ -25,7 +26,8 @@ export type PageMode = 'create' | 'view' | 'edit';
     DynamicFieldRendererComponent,
     MaterialIconComponent,
     ThemedButtonComponent,
-    WallItemImageComponent
+    WallItemImageComponent,
+    ImageGalleryComponent
   ],
   template: `
     <div *ngIf="wall && preset">
@@ -81,6 +83,14 @@ export type PageMode = 'create' | 'view' | 'edit';
                             <button 
                               class="overlay-button"
                               type="button"
+                              (click)="onOpenGallery()"
+                              title="View gallery">
+                              <mat-icon [icon]="'photo_library'"></mat-icon>
+                              Gallery
+                            </button>
+                            <button 
+                              class="overlay-button"
+                              type="button"
                               (click)="onChangeImage(primaryImageIndex)"
                               title="Change image">
                               <mat-icon [icon]="'edit'"></mat-icon>
@@ -101,7 +111,15 @@ export type PageMode = 'create' | 'view' | 'edit';
                     
                     @if (images.length > 1) {
                       <div class="thumbnail-gallery">
-                        <h4>All Images</h4>
+                        <div class="gallery-header">
+                          <h4>All Images</h4>
+                          <app-themed-button
+                            variant="basic"
+                            [icon]="'photo_library'"
+                            label="View Gallery"
+                            (buttonClick)="onOpenGallery()">
+                          </app-themed-button>
+                        </div>
                         <div class="thumbnails-grid">
                           @for (image of images; track $index) {
                             <div class="thumbnail" 
@@ -125,6 +143,15 @@ export type PageMode = 'create' | 'view' | 'edit';
                             </div>
                           }
                         </div>
+                      </div>
+                    } @else if (images.length === 1) {
+                      <div class="single-image-actions">
+                        <app-themed-button
+                          variant="basic"
+                          [icon]="'photo_library'"
+                          label="View Gallery"
+                          (buttonClick)="onOpenGallery()">
+                        </app-themed-button>
                       </div>
                     }
                   </div>
@@ -160,7 +187,7 @@ export type PageMode = 'create' | 'view' | 'edit';
                     @if (itemForm.invalid && attemptedSubmit) {
                       <div class="form-warning">
                         <mat-icon [icon]="'warning'"></mat-icon>
-                        <span>Please complete all required fields and add at least one image</span>
+                        <span>Please complete all required fields</span>
                       </div>
                     }
                     
@@ -174,7 +201,7 @@ export type PageMode = 'create' | 'view' | 'edit';
                         variant="raised"
                         [icon]="isSaving ? 'hourglass_empty' : 'save'"
                         [label]="getSaveButtonText()"
-                        [disabled]="itemForm.invalid || images.length === 0 || isSaving"
+                        [disabled]="itemForm.invalid || isSaving"
                         (buttonClick)="onSave()">
                       </app-themed-button>
                     </div>
@@ -187,6 +214,21 @@ export type PageMode = 'create' | 'view' | 'edit';
         }
         
       </app-page-layout>
+
+      <!-- Image Gallery Modal -->
+      @if (showGallery) {
+        <app-image-gallery
+          [images]="images"
+          [primaryImageIndex]="primaryImageIndex"
+          [preset]="preset"
+          [readonly]="mode === 'view'"
+          (close)="onCloseGallery()"
+          (addImages)="onAddImage()"
+          (changeImage)="onChangeImage($event)"
+          (removeImage)="onRemoveImage($event)"
+          (setPrimary)="onSetPrimaryImage($event)">
+        </app-image-gallery>
+      }
     </div>
   `,
   styles: [`
@@ -283,13 +325,7 @@ export type PageMode = 'create' | 'view' | 'edit';
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(
-        180deg,
-        rgba(0, 0, 0, 0.7) 0%,
-        rgba(0, 0, 0, 0.1) 30%,
-        rgba(0, 0, 0, 0.1) 70%,
-        rgba(0, 0, 0, 0.8) 100%
-      );
+      background: rgba(0, 0, 0, 0.5);
       opacity: 0;
       transition: opacity 0.3s ease;
       display: flex;
@@ -311,29 +347,31 @@ export type PageMode = 'create' | 'view' | 'edit';
       align-items: center;
       gap: 8px;
       padding: 12px 20px;
-      background: rgba(255, 255, 255, 0.95);
+      background: var(--md-sys-color-surface);
       color: var(--md-sys-color-on-surface);
-      border: none;
+      border: 1px solid var(--md-sys-color-outline);
       border-radius: 200px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
-      backdrop-filter: blur(10px);
+      box-shadow: var(--md-sys-elevation-2);
     }
 
     .overlay-button:hover {
-      background: white;
+      background: var(--md-sys-color-surface-container-high);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      box-shadow: var(--md-sys-elevation-3);
     }
 
     .overlay-button.delete-button {
-      background: rgba(220, 38, 127, 0.95);
-      color: white;
+      background: var(--md-sys-color-error);
+      color: var(--md-sys-color-on-error);
+      border-color: var(--md-sys-color-error);
     }
 
     .overlay-button.delete-button:hover {
-      background: rgba(220, 38, 127, 1);
+      background: var(--md-sys-color-error-container);
+      color: var(--md-sys-color-on-error-container);
     }
 
     .overlay-button mat-icon {
@@ -349,11 +387,23 @@ export type PageMode = 'create' | 'view' | 'edit';
       gap: 12px;
     }
 
-    .thumbnail-gallery h4 {
+    .gallery-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .gallery-header h4 {
       margin: 0;
       font-size: 1rem;
       font-weight: 500;
       color: var(--md-sys-color-on-surface);
+    }
+
+    .single-image-actions {
+      display: flex;
+      justify-content: center;
+      padding: 12px 0;
     }
 
     .thumbnails-grid {
@@ -656,6 +706,9 @@ export class PresetItemBasePageComponent {
   @Input() images: WallItemImage[] = [];
   @Input() primaryImageIndex = 0;
 
+  // Gallery state
+  showGallery = false;
+
   @Output() backClick = new EventEmitter<void>();
   @Output() addImage = new EventEmitter<void>();
   @Output() changeImage = new EventEmitter<number>();
@@ -781,5 +834,13 @@ export class PresetItemBasePageComponent {
 
   onEdit() {
     this.edit.emit();
+  }
+
+  onOpenGallery() {
+    this.showGallery = true;
+  }
+
+  onCloseGallery() {
+    this.showGallery = false;
   }
 }

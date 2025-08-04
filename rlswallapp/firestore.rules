@@ -34,17 +34,11 @@ service cloud.firestore {
     
     function canViewWall(wallData) {
       // Draft walls - only editors can view
-      if (!wallData.visibility.isPublished) {
-        return canEditWall(wallData);
-      }
-      
-      // Published public walls - anyone can view
-      if (!wallData.visibility.requiresLogin) {
-        return true;
-      }
-      
-      // Published login-required walls - authenticated users only
-      return isAuthenticated();
+      return (!wallData.visibility.isPublished && canEditWall(wallData)) ||
+             // Published public walls - anyone can view
+             (wallData.visibility.isPublished && !wallData.visibility.requiresLogin) ||
+             // Published login-required walls - authenticated users only
+             (wallData.visibility.isPublished && wallData.visibility.requiresLogin && isAuthenticated());
     }
     
     // Walls collection

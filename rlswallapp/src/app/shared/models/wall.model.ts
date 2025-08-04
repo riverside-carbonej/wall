@@ -197,7 +197,7 @@ export interface WallItemImage {
   isPrimary?: boolean; // Legacy compatibility
   uploadedAt: Date;
   uploadedBy?: string; // Legacy compatibility
-  storagePath?: string;
+  storagePath?: string; // Firebase Storage path for deletion
 }
 
 // Type alias for consistency with services

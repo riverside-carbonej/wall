@@ -1,0 +1,62 @@
+rules_version = '2';
+
+// Firebase Storage security rules for Riverside Wall App
+// Integrated with wall permissions system from PERMISSIONS.md
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Rules for wall images - follows wall permissions system
+    match /walls/{wallId}/items/{itemId}/{allPaths=**} {
+      // Read access: follows same rules as wall visibility
+      allow read: if 
+        // Always allow if user can edit the wall (covers drafts)
+        canEditWall(wallId, request.auth) ||
+        // Published public walls - anyone can read images
+        (isWallPublishedPublic(wallId)) ||
+        // Published login-required walls - authenticated users only
+        (isWallPublishedLoginRequired(wallId) && request.auth != null);
+      
+      // Write/delete access: only users who can edit the wall
+      allow write, delete: if canEditWall(wallId, request.auth)
+        && isValidImageFile()
+        && request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+    
+    // Helper function to validate image file types
+    function isValidImageFile() {
+      return request.resource.contentType.matches('image/(jpeg|jpg|png|webp)');
+    }
+    
+    // Check if user can edit wall (matches Firestore permissions)
+    function canEditWall(wallId, auth) {
+      return auth != null && exists(/databases/$(database)/documents/walls/$(wallId)) &&
+        (
+          // Wall owner
+          get(/databases/$(database)/documents/walls/$(wallId)).data.permissions.owner == auth.uid ||
+          // Explicit editor
+          auth.uid in get(/databases/$(database)/documents/walls/$(wallId)).data.permissions.editors ||
+          // Department access (when user department is available in token)
+          (get(/databases/$(database)/documents/walls/$(wallId)).data.permissions.allowDepartmentEdit && 
+           auth.token.department == get(/databases/$(database)/documents/walls/$(wallId)).data.permissions.department)
+        );
+    }
+    
+    // Check if wall is published as public
+    function isWallPublishedPublic(wallId) {
+      return exists(/databases/$(database)/documents/walls/$(wallId)) &&
+        get(/databases/$(database)/documents/walls/$(wallId)).data.visibility.isPublished == true &&
+        get(/databases/$(database)/documents/walls/$(wallId)).data.visibility.requiresLogin == false;
+    }
+    
+    // Check if wall is published with login requirement
+    function isWallPublishedLoginRequired(wallId) {
+      return exists(/databases/$(database)/documents/walls/$(wallId)) &&
+        get(/databases/$(database)/documents/walls/$(wallId)).data.visibility.isPublished == true &&
+        get(/databases/$(database)/documents/walls/$(wallId)).data.visibility.requiresLogin == true;
+    }
+    
+    // Default deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

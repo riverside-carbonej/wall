@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// Simplified Firebase Storage security rules for Riverside Wall App
+// Temporary rules to get uploads working, then we'll add more complex permissions
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Rules for wall images
+    match /walls/{wallId}/items/{itemId}/{allPaths=**} {
+      // Allow read for authenticated users (we'll check wall permissions in the app)
+      allow read: if request.auth != null;
+      
+      // Allow write/delete for authenticated users with valid image files
+      allow write, delete: if request.auth != null
+        && request.resource.contentType.matches('image/(jpeg|jpg|png|webp)')
+        && request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+    
+    // Default deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
