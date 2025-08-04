@@ -1,0 +1,47 @@
+type Organization @table {
+  name: String!
+  createdAt: Timestamp!
+  description: String
+  websiteUrl: String
+  contactEmail: String
+}
+
+type WallOfHonor @table {
+  organization: Organization!
+  name: String!
+  createdAt: Timestamp!
+  description: String
+  locationDescription: String
+}
+
+type Honoree @table {
+  wallOfHonor: WallOfHonor!
+  firstName: String!
+  lastName: String!
+  recognitionDate: Date!
+  createdAt: Timestamp!
+  middleName: String
+  suffix: String
+  bio: String
+  birthDate: Date
+  deathDate: Date
+  militaryBranch: String
+  serviceDates: String
+  awards: String
+  graduationYear: Int
+  photoUrl: String
+}
+
+type ContributionType @table {
+  name: String!
+  createdAt: Timestamp!
+  description: String
+}
+
+type HonoreeContribution @table(key: ["honoree", "contributionType"]) {
+  honoree: Honoree!
+  contributionType: ContributionType!
+  createdAt: Timestamp!
+  details: String
+  dateAchieved: Date
+}

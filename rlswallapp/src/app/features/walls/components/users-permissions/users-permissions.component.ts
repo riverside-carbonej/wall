@@ -4,12 +4,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators, AbstractControl } from '@angular/forms';
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 import { FormFieldComponent } from '../../../../shared/components/input-field/input-field.component';
-import { MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatCardActions, MatDivider, MatLabel, MatError, MatSelect, MatOption, MatIcon } from '../../../../shared/components/material-stubs';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatCardActions, MatDivider, MatLabel, MatError, MatSelect, MatIcon } from '../../../../shared/components/material-stubs';
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 import { MaterialSwitchComponent } from '../../../../shared/components/material-switch/material-switch.component';
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UserService } from '../../../../shared/services/user.service';
+import { FirebaseAuthSearchService } from '../../../../shared/services/firebase-auth-search.service';
 import { Observable, Subject, takeUntil, startWith, map, of } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { switchMap, filter, debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -45,7 +46,6 @@ interface WallUser {
     MatLabel,
     MatError,
     MatSelect,
-    MatOption,
     MatIcon,
     PageLayoutComponent,
     MaterialSwitchComponent
@@ -99,25 +99,26 @@ interface WallUser {
             <!-- Add User Form -->
             <div class="add-user-form">
               <div class="form-group">
-                <label for="newUserEmail">Add User</label>
+                <label for="newUserEmail">Search and Add User</label>
                 <div class="input-with-button">
                   <div class="input-container">
                     <input 
                       id="newUserEmail"
-                      type="email" 
+                      type="text" 
                       [(ngModel)]="newUserEmail"
                       [ngModelOptions]="{standalone: true}"
-                      placeholder="Enter complete email address (e.g., user@riversideschools.net)"
+                      placeholder="Search by name or email..."
                       class="form-input"
                       (input)="onNewUserInput($event)"
-                      (focus)="showAddUserSuggestions = true"
-                      (blur)="hideAddUserSuggestions()">
+                      (focus)="showDropdown = true"
+                      (blur)="hideDropdown()">
                     
-                    <!-- User Suggestions Dropdown -->
-                    <div class="user-suggestions" *ngIf="showAddUserSuggestions">
-                      <div class="user-suggestion" 
-                           *ngFor="let user of filteredUsers; trackBy: trackByEmail"
-                           (mousedown)="selectNewUser(user)">
+                    <!-- User Search Dropdown -->
+                    <div class="user-dropdown" *ngIf="showDropdown">
+                      <div 
+                        class="user-option"
+                        *ngFor="let user of filteredUsers; trackBy: trackByEmail"
+                        (mousedown)="selectUser(user)">
                         <div class="user-avatar small">
                           <img *ngIf="user.photoURL" [src]="user.photoURL" [alt]="user.displayName" class="user-photo">
                           <mat-icon *ngIf="!user.photoURL">account_circle</mat-icon>
@@ -128,15 +129,19 @@ interface WallUser {
                         </div>
                       </div>
                       
-                      <div class="no-suggestions" *ngIf="filteredUsers.length === 0 && newUserEmail.length > 0">
+                      <div class="no-suggestions" *ngIf="filteredUsers.length === 0 && newUserEmail.length > 2">
                         <mat-icon>info</mat-icon>
-                        <span *ngIf="!isValidEmail(newUserEmail)">Please enter a valid email address</span>
-                        <span *ngIf="isValidEmail(newUserEmail)">Email ready to add - click "Add User" button</span>
+                        <span>User search service is being set up. Please add users manually by typing their complete email address.</span>
+                      </div>
+                      
+                      <div class="no-suggestions" *ngIf="filteredUsers.length === 0 && newUserEmail.length > 0 && newUserEmail.length <= 2">
+                        <mat-icon>person_search</mat-icon>
+                        <span>Type at least 3 characters to search</span>
                       </div>
                       
                       <div class="no-suggestions" *ngIf="filteredUsers.length === 0 && newUserEmail.length === 0">
                         <mat-icon>person_search</mat-icon>
-                        <span>Enter the complete email address of the user you want to add</span>
+                        <span>Start typing to search for users</span>
                       </div>
                     </div>
                   </div>
@@ -144,9 +149,9 @@ interface WallUser {
                   <button type="button"
                           class="add-button"
                           (click)="addUser()"
-                          [disabled]="!newUserEmail || !isValidEmail(newUserEmail)">
+                          [disabled]="!selectedUser && !isValidEmailForManualAdd()">
                     <mat-icon>person_add</mat-icon>
-                    Add User
+                    {{ selectedUser ? 'Add Selected User' : 'Add User by Email' }}
                   </button>
                 </div>
               </div>
@@ -479,6 +484,64 @@ interface WallUser {
 
     .no-suggestions mat-icon {
       color: var(--md-sys-color-primary);
+    }
+
+    /* User Dropdown */
+    .user-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: var(--md-sys-color-surface-container);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: 16px;
+      box-shadow: var(--md-sys-elevation-2);
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .user-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .user-option:hover {
+      background: var(--md-sys-color-surface-container-high);
+    }
+
+    .user-option:first-child {
+      border-radius: 16px 16px 0 0;
+    }
+
+    .user-option:last-child {
+      border-radius: 0 0 16px 16px;
+    }
+
+    .user-option .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-option .user-name {
+      font-weight: 500;
+      font-size: 0.875rem;
+      color: var(--md-sys-color-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-option .user-email {
+      font-size: 0.75rem;
+      color: var(--md-sys-color-on-surface-variant);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* User Info Components */
@@ -818,9 +881,10 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   filteredUsers: WallUser[] = [];
   currentUsers: WallUser[] = [];
   newUserEmail: string = '';
-  showAddUserSuggestions: boolean = false;
   currentUserEmail: string | null = null;
   allUsers: WallUserEntity[] = [];
+  selectedUser: WallUser | null = null;
+  showDropdown: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -829,7 +893,8 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private confirmationDialog: ConfirmationDialogService,
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private firebaseAuthSearchService: FirebaseAuthSearchService
   ) {
     this.initializeForm();
     this.currentUserEmail = this.authService.currentUser?.email || null;
@@ -944,8 +1009,52 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   onNewUserInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     const value = target.value;
-    this.showAddUserSuggestions = value.length > 0; // Only show when there's text
-    this.updateFilteredUsers(value);
+    this.selectedUser = null; // Clear selection when typing
+    this.showDropdown = value.length > 0;
+    
+    // Only search if we have at least 3 characters
+    if (value.length >= 3) {
+      this.searchUsers(value);
+    } else {
+      this.filteredUsers = [];
+    }
+  }
+
+  // Handle user selection from dropdown
+  selectUser(user: WallUser): void {
+    this.selectedUser = user;
+    this.newUserEmail = user.displayName || user.email; // Show display name in input
+    this.showDropdown = false;
+  }
+
+  // Hide dropdown
+  hideDropdown(): void {
+    setTimeout(() => {
+      this.showDropdown = false;
+    }, 200); // Delay to allow for selection
+  }
+
+  // Search users using Firebase Auth search service
+  private searchUsers(searchTerm: string): void {
+    this.firebaseAuthSearchService.searchUsers(searchTerm).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(users => {
+      this.filteredUsers = users
+        .filter(user => !this.isUserAlreadyAdded({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email,
+          photoURL: user.photoURL || undefined,
+          accessLevel: 'editor'
+        }) && user.email !== this.currentUserEmail)
+        .map(user => ({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email, // Fallback to email if no displayName
+          photoURL: user.photoURL || undefined, // Convert null to undefined
+          accessLevel: 'editor' as 'editor' | 'viewer'
+        }));
+    });
   }
 
   private updateFilteredUsers(searchTerm: string = ''): void {
@@ -971,18 +1080,6 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Hide add user suggestions
-  hideAddUserSuggestions(): void {
-    setTimeout(() => {
-      this.showAddUserSuggestions = false;
-    }, 200); // Delay to allow for selection
-  }
-
-  // Select a new user from suggestions
-  selectNewUser(user: WallUser): void {
-    this.newUserEmail = user.email;
-    this.showAddUserSuggestions = false;
-  }
 
   // Check if user is already added
   private isUserAlreadyAdded(user: WallUser): boolean {
@@ -996,39 +1093,60 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     return emailRegex.test(email);
   }
 
+  // Check if email is valid for manual addition
+  isValidEmailForManualAdd(): boolean {
+    return this.isValidEmail(this.newUserEmail) && !this.selectedUser;
+  }
+
   // Add new user to the table
   addUser(): void {
-    if (!this.newUserEmail || !this.isValidEmail(this.newUserEmail)) {
+    // If a user is selected from dropdown, use that
+    if (this.selectedUser) {
+      if (this.selectedUser.email === this.currentUserEmail) {
+        alert('You cannot add yourself as an editor');
+        return;
+      }
+
+      if (this.isUserAlreadyAdded(this.selectedUser)) {
+        alert('This user is already added');
+        return;
+      }
+
+      this.currentUsers.push(this.selectedUser);
+      this.newUserEmail = '';
+      this.selectedUser = null;
+      this.filteredUsers = [];
       return;
     }
 
-    if (this.newUserEmail === this.currentUserEmail) {
+    // Otherwise, try to add by email manually
+    if (!this.isValidEmailForManualAdd()) {
+      return;
+    }
+
+    if (this.newUserEmail === this.currentUserEmail) {  
       alert('You cannot add yourself as an editor');
       return;
     }
 
-    if (this.isUserAlreadyAdded({ email: this.newUserEmail } as WallUser)) {
-      alert('This user is already added');
-      return;
-    }
-
-    const userEntity = this.allUsers.find(u => u.email === this.newUserEmail);
-    const newUser: WallUser = userEntity ? {
-      uid: userEntity.id,
-      email: userEntity.email,
-      displayName: userEntity.displayName || `${userEntity.firstName} ${userEntity.lastName}`,
-      photoURL: userEntity.profilePicture,
-      accessLevel: 'editor'
-    } : {
-      uid: this.newUserEmail,
+    // Create a user object from the email
+    const manualUser: WallUser = {
+      uid: this.newUserEmail, // Use email as UID for manual users
       email: this.newUserEmail,
       displayName: this.extractDisplayName(this.newUserEmail),
       accessLevel: 'editor'
     };
 
-    this.currentUsers.push(newUser);
+    if (this.isUserAlreadyAdded(manualUser)) {
+      alert('This user is already added');
+      return;
+    }
+
+    this.currentUsers.push(manualUser);
     this.newUserEmail = '';
+    this.selectedUser = null;
     this.filteredUsers = [];
+    this.showDropdown = false;
   }
 
   // Remove user from table

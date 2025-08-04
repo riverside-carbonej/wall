@@ -1,6 +1,6 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, from, map, catchError, of, BehaviorSubject } from 'rxjs';
+import { Observable, from, map, catchError, of, BehaviorSubject, switchMap } from 'rxjs';
 import { 
   Auth, 
   User, 
@@ -95,6 +95,21 @@ export class AuthService {
           if (displayName && credential.user) {
             await updateProfile(credential.user, { displayName });
           }
+
+          // Create user document in Firestore
+          const userDoc = {
+            uid: credential.user.uid,
+            email: credential.user.email,
+            displayName: displayName || credential.user.displayName,
+            photoURL: credential.user.photoURL,
+            active: true,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+
+          const firestore = inject(Firestore);
+          await setDoc(doc(firestore, 'users', credential.user.uid), userDoc);
+
           return {
             uid: credential.user.uid,
             email: credential.user.email,
@@ -117,8 +132,23 @@ export class AuthService {
       console.log('Initiating Google sign-in popup...');
       const provider = new GoogleAuthProvider();
       return from(signInWithPopup(this.auth, provider)).pipe(
-        map(credential => {
+        switchMap(async credential => {
           console.log('Popup sign-in successful:', credential.user.email);
+          
+          // Create or update user document in Firestore
+          const userDoc = {
+            uid: credential.user.uid,
+            email: credential.user.email,
+            displayName: credential.user.displayName,
+            photoURL: credential.user.photoURL,
+            active: true,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+
+          const firestore = inject(Firestore);
+          await setDoc(doc(firestore, 'users', credential.user.uid), userDoc, { merge: true });
+
           return {
             uid: credential.user.uid,
             email: credential.user.email,

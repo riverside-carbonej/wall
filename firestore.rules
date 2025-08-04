@@ -2,126 +2,102 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Users collection - RESTRICTED ACCESS
-    match /users/{userId} {
-      // Users can ONLY read their own profile - no browsing other users
-      allow read: if request.auth != null && request.auth.uid == userId;
-      
-      // Users can only update their own profile
-      allow write: if request.auth != null && request.auth.uid == userId;
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
     }
     
-    // Walls collection - main security rules
+    function isRiversideUser() {
+      return request.auth != null;
+      // No need to check email domain - Google Cloud OAuth already restricts to @riversideschools.net
+    }
+    
+    function isWallOwner(wallData) {
+      return request.auth.uid == wallData.permissions.owner;
+    }
+    
+    function isWallEditor(wallData) {
+      return request.auth.uid in wallData.permissions.editors;
+    }
+    
+    function hasDepartmentAccess(wallData) {
+      return wallData.permissions.allowDepartmentEdit && 
+             request.auth.token.department != null &&
+             request.auth.token.department == wallData.permissions.department;
+    }
+    
+    function canEditWall(wallData) {
+      return isWallOwner(wallData) || 
+             isWallEditor(wallData) || 
+             hasDepartmentAccess(wallData);
+    }
+    
+    function canViewWall(wallData) {
+      // Draft walls - only editors can view
+      return (!wallData.visibility.isPublished && canEditWall(wallData)) ||
+             // Published public walls - anyone can view
+             (wallData.visibility.isPublished && !wallData.visibility.requiresLogin) ||
+             // Published login-required walls - authenticated users only
+             (wallData.visibility.isPublished && wallData.visibility.requiresLogin && isAuthenticated());
+    }
+    
+    // Walls collection
     match /walls/{wallId} {
-      // Allow read only if:
-      // 1. User is authenticated
-      // 2. Wall is not soft deleted (deletedAt is null or doesn't exist)
-      // 3. User has proper permissions
-      allow read: if request.auth != null && 
-        // Wall must not be soft deleted
-        (!('deletedAt' in resource.data) || resource.data.deletedAt == null) && (
-          // Owner access
-          ('permissions' in resource.data && 
-           'owner' in resource.data.permissions && 
-           resource.data.permissions.owner == request.auth.uid) ||
-          
-          // Editor access
-          ('permissions' in resource.data && 
-           'editors' in resource.data.permissions && 
-           resource.data.permissions.editors != null && 
-           request.auth.uid in resource.data.permissions.editors) ||
-          
-          // Public access
-          ('visibility' in resource.data && 
-           'isPublished' in resource.data.visibility && 
-           resource.data.visibility.isPublished == true && 
-           'requiresLogin' in resource.data.visibility && 
-           resource.data.visibility.requiresLogin == false)
-        );
+      // Authenticated users can create walls
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == request.resource.data.permissions.owner;
       
-      // Allow create for authenticated users
-      allow create: if request.auth != null &&
-        // Must set owner to current user
-        request.resource.data.permissions.owner == request.auth.uid &&
-        // Must not be soft deleted on creation
-        (!('deletedAt' in request.resource.data) || request.resource.data.deletedAt == null);
+      // Allow list operation for authenticated users (filtering happens client-side)
+      allow list: if isAuthenticated();
       
-      // Allow update only for owners and editors
-      allow update: if request.auth != null && (
-        // Owner access
-        ('permissions' in resource.data && 
-         'owner' in resource.data.permissions && 
-         resource.data.permissions.owner == request.auth.uid) ||
-        
-        // Editor access - but can't change ownership
-        ('permissions' in resource.data && 
-         'editors' in resource.data.permissions && 
-         resource.data.permissions.editors != null && 
-         request.auth.uid in resource.data.permissions.editors &&
-         // Ensure editors can't change ownership
-         request.resource.data.permissions.owner == resource.data.permissions.owner)
-      );
+      // Read individual walls based on visibility settings
+      allow get: if canViewWall(resource.data);
       
-      // Allow delete only for owners
-      allow delete: if request.auth != null && 
-        // Owner access only
-        ('permissions' in resource.data && 
-         'owner' in resource.data.permissions && 
-         resource.data.permissions.owner == request.auth.uid);
+      // Update walls if user can edit
+      allow update: if isAuthenticated() && canEditWall(resource.data);
+      
+      // Delete walls if owner only
+      allow delete: if isAuthenticated() && isWallOwner(resource.data);
     }
     
     // Wall items collection
-    match /wall-items/{itemId} {
-      // Allow read only if user has access to the parent wall
-      allow read: if request.auth != null &&
-        // Get the parent wall and check permissions
-        (get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.owner == request.auth.uid ||
-         ('editors' in get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions &&
-          get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.editors != null &&
-          request.auth.uid in get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.editors));
+    match /wall_items/{itemId} {
+      // Helper to get the wall document
+      function getWall() {
+        return get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data;
+      }
       
-      // Allow write only if user can edit the parent wall
-      allow write: if request.auth != null &&
-        // Get the parent wall and check edit permissions
-        (get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.owner == request.auth.uid ||
-         ('editors' in get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions &&
-          get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.editors != null &&
-          request.auth.uid in get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.editors));
+      function getWallFromRequest() {
+        return get(/databases/$(database)/documents/walls/$(request.resource.data.wallId)).data;
+      }
+      
+      // Create items if user can edit the wall
+      allow create: if isAuthenticated() && 
+                       exists(/databases/$(database)/documents/walls/$(request.resource.data.wallId)) &&
+                       canEditWall(getWallFromRequest());
+      
+      // Read items if user can view the wall
+      allow read: if exists(/databases/$(database)/documents/walls/$(resource.data.wallId)) &&
+                     canViewWall(getWall());
+      
+      // Update items if user can edit the wall
+      allow update: if isAuthenticated() && 
+                       exists(/databases/$(database)/documents/walls/$(resource.data.wallId)) &&
+                       canEditWall(getWall());
+      
+      // Delete items if user can edit the wall
+      allow delete: if isAuthenticated() && 
+                       exists(/databases/$(database)/documents/walls/$(resource.data.wallId)) &&
+                       canEditWall(getWall());
     }
     
-    // User invites collection
-    match /user_invites/{inviteId} {
-      // Allow read if user is the invitee or has owner access to the wall
-      allow read: if request.auth != null && (
-        request.auth.token.email == resource.data.email ||
-        get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.owner == request.auth.uid
-      );
+    // User profiles collection
+    match /users/{userId} {
+      // Users can read/write their own profile
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
       
-      // Allow create if user is the owner of the wall
-      allow create: if request.auth != null &&
-        get(/databases/$(database)/documents/walls/$(request.resource.data.wallId)).data.permissions.owner == request.auth.uid;
-      
-      // Allow update for accepting invites or wall owners
-      allow update: if request.auth != null && (
-        request.auth.token.email == resource.data.email ||
-        get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.owner == request.auth.uid
-      );
-    }
-    
-    // Wall roles collection
-    match /wall_roles/{roleId} {
-      // Allow read if user is the owner of the parent wall
-      allow read: if request.auth != null &&
-        get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.owner == request.auth.uid;
-      
-      // Allow write if user is the owner of the parent wall
-      allow write: if request.auth != null &&
-        get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.owner == request.auth.uid;
-    }
-    
-    // Default deny all other collections
-    match /{document=**} {
-      allow read, write: if false;
+      // Users can read other user profiles (for editor selection, etc.)
+      allow read: if isAuthenticated();
     }
   }
 }
