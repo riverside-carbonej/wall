@@ -77,7 +77,7 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
       height: 100%;
       transition: all 200ms;
       background: var(--md-sys-color-surface-container-low);
-      --side-bar-radius: 3em;
+      --side-bar-radius: 3.125em;
       border-radius: 0 var(--side-bar-radius) var(--side-bar-radius) 0;
       contain: strict;
       overflow: hidden;
@@ -85,7 +85,6 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
 
     .navigation-menu.open {
       background: var(--md-sys-color-surface-container-low);
-      border-radius: 0 25px 25px 0;
       width: 300px;
       transition: all 200ms;
     }
@@ -94,11 +93,7 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
       width: 0px;
     }
 
-    @media (min-width: 800px) {
-      .navigation-menu.closed {
-        width: 300px;
-      }
-    }
+    /* Sidebar can be collapsed in desktop mode - removed forced open behavior */
 
     @media (max-width: 800px) {
       .navigation-menu.open {

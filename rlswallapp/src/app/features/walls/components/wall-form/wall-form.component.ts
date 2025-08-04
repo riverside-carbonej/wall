@@ -8,12 +8,14 @@ import { WallPermissionsService } from '../../../../core/services/wall-permissio
 import { AuthService } from '../../../../core/services/auth.service';
 import { ButtonGroupComponent, ButtonGroupItem } from '../../../../shared/components/button-group/button-group.component';
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
+import { MaterialSwitchComponent } from '../../../../shared/components/material-switch/material-switch.component';
 import { Observable } from 'rxjs';
+import { WallTemplatesService } from '../../services/wall-templates.service';
 
 @Component({
   selector: 'app-wall-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, ButtonGroupComponent, PageLayoutComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ButtonGroupComponent, PageLayoutComponent, MaterialSwitchComponent],
   template: `
     <app-page-layout
       [title]="isEditMode ? 'Edit Wall' : 'Create New Wall'"
@@ -32,6 +34,7 @@ import { Observable } from 'rxjs';
       <form [formGroup]="wallForm" class="wall-form">
         <!-- Basic Information Tab -->
         <section class="tab-content" *ngIf="activeTab === 0">
+          <div class="basic-info-section">
           <div class="form-group">
             <label for="name">Wall Name *</label>
             <input 
@@ -44,6 +47,18 @@ import { Observable } from 'rxjs';
             <div class="error-message" *ngIf="wallForm.get('name')?.invalid && wallForm.get('name')?.touched">
               Wall name is required
             </div>
+          </div>
+
+          <div class="form-group">
+            <label for="organizationSubtitle">Subtitle</label>
+            <input 
+              id="organizationSubtitle" 
+              type="text" 
+              formControlName="organizationSubtitle" 
+              placeholder="e.g., Riverside Local Schools"
+              class="form-input"
+            >
+            <div class="form-help-text">This appears below the wall name</div>
           </div>
 
           <div class="form-group">
@@ -72,17 +87,6 @@ import { Observable } from 'rxjs';
               >
             </div>
 
-            <div class="form-group">
-              <label for="organizationSubtitle">Organization Subtitle</label>
-              <input 
-                id="organizationSubtitle" 
-                type="text" 
-                formControlName="organizationSubtitle" 
-                placeholder="e.g., Riverside Local Schools"
-                class="form-input"
-              >
-              <div class="form-help-text">This appears below the logo on the wall home page</div>
-            </div>
 
             <div class="form-group">
               <label for="organizationLogo">Organization Logo</label>
@@ -100,6 +104,7 @@ import { Observable } from 'rxjs';
                     hidden
                   >
                   <button type="button" (click)="logoFileInput.click()" class="upload-button">
+                    <span class="material-icons md-18">{{ currentLogoUrl ? 'edit' : 'upload' }}</span>
                     {{ currentLogoUrl ? 'Change Logo' : 'Upload Logo' }}
                   </button>
                   <button 
@@ -108,7 +113,8 @@ import { Observable } from 'rxjs';
                     class="reset-button"
                     *ngIf="currentLogoUrl && currentLogoUrl !== '/assets/images/beaver-logo.png'"
                   >
-                    Reset to Riverside Logo
+                    <span class="material-icons md-18">refresh</span>
+                    Reset to Default
                   </button>
                 </div>
                 <div class="logo-help-text">
@@ -117,10 +123,12 @@ import { Observable } from 'rxjs';
               </div>
             </div>
           </div>
+          </div>
         </section>
 
         <!-- Theme Selection Tab -->
         <section class="tab-content" *ngIf="activeTab === 1">
+          <div class="theme-section">
           <!-- Theme Presets -->
           <div class="theme-presets-section">
             <h3>Start with a preset</h3>
@@ -416,100 +424,135 @@ import { Observable } from 'rxjs';
               </div>
             </div>
           </div>
-        </section>
-
-        <!-- Permissions Tab -->
-        <section class="tab-content" *ngIf="activeTab === 2">
-          <div class="permissions-section">
-            <h3>Who can edit this wall?</h3>
-            <p class="section-description">Control who has permission to make changes to this wall.</p>
-            
-            <div class="permission-option">
-              <div class="form-group checkbox-group">
-                <label class="checkbox-label">
-                  <input type="checkbox" formControlName="allowDepartmentEdit">
-                  Allow department members to edit
-                </label>
-                <p class="help-text">Members of your department will be able to edit this wall</p>
-              </div>
-            </div>
-            
-            <div class="permission-option">
-              <h4>Individual Editors</h4>
-              <p class="help-text">Add specific people who can edit this wall</p>
-              <div class="editors-list">
-                <p class="coming-soon">✨ Individual editor management coming soon</p>
-                <p class="help-text">For now, use department access or contact an administrator</p>
-              </div>
-            </div>
           </div>
         </section>
 
         <!-- Publishing Tab -->
-        <section class="tab-content" *ngIf="activeTab === 3">
+        <section class="tab-content" *ngIf="activeTab === 2">
           <div class="publishing-section">
             <h3>Publishing Options</h3>
             <p class="section-description">Control how and when this wall is visible to others.</p>
             
             <div class="publishing-status">
-              <div class="form-group checkbox-group">
-                <label class="checkbox-label">
-                  <input type="checkbox" formControlName="isPublished">
-                  Publish this wall
-                </label>
-                <p class="help-text">Make this wall visible to others</p>
+              <div class="form-group">
+                <app-material-switch
+                  formControlName="isPublished"
+                  label="Publish this wall"
+                  helpText="Make this wall visible to others">
+                </app-material-switch>
               </div>
             </div>
             
             <div class="visibility-options" *ngIf="wallForm.get('isPublished')?.value">
-              <h4>Who can view this wall?</h4>
+              <h4 class="section-title">Audience</h4>
+              <p class="section-subtitle">Choose who can view your wall</p>
               
-              <div class="radio-group">
-                <label class="radio-label">
-                  <input type="radio" 
-                         name="visibility" 
-                         [value]="true"
-                         [checked]="wallForm.get('requiresLogin')?.value === true"
-                         (change)="setVisibility(true)">
-                  <span class="radio-custom"></span>
-                  <div class="radio-content">
-                    <strong>👥 Riverside Users Only</strong>
-                    <p>Only staff and students with Riverside Google accounts can view</p>
+              <div class="visibility-cards">
+                <div class="visibility-card" 
+                     [class.selected]="wallForm.get('requiresLogin')?.value === true"
+                     (click)="setVisibility(true)">
+                  <div class="card-header">
+                    <span class="material-icons card-icon">group</span>
+                    <div class="card-title-group">
+                      <h5 class="card-title">Riverside Users Only</h5>
+                      <p class="card-subtitle">Internal access</p>
+                    </div>
+                    <div class="selection-indicator">
+                      <input type="radio" 
+                             name="visibility" 
+                             [value]="true"
+                             [checked]="wallForm.get('requiresLogin')?.value === true"
+                             (change)="setVisibility(true)">
+                    </div>
                   </div>
-                </label>
-                
-                <label class="radio-label">
-                  <input type="radio" 
-                         name="visibility" 
-                         [value]="false"
-                         [checked]="wallForm.get('requiresLogin')?.value === false"
-                         (change)="setVisibility(false)">
-                  <span class="radio-custom"></span>
-                  <div class="radio-content">
-                    <strong>🌐 Public Access</strong>
-                    <p>Anyone with the link can view (including parents and community)</p>
-                  </div>
-                </label>
-              </div>
-            </div>
-            
-            <div class="publishing-preview" *ngIf="wallForm.get('isPublished')?.value">
-              <h4>Share Link</h4>
-              <div class="share-link-preview">
-                <code>{{ getPreviewShareLink() }}</code>
-                <button type="button" class="copy-button" (click)="copyShareLink()" title="Copy link">
-                  📋
-                </button>
-              </div>
-            </div>
-            
-            <div class="draft-info" *ngIf="!wallForm.get('isPublished')?.value">
-              <div class="info-card">
-                <span class="info-icon">🔒</span>
-                <div>
-                  <strong>Draft Mode</strong>
-                  <p>Only you and editors can see this wall. Publish when ready to share.</p>
+                  <p class="card-description">Only staff and students with Riverside Google accounts can view this wall</p>
                 </div>
+                
+                <div class="visibility-card" 
+                     [class.selected]="wallForm.get('requiresLogin')?.value === false"
+                     (click)="setVisibility(false)">
+                  <div class="card-header">
+                    <span class="material-icons card-icon">public</span>
+                    <div class="card-title-group">
+                      <h5 class="card-title">Public Access</h5>
+                      <p class="card-subtitle">Anyone with link</p>
+                    </div>
+                    <div class="selection-indicator">
+                      <input type="radio" 
+                             name="visibility" 
+                             [value]="false"
+                             [checked]="wallForm.get('requiresLogin')?.value === false"
+                             (change)="setVisibility(false)">
+                    </div>
+                  </div>
+                  <p class="card-description">Anyone with the link can view this wall, including parents and community members</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="share-section" *ngIf="wallForm.get('isPublished')?.value">
+              <h4 class="section-title">Share Link</h4>
+              <p class="section-subtitle">Copy this link to share your wall</p>
+              
+              <div class="share-card">
+                <div class="share-content">
+                  <span class="material-icons share-icon">link</span>
+                  <div class="link-container">
+                    <input type="text" 
+                           class="share-link-input" 
+                           readonly 
+                           [value]="getPreviewShareLink()"
+                           #shareInput>
+                  </div>
+                  <button type="button" 
+                          class="copy-button material-button-filled" 
+                          (click)="copyShareLink()" 
+                          title="Copy link to clipboard">
+                    <span class="material-icons">content_copy</span>
+                    <span class="button-text">Copy</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="draft-section" *ngIf="!wallForm.get('isPublished')?.value">
+              <div class="draft-card">
+                <div class="draft-content">
+                  <span class="material-icons draft-icon">lock</span>
+                  <div class="draft-text">
+                    <h5 class="draft-title">Draft Mode</h5>
+                    <p class="draft-description">Only you and editors can see this wall. Publish when ready to share with others.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Configuration Tab -->
+        <section class="tab-content" *ngIf="activeTab === 3">
+          <div class="settings-section">
+            <h3>Wall Settings</h3>
+            <p class="section-description">Configure behavior and user experience settings for this wall.</p>
+            
+            <div class="form-group">
+              <label for="inactivityTimeout">Inactivity Timeout (minutes)</label>
+              <input 
+                id="inactivityTimeout" 
+                type="number" 
+                formControlName="inactivityTimeout" 
+                placeholder="5"
+                class="form-input"
+                min="1"
+                max="60"
+              >
+              <div class="form-help-text">
+                After this period of inactivity, users will be redirected to the wall's home page.
+              </div>
+              <div class="error-message" *ngIf="wallForm.get('inactivityTimeout')?.invalid && wallForm.get('inactivityTimeout')?.touched">
+                <span *ngIf="wallForm.get('inactivityTimeout')?.errors?.['required']">Timeout is required</span>
+                <span *ngIf="wallForm.get('inactivityTimeout')?.errors?.['min']">Minimum timeout is 1 minute</span>
+                <span *ngIf="wallForm.get('inactivityTimeout')?.errors?.['max']">Maximum timeout is 60 minutes</span>
               </div>
             </div>
           </div>
@@ -519,9 +562,27 @@ import { Observable } from 'rxjs';
     </app-page-layout>
   `,
   styles: [`
+    /* Center the tab navigation */
+    app-button-group {
+      display: flex;
+      justify-content: center;
+      margin-bottom: var(--md-sys-spacing-6);
+    }
+
+    /* Mobile responsive button group */
+    @media (max-width: 768px) {
+      app-button-group {
+        margin-left: calc(var(--md-sys-spacing-2) * -1);
+        margin-right: calc(var(--md-sys-spacing-2) * -1);
+        width: calc(100% + var(--md-sys-spacing-4));
+      }
+    }
+
     .wall-form {
-      max-width: 800px;
+      max-width: 1200px;
       margin: 0 auto;
+      padding: 0 var(--md-sys-spacing-6);
+      width: 100%;
     }
 
 
@@ -661,10 +722,6 @@ import { Observable } from 'rxjs';
       color: var(--md-sys-color-on-surface);
     }
 
-    .checkbox-label input[type="checkbox"] {
-      width: auto;
-      accent-color: var(--md-sys-color-primary);
-    }
 
     .error-message {
       color: #d32f2f;
@@ -676,8 +733,8 @@ import { Observable } from 'rxjs';
     /* Theme Selection */
     .theme-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
     }
 
     .theme-option {
@@ -710,8 +767,8 @@ import { Observable } from 'rxjs';
     }
 
     .theme-preview {
-      padding: 16px;
-      height: 100px;
+      padding: 12px;
+      height: 80px;
       position: relative;
     }
 
@@ -1447,15 +1504,57 @@ import { Observable } from 'rxjs';
 
     }
 
-    /* New Permissions and Publishing Styles */
-    .permissions-section,
-    .publishing-section {
-      max-width: 600px;
+    /* Section Width Styles - Remove constraints for wider forms */
+    .basic-info-section,
+    .theme-section,
+    .publishing-section,
+    .settings-section {
+      max-width: none;
+      width: 100%;
     }
 
-    .permissions-section h3,
-    .publishing-section h3 {
-      margin: 0 0 8px 0;
+    /* Tab content should take full width */
+    .tab-content {
+      width: 100%;
+      max-width: none;
+    }
+
+    /* Form sections should be wider and centered */
+    .basic-info-section .form-section {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Form groups should be much wider and centered */
+    .basic-info-section .form-group,
+    .publishing-section .form-group,
+    .settings-section .form-group {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto 16px auto;
+    }
+
+    /* Section titles alignment and spacing */
+    .basic-info-section .form-section h3,
+    .form-section h3 {
+      max-width: 800px;
+      width: 100%;
+      margin: 32px auto 16px auto;
+      text-align: left;
+    }
+
+    /* First section title should have less top margin */
+    .basic-info-section .form-section:first-child h3 {
+      margin-top: 16px;
+    }
+
+    .publishing-section h3,
+    .settings-section h3 {
+      max-width: 800px;
+      width: 100%;
+      margin: 32px auto 16px auto;
+      text-align: left;
       color: var(--md-sys-color-on-surface);
       font-size: 20px;
       font-weight: 500;
@@ -1463,15 +1562,22 @@ import { Observable } from 'rxjs';
     }
 
     .section-description {
-      margin: 0 0 24px 0;
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto 24px auto;
       color: var(--md-sys-color-on-surface-variant);
       font-size: 14px;
       font-family: 'Google Sans', sans-serif;
     }
 
     .permission-option,
-    .publishing-status {
-      margin-bottom: 24px;
+    .publishing-status,
+    .visibility-options,
+    .publishing-preview,
+    .draft-info {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto 24px auto;
       padding: 20px;
       border: 1px solid var(--md-sys-color-outline-variant);
       border-radius: 16px;
@@ -1479,12 +1585,26 @@ import { Observable } from 'rxjs';
     }
 
     .permission-option h4,
-    .publishing-section h4 {
-      margin: 0 0 8px 0;
+    .publishing-section h4,
+    .visibility-options h4,
+    .publishing-preview h4 {
+      margin: 0 0 16px 0;
       color: var(--md-sys-color-on-surface);
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 500;
       font-family: 'Google Sans', sans-serif;
+    }
+
+    /* Material 3 option headers */
+    .option-header {
+      display: flex;
+      align-items: center;
+      gap: var(--md-sys-spacing-2);
+      margin-bottom: var(--md-sys-spacing-1);
+    }
+
+    .option-header .material-icons {
+      color: var(--md-sys-color-primary);
     }
 
     .help-text {
@@ -1509,11 +1629,279 @@ import { Observable } from 'rxjs';
       margin-top: 24px;
     }
 
-    .radio-group {
+    /* Material 3 Publishing Section */
+    .section-title {
+      font-family: var(--md-sys-typescale-headline-small-font-family);
+      font-size: var(--md-sys-typescale-headline-small-font-size);
+      font-weight: var(--md-sys-typescale-headline-small-font-weight);
+      line-height: var(--md-sys-typescale-headline-small-line-height);
+      color: var(--md-sys-color-on-surface);
+      margin: 0 0 8px 0;
+    }
+
+    .section-subtitle {
+      font-family: var(--md-sys-typescale-body-medium-font-family);
+      font-size: var(--md-sys-typescale-body-medium-font-size);
+      color: var(--md-sys-color-on-surface-variant);
+      margin: 0 0 24px 0;
+    }
+
+    /* Visibility Cards */
+    .visibility-cards {
       display: flex;
       flex-direction: column;
       gap: 16px;
-      margin-top: 16px;
+      margin-bottom: 32px;
+    }
+
+    .visibility-card {
+      background: var(--md-sys-color-surface-container-lowest);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-sys-shape-corner-large);
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .visibility-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--md-sys-color-primary);
+      opacity: 0;
+      transition: opacity 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 0;
+    }
+
+    .visibility-card:hover::before {
+      opacity: 0.04;
+    }
+
+    .visibility-card:hover {
+      border-color: var(--md-sys-color-primary);
+      box-shadow: var(--md-sys-elevation-1);
+      transform: translateY(-1px);
+    }
+
+    .visibility-card.selected {
+      border-color: var(--md-sys-color-primary);
+      border-width: 2px;
+      background: var(--md-sys-color-primary-container);
+      box-shadow: var(--md-sys-elevation-2);
+    }
+
+    .visibility-card.selected::before {
+      opacity: 0.08;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-icon {
+      font-size: 24px;
+      color: var(--md-sys-color-primary);
+      flex-shrink: 0;
+    }
+
+    .card-title-group {
+      flex: 1;
+    }
+
+    .card-title {
+      font-family: var(--md-sys-typescale-title-medium-font-family);
+      font-size: var(--md-sys-typescale-title-medium-font-size);
+      font-weight: var(--md-sys-typescale-title-medium-font-weight);
+      color: var(--md-sys-color-on-surface);
+      margin: 0 0 4px 0;
+    }
+
+    .card-subtitle {
+      font-family: var(--md-sys-typescale-body-small-font-family);
+      font-size: var(--md-sys-typescale-body-small-font-size);
+      color: var(--md-sys-color-on-surface-variant);
+      margin: 0;
+    }
+
+    .selection-indicator {
+      position: relative;
+      z-index: 1;
+    }
+
+    .selection-indicator input[type="radio"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--md-sys-color-primary);
+      cursor: pointer;
+    }
+
+    .card-description {
+      font-family: var(--md-sys-typescale-body-medium-font-family);
+      font-size: var(--md-sys-typescale-body-medium-font-size);
+      color: var(--md-sys-color-on-surface-variant);
+      margin: 0;
+      line-height: 1.5;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Share Section */
+    .share-section {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto 32px auto;
+    }
+
+    .share-card {
+      background: var(--md-sys-color-surface-container-low);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-sys-shape-corner-large);
+      padding: 20px;
+    }
+
+    .share-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .share-icon {
+      font-size: 24px;
+      color: var(--md-sys-color-on-surface-variant);
+      flex-shrink: 0;
+    }
+
+    .link-container {
+      flex: 1;
+    }
+
+    .share-link-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--md-sys-color-outline);
+      border-radius: var(--md-sys-shape-corner-medium);
+      background: var(--md-sys-color-surface);
+      color: var(--md-sys-color-on-surface);
+      font-family: var(--md-sys-typescale-body-medium-font-family);
+      font-size: var(--md-sys-typescale-body-medium-font-size);
+      outline: none;
+      transition: border-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .share-link-input:focus {
+      border-color: var(--md-sys-color-primary);
+    }
+
+    .material-button-filled {
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      border: none;
+      border-radius: var(--md-sys-shape-corner-full);
+      padding: 10px 24px;
+      font-family: var(--md-sys-typescale-label-large-font-family);
+      font-size: var(--md-sys-typescale-label-large-font-size);
+      font-weight: var(--md-sys-typescale-label-large-font-weight);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .material-button-filled::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--md-sys-color-on-primary);
+      opacity: 0;
+      transition: opacity 0.3s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .material-button-filled:hover::before {
+      opacity: 0.08;
+    }
+
+    .material-button-filled:hover {
+      box-shadow: var(--md-sys-elevation-2);
+      transform: translateY(-1px);
+    }
+
+    .material-button-filled:active {
+      transform: translateY(0);
+      box-shadow: var(--md-sys-elevation-1);
+    }
+
+    .button-text {
+      position: relative;
+      z-index: 1;
+    }
+
+    .material-button-filled .material-icons {
+      font-size: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Draft Section */
+    .draft-section {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto 32px auto;
+    }
+
+    .draft-card {
+      background: var(--md-sys-color-surface-container-low);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-sys-shape-corner-large);
+      padding: 20px;
+    }
+
+    .draft-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .draft-icon {
+      font-size: 24px;
+      color: var(--md-sys-color-on-surface-variant);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .draft-text {
+      flex: 1;
+    }
+
+    .draft-title {
+      font-family: var(--md-sys-typescale-title-medium-font-family);
+      font-size: var(--md-sys-typescale-title-medium-font-size);
+      font-weight: var(--md-sys-typescale-title-medium-font-weight);
+      color: var(--md-sys-color-on-surface);
+      margin: 0 0 8px 0;
+    }
+
+    .draft-description {
+      font-family: var(--md-sys-typescale-body-medium-font-family);
+      font-size: var(--md-sys-typescale-body-medium-font-size);
+      color: var(--md-sys-color-on-surface-variant);
+      margin: 0;
+      line-height: 1.5;
     }
 
     .radio-label {
@@ -1873,7 +2261,110 @@ import { Observable } from 'rxjs';
       font-weight: 500;
     }
 
-    /* Mobile optimizations for color editor */
+    /* Logo Upload Styles */
+    .logo-upload-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .logo-preview {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: var(--md-sys-spacing-3);
+      background: var(--md-sys-color-surface-container);
+      border-radius: var(--md-sys-shape-corner-large);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      width: 100px;
+      height: 100px;
+      margin: 0;
+    }
+
+    .logo-preview-image {
+      max-width: 80px;
+      max-height: 80px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: var(--md-sys-shape-corner-small);
+    }
+
+    .logo-upload-actions {
+      display: flex;
+      gap: var(--md-sys-spacing-3);
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      margin-top: var(--md-sys-spacing-3);
+    }
+
+    .upload-button {
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      border: none;
+      padding: var(--md-sys-spacing-3) var(--md-sys-spacing-6);
+      border-radius: var(--md-sys-shape-corner-full);
+      cursor: pointer;
+      font-weight: var(--md-sys-typescale-label-large-weight);
+      font-size: var(--md-sys-typescale-label-large-size);
+      font-family: 'Google Sans', sans-serif;
+      min-height: 40px;
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      box-shadow: var(--md-sys-elevation-1);
+      display: flex;
+      align-items: center;
+      gap: var(--md-sys-spacing-2);
+    }
+
+    .upload-button:hover {
+      background: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+      box-shadow: var(--md-sys-elevation-2);
+      transform: translateY(-1px);
+    }
+
+    .upload-button:active {
+      transform: translateY(0);
+      box-shadow: var(--md-sys-elevation-1);
+    }
+
+    .reset-button {
+      background: transparent;
+      color: var(--md-sys-color-error);
+      border: 1px solid var(--md-sys-color-outline);
+      padding: var(--md-sys-spacing-3) var(--md-sys-spacing-6);
+      border-radius: var(--md-sys-shape-corner-full);
+      cursor: pointer;
+      font-weight: var(--md-sys-typescale-label-large-weight);
+      font-size: var(--md-sys-typescale-label-large-size);
+      font-family: 'Google Sans', sans-serif;
+      min-height: 40px;
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      display: flex;
+      align-items: center;
+      gap: var(--md-sys-spacing-2);
+    }
+
+    .reset-button:hover {
+      background: var(--md-sys-color-error-container);
+      color: var(--md-sys-color-on-error-container);
+      border-color: var(--md-sys-color-error);
+      transform: translateY(-1px);
+    }
+
+    .reset-button:active {
+      transform: translateY(0);
+    }
+
+    .logo-help-text {
+      font-size: var(--md-sys-typescale-body-small-size);
+      color: var(--md-sys-color-on-surface-variant);
+      text-align: center;
+      margin-top: var(--md-sys-spacing-2);
+    }
+
+    /* Mobile optimizations for color editor and logo upload */
     @media (max-width: 768px) {
       .color-row {
         grid-template-columns: 1fr;
@@ -1896,6 +2387,22 @@ import { Observable } from 'rxjs';
       .preview-status {
         gap: var(--md-sys-spacing-2);
       }
+
+      .logo-upload-actions {
+        flex-direction: column;
+        gap: var(--md-sys-spacing-2);
+      }
+
+      .upload-button,
+      .reset-button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .logo-preview {
+        width: 80px;
+        height: 80px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -1916,74 +2423,7 @@ import { Observable } from 'rxjs';
         padding: var(--md-sys-spacing-4);
       }
 
-      /* Logo Upload Styles */
-      .logo-upload-container {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
 
-      .logo-preview {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 16px;
-        background: var(--md-sys-color-surface-variant);
-        border-radius: var(--md-sys-shape-corner-medium);
-        border: 2px dashed var(--md-sys-color-outline-variant);
-      }
-
-      .logo-preview-image {
-        max-width: 120px;
-        max-height: 120px;
-        object-fit: contain;
-        border-radius: var(--md-sys-shape-corner-small);
-      }
-
-      .logo-upload-actions {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-
-      .upload-button {
-        background: var(--md-sys-color-primary);
-        color: var(--md-sys-color-on-primary);
-        border: none;
-        padding: 12px 24px;
-        border-radius: var(--md-sys-shape-corner-full);
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s ease;
-      }
-
-      .upload-button:hover {
-        background: var(--md-sys-color-primary-container);
-        color: var(--md-sys-color-on-primary-container);
-      }
-
-      .reset-button {
-        background: var(--md-sys-color-surface-variant);
-        color: var(--md-sys-color-on-surface-variant);
-        border: 1px solid var(--md-sys-color-outline);
-        padding: 12px 24px;
-        border-radius: var(--md-sys-shape-corner-full);
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s ease;
-      }
-
-      .reset-button:hover {
-        background: var(--md-sys-color-error-container);
-        color: var(--md-sys-color-on-error-container);
-        border-color: var(--md-sys-color-error);
-      }
-
-      .logo-help-text {
-        font-size: var(--md-sys-typescale-body-small-size);
-        color: var(--md-sys-color-on-surface-variant);
-        text-align: center;
-      }
 
       .form-section h3 {
         color: var(--md-sys-color-on-surface);
@@ -2009,6 +2449,7 @@ export class WallFormComponent implements OnInit {
   selectedTheme: WallTheme = DEFAULT_THEMES[0];
   activeTab = 0;
   currentLogoUrl: string = '';
+  templateObjectTypes: any[] = [];
   tabs = [
     { label: 'Basic Info' },
     { label: 'Theme' },
@@ -2020,8 +2461,8 @@ export class WallFormComponent implements OnInit {
   tabItems: ButtonGroupItem[] = [
     { id: '0', label: 'Basic Info', icon: 'info' },
     { id: '1', label: 'Theme', icon: 'palette' },
-    { id: '2', label: 'Permissions', icon: 'security' },
-    { id: '3', label: 'Publishing', icon: 'publish' }
+    { id: '2', label: 'Publishing', icon: 'publish' },
+    { id: '3', label: 'Configuration', icon: 'settings' }
   ];
 
   constructor(
@@ -2030,12 +2471,17 @@ export class WallFormComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private wallPermissions: WallPermissionsService,
-    private authService: AuthService
+    private authService: AuthService,
+    private wallTemplatesService: WallTemplatesService
   ) {
     this.initializeForm();
   }
 
   ngOnInit(): void {
+    // Load additional themes from template service
+    const additionalThemes = this.wallTemplatesService.getAvailableThemes();
+    this.availableThemes = [...DEFAULT_THEMES, ...additionalThemes];
+
     this.wallId = this.route.snapshot.paramMap.get('id') || undefined;
     this.isEditMode = !!this.wallId;
 
@@ -2068,6 +2514,9 @@ export class WallFormComponent implements OnInit {
       isPublished: [false],
       requiresLogin: [true], // Default to login-required
       
+      // Settings
+      inactivityTimeout: [5, [Validators.required, Validators.min(1), Validators.max(60)]],
+      
       // Legacy field for backward compatibility
       isPublic: [false]
     });
@@ -2075,64 +2524,35 @@ export class WallFormComponent implements OnInit {
 
 
   private loadTemplate(templateType: string): void {
-    const templates = {
-      alumni: {
-        name: 'Alumni Directory',
-        description: 'Track alumni information and achievements',
-        fields: [
-          { name: 'Full Name', type: 'text', required: true, placeholder: 'Enter full name' },
-          { name: 'Graduation Year', type: 'number', required: true, placeholder: 'YYYY' },
-          { name: 'Degree/Program', type: 'text', required: true, placeholder: 'e.g., Bachelor of Science' },
-          { name: 'Current Position', type: 'text', required: false, placeholder: 'Job title' },
-          { name: 'Company/Organization', type: 'text', required: false, placeholder: 'Current employer' },
-          { name: 'Location', type: 'text', required: false, placeholder: 'City, State/Country' },
-          { name: 'LinkedIn Profile', type: 'url', required: false, placeholder: 'https://linkedin.com/in/...' },
-          { name: 'Email', type: 'email', required: false, placeholder: 'contact@email.com' },
-          { name: 'Phone', type: 'tel', required: false, placeholder: '+1 (555) 123-4567' },
-          { name: 'Notes', type: 'textarea', required: false, placeholder: 'Additional information' }
-        ]
-      },
-      veterans: {
-        name: 'Veterans Registry',
-        description: 'Honor and track veteran service members',
-        fields: [
-          { name: 'Full Name', type: 'text', required: true, placeholder: 'Enter full name' },
-          { name: 'Rank', type: 'text', required: true, placeholder: 'Final rank achieved' },
-          { name: 'Branch of Service', type: 'select', required: true, placeholder: 'Army, Navy, Air Force, Marines, Coast Guard, Space Force' },
-          { name: 'Years of Service', type: 'text', required: true, placeholder: 'e.g., 1990-2010' },
-          { name: 'Military Occupation', type: 'text', required: false, placeholder: 'MOS/Rating/AFSC' },
-          { name: 'Deployments', type: 'textarea', required: false, placeholder: 'List deployments and locations' },
-          { name: 'Awards & Decorations', type: 'textarea', required: false, placeholder: 'Military honors received' },
-          { name: 'Current Status', type: 'select', required: false, placeholder: 'Active, Reserve, Retired, Veteran' },
-          { name: 'Contact Information', type: 'text', required: false, placeholder: 'Phone or email' },
-          { name: 'Memorial Information', type: 'textarea', required: false, placeholder: 'For fallen heroes (optional)' }
-        ]
-      },
-      team: {
-        name: 'Team Directory',
-        description: 'Manage team member information and roles',
-        fields: [
-          { name: 'Full Name', type: 'text', required: true, placeholder: 'Enter full name' },
-          { name: 'Position/Role', type: 'text', required: true, placeholder: 'Job title or role' },
-          { name: 'Department', type: 'text', required: true, placeholder: 'Team or department' },
-          { name: 'Employee ID', type: 'text', required: false, placeholder: 'Unique identifier' },
-          { name: 'Start Date', type: 'date', required: false, placeholder: 'YYYY-MM-DD' },
-          { name: 'Manager', type: 'text', required: false, placeholder: 'Direct supervisor' },
-          { name: 'Skills', type: 'textarea', required: false, placeholder: 'Key skills and expertise' },
-          { name: 'Work Email', type: 'email', required: false, placeholder: 'work@company.com' },
-          { name: 'Extension', type: 'tel', required: false, placeholder: 'Phone extension' },
-          { name: 'Office Location', type: 'text', required: false, placeholder: 'Building/floor/room' }
-        ]
-      }
-    };
-
-    const template = templates[templateType as keyof typeof templates];
-    if (template) {
+    const template = this.wallTemplatesService.getTemplate(templateType);
+    if (template && template.wall) {
+      // Apply basic wall properties
       this.wallForm.patchValue({
-        name: template.name,
-        description: template.description
+        name: template.wall.name || '',
+        description: template.wall.description || '',
+        organizationName: template.wall.organizationName || '',
+        organizationSubtitle: template.wall.organizationSubtitle || '',
+        allowDepartmentEdit: false,
+        isPublished: template.wall.visibility?.isPublished || false,
+        requiresLogin: template.wall.visibility?.requiresLogin !== false,
+        inactivityTimeout: template.wall.settings?.inactivityTimeout || 5
       });
 
+      // Apply theme
+      if (template.theme) {
+        this.selectedTheme = template.theme;
+        
+        // Also add the template's theme to available themes if it's not already there
+        const themeExists = this.availableThemes.some(t => t.id === template.theme.id);
+        if (!themeExists) {
+          this.availableThemes = [...this.availableThemes, template.theme];
+        }
+      }
+
+      // Store object types to be used when creating the wall
+      if (template.objectTypes) {
+        this.templateObjectTypes = template.objectTypes;
+      }
     }
   }
 
@@ -2148,7 +2568,8 @@ export class WallFormComponent implements OnInit {
             organizationName: wall.organizationName,
             organizationSubtitle: wall.organizationSubtitle,
             organizationLogoUrl: wall.organizationLogoUrl,
-            isPublic: wall.isPublic
+            isPublic: wall.isPublic,
+            inactivityTimeout: wall.settings?.inactivityTimeout || 5
           });
 
         }
@@ -2253,14 +2674,12 @@ export class WallFormComponent implements OnInit {
   }
 
   getPreviewShareLink(): string {
-    const wallName = this.wallForm.get('name')?.value || 'my-wall';
-    const slug = wallName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    const baseUrl = 'https://riverside-wall-app.web.app';
+    const wallId = this.wallId || 'new-wall';
+    const baseUrl = 'https://rlswall.app';
     
-    if (this.wallForm.get('requiresLogin')?.value) {
-      return `${baseUrl}/internal/${slug}`;
-    }
-    return `${baseUrl}/wall/${slug}`;
+    // URL stays the same regardless of visibility settings
+    // Firebase security rules will enforce access control based on wall settings
+    return `${baseUrl}/walls/${wallId}`;
   }
 
   async copyShareLink(): Promise<void> {
@@ -2338,8 +2757,8 @@ export class WallFormComponent implements OnInit {
           this.wallService.updateWall(this.wallId, updateData).subscribe({
             next: () => {
               this.isSaving = false;
-              // Navigate to the wall home page after successful update
-              this.router.navigate(['/walls', this.wallId]);
+              // Stay on the edit page after successful update
+              console.log('Wall updated successfully');
             },
             error: (error: any) => {
               this.isSaving = false;
@@ -2357,7 +2776,7 @@ export class WallFormComponent implements OnInit {
             organizationLogoUrl: this.wallForm.get('organizationLogoUrl')?.value,
             
             // Enhanced object system (Phase 2)
-            objectTypes: [], // Will be populated later
+            objectTypes: this.templateObjectTypes, // Use template object types if available
             
             // Theme and settings
             theme: this.selectedTheme,
@@ -2368,7 +2787,8 @@ export class WallFormComponent implements OnInit {
               allowRatings: false,
               enableNotifications: true,
               autoSave: true,
-              moderationRequired: false
+              moderationRequired: false,
+              inactivityTimeout: this.wallForm.get('inactivityTimeout')?.value || 5
             },
             
             // Metadata

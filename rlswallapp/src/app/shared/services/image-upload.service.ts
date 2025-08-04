@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, NgZone } from '@angular/core';
 import { Storage, ref, uploadBytes, getDownloadURL, deleteObject } from '@angular/fire/storage';
 import { Observable, from } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
@@ -16,6 +16,7 @@ export interface PendingImage {
 })
 export class ImageUploadService {
   private storage = inject(Storage);
+  private ngZone = inject(NgZone);
 
   /**
    * Validate image file
@@ -94,24 +95,33 @@ export class ImageUploadService {
         }
       };
 
-      uploadBytes(storageRef, file, metadata).then(snapshot => {
-        return getDownloadURL(storageRef);
-      }).then(downloadURL => {
-        const wallItemImage: WallItemImage = {
-          id: `img_${timestamp}_${Math.random().toString(36).substr(2, 9)}`,
-          url: downloadURL,
-          fileName: file.name,
-          size: file.size,
-          mimeType: file.type,
-          altText: '',
-          uploadedAt: new Date(),
-          storagePath // Store the path for potential deletion later
-        };
-        observer.next(wallItemImage);
-        observer.complete();
-      }).catch(error => {
-        console.error('Upload error:', error);
-        observer.error(new Error(`Failed to upload ${file.name}: ${error.message}`));
+      // Wrap Firebase calls in NgZone to ensure proper change detection
+      this.ngZone.runOutsideAngular(() => {
+        uploadBytes(storageRef, file, metadata).then(snapshot => {
+          return getDownloadURL(storageRef);
+        }).then(downloadURL => {
+          // Run the completion inside Angular zone
+          this.ngZone.run(() => {
+            const wallItemImage: WallItemImage = {
+              id: `img_${timestamp}_${Math.random().toString(36).substr(2, 9)}`,
+              url: downloadURL,
+              fileName: file.name,
+              size: file.size,
+              mimeType: file.type,
+              altText: '',
+              uploadedAt: new Date(),
+              storagePath // Store the path for potential deletion later
+            };
+            observer.next(wallItemImage);
+            observer.complete();
+          });
+        }).catch(error => {
+          // Run error handling inside Angular zone
+          this.ngZone.run(() => {
+            console.error('Upload error:', error);
+            observer.error(new Error(`Failed to upload ${file.name}: ${error.message}`));
+          });
+        });
       });
     });
   }
@@ -159,8 +169,22 @@ export class ImageUploadService {
    * Delete an image from Firebase Storage
    */
   deleteImage(storagePath: string): Observable<void> {
-    const storageRef = ref(this.storage, storagePath);
-    return from(deleteObject(storageRef));
+    return new Observable(observer => {
+      const storageRef = ref(this.storage, storagePath);
+      
+      this.ngZone.runOutsideAngular(() => {
+        deleteObject(storageRef).then(() => {
+          this.ngZone.run(() => {
+            observer.next();
+            observer.complete();
+          });
+        }).catch(error => {
+          this.ngZone.run(() => {
+            observer.error(error);
+          });
+        });
+      });
+    });
   }
 
   /**

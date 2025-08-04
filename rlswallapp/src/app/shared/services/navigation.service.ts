@@ -9,7 +9,7 @@ import { Wall, WallObjectType } from '../models/wall.model';
   providedIn: 'root'
 })
 export class NavigationService {
-  private _isMenuOpen = new BehaviorSubject<boolean>(false);
+  private _isMenuOpen = new BehaviorSubject<boolean>(this.getInitialMenuState());
   private _currentContext = new BehaviorSubject<WallNavigationContext | null>(null);
   private _currentAddMode = new BehaviorSubject<AddMode>(AddMode.None);
 
@@ -29,6 +29,7 @@ export class NavigationService {
 
   set isMenuOpen(value: boolean) {
     this._isMenuOpen.next(value);
+    this.saveMenuState(value);
   }
 
   get currentContext(): WallNavigationContext | null {
@@ -112,12 +113,18 @@ export class NavigationService {
       }
     ];
 
-    // If no wall context, add "All Walls" and return basic menu
+    // If no wall context, add "All Walls" and "Recycle Bin" and return basic menu
     if (!context) {
       baseMenuItems.push({
         title: 'All Walls',
         icon: 'dashboard', 
         path: '/walls',
+        condition: () => true
+      });
+      baseMenuItems.push({
+        title: 'Recycle Bin',
+        icon: 'delete', 
+        path: '/walls/recycle',
         condition: () => true
       });
       return baseMenuItems;
@@ -219,7 +226,10 @@ export class NavigationService {
       });
     }
 
-    this.isMenuOpen = false;
+    // Only close menu on mobile (800px and below)
+    if (this.isMobile()) {
+      this.isMenuOpen = false;
+    }
     this.router.navigate([path], { queryParams });
   }
 
@@ -259,7 +269,10 @@ export class NavigationService {
         break;
     }
     
-    this.isMenuOpen = false;
+    // Only close menu on mobile (800px and below)
+    if (this.isMobile()) {
+      this.isMenuOpen = false;
+    }
   }
 
   // Get add button text
@@ -309,5 +322,38 @@ export class NavigationService {
       default:
         return false;
     }
+  }
+
+  /**
+   * Get initial menu state from localStorage or default to true
+   */
+  private getInitialMenuState(): boolean {
+    try {
+      const saved = localStorage.getItem('riverside-wall-menu-open');
+      if (saved !== null) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.warn('Failed to load menu state from localStorage:', error);
+    }
+    return true; // Default to open
+  }
+
+  /**
+   * Save menu state to localStorage
+   */
+  private saveMenuState(isOpen: boolean): void {
+    try {
+      localStorage.setItem('riverside-wall-menu-open', JSON.stringify(isOpen));
+    } catch (error) {
+      console.warn('Failed to save menu state to localStorage:', error);
+    }
+  }
+
+  /**
+   * Check if the current screen size is mobile (800px and below)
+   */
+  private isMobile(): boolean {
+    return window.innerWidth <= 800;
   }
 }

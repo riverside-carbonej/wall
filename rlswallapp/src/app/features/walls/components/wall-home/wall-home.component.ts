@@ -7,12 +7,12 @@ import { WallService } from '../../services/wall.service';
 import { WallItemService } from '../../../wall-items/services/wall-item.service';
 import { NavigationService } from '../../../../shared/services/navigation.service';
 import { Wall, WallItem, WallObjectType } from '../../../../shared/models/wall.model';
-import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/wall-item-list.component';
+import { WallItemsGridComponent } from '../../../wall-items/components/wall-items-grid/wall-items-grid.component';
 
 @Component({
   selector: 'app-wall-home',
   standalone: true,
-  imports: [CommonModule, WallItemListComponent],
+  imports: [CommonModule, WallItemsGridComponent],
   template: `
     <div class="wall-home">
       <!-- Title overlay with wall branding -->
@@ -40,12 +40,6 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
               <h1 class="wall-title" [style.color]="wall.theme.titleColor">
                 {{ wall.name }}
               </h1>
-              @if (wall.description) {
-                <p class="wall-description" 
-                   [style.color]="wall.theme.secondaryTextColor">
-                  {{ wall.description }}
-                </p>
-              }
             </div>
           </div>
         }
@@ -53,13 +47,15 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
       
       <!-- Animated background with all wall items -->
       <div class="content-container" #container>
-        <app-wall-item-list 
-          [wallId]="wallId" 
-          [showInLargeView]="true"
-          [showToolbar]="false"
-          [isBackgroundMode]="true"
-          style="contain: content;">
-        </app-wall-item-list>
+        <app-wall-items-grid
+          [items]="(wallItems$ | async) || []"
+          [preset]="null"
+          [viewMode]="'grid'"
+          [selectedItems]="[]"
+          [pageSize]="100"
+          [pageIndex]="0"
+          style="contain: content; pointer-events: none;">
+        </app-wall-items-grid>
       </div>
     </div>
   `,
@@ -80,10 +76,12 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
     .content-container {
       width: 100%;
       height: 100%;
-      scale: 2;
+      scale: 1.5;
       position: relative;
       z-index: 1;
       pointer-events: none;
+      transform-style: preserve-3d;
+      transform: perspective(1000px);
     }
 
     .title-container {
@@ -152,15 +150,6 @@ import { WallItemListComponent } from '../../../wall-items/pages/wall-item-list/
       letter-spacing: -0.02em;
     }
 
-    .wall-description {
-      font-size: 1.1em;
-      font-weight: 400;
-      margin: 0;
-      opacity: 0.8;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      max-width: 600px;
-      line-height: 1.4;
-    }
 
   `]
 })
@@ -282,10 +271,10 @@ export class WallHomeComponent implements OnInit, OnDestroy {
     
     const animation = elm.animate([
       {
-        transform: `rotateY(${randomAngle}deg) rotateX(${randomAngleX}deg) translate(${randomStartX}%, ${randomStartY}%) scale(2)`
+        transform: `perspective(1000px) rotateY(${randomAngle}deg) rotateX(${randomAngleX}deg) translate3d(${randomStartX}%, ${randomStartY}%, 0) scale(1.5)`
       },
       {
-        transform: `rotateY(${randomAngle}deg) rotateX(${randomAngleX}deg) translate(${randomEndX}%, ${randomEndY}%) scale(2)`
+        transform: `perspective(1000px) rotateY(${randomAngle}deg) rotateX(${randomAngleX}deg) translate3d(${randomEndX}%, ${randomEndY}%, 0) scale(1.5)`
       }
     ], {
       duration: this.duration,

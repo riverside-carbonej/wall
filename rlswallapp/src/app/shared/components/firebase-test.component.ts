@@ -233,7 +233,8 @@ export class FirebaseTestComponent implements OnInit {
         allowRatings: false,
         enableNotifications: true,
         autoSave: true,
-        moderationRequired: false
+        moderationRequired: false,
+        inactivityTimeout: 5
       },
       
       // Metadata

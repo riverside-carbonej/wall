@@ -1272,3 +1272,62 @@ export class MatChip {
     }
   }
 }
+
+// Material 3 Autocomplete Component
+@Component({
+  selector: 'mat-autocomplete',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div class="mat-autocomplete-panel">
+      <ng-content></ng-content>
+    </div>
+  `,
+  styles: [`
+    .mat-autocomplete-panel {
+      background: var(--md-sys-color-surface-container);
+      border-radius: var(--md-sys-shape-corner-medium);
+      box-shadow: var(--md-sys-elevation-2);
+      max-height: 256px;
+      overflow-y: auto;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      margin-top: 4px;
+    }
+  `]
+})
+export class MatAutocomplete {
+  displayWith = input<(value: any) => string>();
+  
+  constructor() {}
+}
+
+// Material Icons Component
+@Component({
+  selector: 'mat-icon',
+  standalone: true,
+  imports: [CommonModule],
+  template: `<i class="material-icons"><ng-content></ng-content></i>`,
+  styles: [`
+    .material-icons {
+      font-family: 'Material Icons';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+  `]
+})
+export class MatIcon {}

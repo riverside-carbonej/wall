@@ -847,7 +847,7 @@ export class WallViewerComponent implements OnInit {
 
   getFieldLabelColor(wall: Wall): string {
     return wall.theme.cardStyle === 'minimal' 
-      ? wall.theme.bodyTextColor 
+      ? (wall.theme.bodyTextColor || wall.theme.textColor || '#2d2d2d')
       : '#6b7280';
   }
 

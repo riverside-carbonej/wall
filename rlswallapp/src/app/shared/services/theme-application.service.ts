@@ -18,7 +18,7 @@ export class ThemeApplicationService {
     // Apply core brand colors
     root.style.setProperty(`${prefix}-primary`, theme.primaryColor);
     root.style.setProperty(`${prefix}-secondary`, theme.secondaryColor);
-    root.style.setProperty(`${prefix}-tertiary`, theme.tertiaryColor);
+    root.style.setProperty(`${prefix}-tertiary`, theme.tertiaryColor || theme.primaryColor);
 
     // Apply surface hierarchy
     root.style.setProperty(`${prefix}-background`, theme.backgroundColor);
@@ -26,10 +26,10 @@ export class ThemeApplicationService {
     root.style.setProperty(`${prefix}-card`, theme.cardColor);
 
     // Apply typography hierarchy
-    root.style.setProperty(`${prefix}-title`, theme.titleColor);
-    root.style.setProperty(`${prefix}-body-text`, theme.bodyTextColor);
-    root.style.setProperty(`${prefix}-secondary-text`, theme.secondaryTextColor);
-    root.style.setProperty(`${prefix}-caption-text`, theme.captionTextColor);
+    root.style.setProperty(`${prefix}-title`, theme.titleColor || theme.textColor || '#1a1a1a');
+    root.style.setProperty(`${prefix}-body-text`, theme.bodyTextColor || theme.textColor || '#2d2d2d');
+    root.style.setProperty(`${prefix}-secondary-text`, theme.secondaryTextColor || theme.textColor || '#6b6b6b');
+    root.style.setProperty(`${prefix}-caption-text`, theme.captionTextColor || theme.textColor || '#8b7d3a');
 
     // Apply semantic colors
     root.style.setProperty(`${prefix}-error`, theme.errorColor);
@@ -246,9 +246,18 @@ export class ThemeApplicationService {
     const warnings: string[] = [];
 
     // Check contrast ratios
-    const titleContrast = this.calculateContrastRatio(theme.titleColor, theme.backgroundColor);
-    const bodyContrast = this.calculateContrastRatio(theme.bodyTextColor, theme.backgroundColor);
-    const cardContrast = this.calculateContrastRatio(theme.bodyTextColor, theme.cardColor);
+    const titleContrast = this.calculateContrastRatio(
+      theme.titleColor || theme.textColor || '#1a1a1a', 
+      theme.backgroundColor
+    );
+    const bodyContrast = this.calculateContrastRatio(
+      theme.bodyTextColor || theme.textColor || '#2d2d2d', 
+      theme.backgroundColor
+    );
+    const cardContrast = this.calculateContrastRatio(
+      theme.bodyTextColor || theme.textColor || '#2d2d2d', 
+      theme.cardColor
+    );
 
     if (titleContrast < 4.5) {
       warnings.push('Title text contrast ratio is below WCAG AA standards');

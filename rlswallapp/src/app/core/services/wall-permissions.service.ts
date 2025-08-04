@@ -181,14 +181,12 @@ export class WallPermissionsService {
     const baseUrl = window.location.origin;
     
     if (!wall.visibility.isPublished) {
-      return `${baseUrl}/wall/${wall.id}/edit`; // Edit URL for drafts
+      return `${baseUrl}/walls/${wall.id}/edit`; // Edit URL for drafts
     }
     
-    if (wall.visibility.requiresLogin) {
-      return `${baseUrl}/internal/${wall.id}`; // Login-required URL
-    }
-    
-    return `${baseUrl}/wall/${wall.id}`; // Public URL
+    // URL stays the same regardless of visibility settings
+    // Firebase security rules enforce access control based on wall settings
+    return `${baseUrl}/walls/${wall.id}`;
   }
 
   /**

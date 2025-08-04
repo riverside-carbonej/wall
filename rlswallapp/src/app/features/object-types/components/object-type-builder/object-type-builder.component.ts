@@ -495,17 +495,17 @@ export interface ObjectTypeBuilderConfig {
 
     .type-column {
       min-width: 120px;
-      justify-content: center;
+      justify-content: flex-start;
     }
 
     .required-column {
       min-width: 100px;
-      justify-content: center;
+      justify-content: flex-start;
     }
 
     .actions-column {
       min-width: 120px;
-      justify-content: flex-end;
+      justify-content: flex-start;
     }
 
     /* Property name styling */

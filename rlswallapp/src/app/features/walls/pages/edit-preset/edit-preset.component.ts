@@ -20,7 +20,7 @@ import { PageLayoutComponent } from '../../../../shared/components/page-layout/p
     <div *ngIf="wall$ | async as wall">
       <div *ngIf="objectType$ | async as objectType">
         <app-page-layout
-          [title]="'Edit ' + objectType.name + ' Preset'"
+          [title]="'Edit ' + capitalizeFirstLetter(objectType.name) + ' Preset'"
           subtitle="Modify the structure and fields for this item type"
           [showBackButton]="true"
           (backClick)="goBack()">
@@ -114,5 +114,10 @@ export class EditPresetComponent implements OnInit, OnDestroy {
 
   onBuilderCancelled() {
     this.goBack();
+  }
+
+  capitalizeFirstLetter(str: string): string {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 }

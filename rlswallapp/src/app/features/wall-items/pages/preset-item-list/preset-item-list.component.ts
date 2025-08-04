@@ -16,6 +16,8 @@ import { MaterialIconComponent } from '../../../../shared/components/material-ic
 import { MatSpinner } from '../../../../shared/components/material-stubs';
 import { ButtonGroupComponent, ButtonGroupItem } from '../../../../shared/components/button-group/button-group.component';
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
+import { WallItemCardComponent } from '../../components/wall-item-card/wall-item-card.component';
+import { WallItemsGridComponent } from '../../components/wall-items-grid/wall-items-grid.component';
 
 @Component({
   selector: 'app-preset-item-list',
@@ -28,17 +30,51 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
     LoadingStateComponent,
     MaterialIconComponent,
     MatSpinner,
-    ButtonGroupComponent
+    ButtonGroupComponent,
+    WallItemCardComponent,
+    WallItemsGridComponent
   ],
   template: `
-    <div *ngIf="wall$ | async as wall">
-      <div *ngIf="preset$ | async as preset">
-        <app-page-layout
-          [title]="nlpService.getPresetPageTitle(preset.name)"
-          [subtitle]="!isLoading ? nlpService.getCountText(totalItems, preset.name) : ''"
-          [showBackButton]="true"
-          [actions]="getPageActions(preset)"
-          (backClick)="goBack()">
+    <div class="page-wrapper" *ngIf="wall$ | async as wall">
+      <div *ngIf="preset$ | async as preset" class="full-height">
+        
+        <!-- Custom Header -->
+        <div class="custom-header">
+          <button class="back-button" (click)="goBack()">
+            <mat-icon [icon]="'arrow_back'"></mat-icon>
+          </button>
+          
+          <div class="header-info">
+            <h1 class="page-title">{{ nlpService.getPresetPageTitle(preset.name) }}</h1>
+            <p class="page-subtitle" *ngIf="!isLoading">{{ nlpService.getCountText(totalItems, preset.name) }}</p>
+          </div>
+          
+          <!-- View Toggle -->
+          <app-button-group
+            [items]="viewToggleItems"
+            [activeId]="largeView ? 'grid' : 'list'"
+            (selectionChange)="onViewToggleChange($event)">
+          </app-button-group>
+          
+          <!-- Pagination in header -->
+          <div class="pagination">
+            <button 
+              class="page-button"
+              [disabled]="pageIndex === 0"
+              (click)="changePage(pageIndex - 1)">
+              <mat-icon [icon]="'chevron_left'"></mat-icon>
+            </button>
+            <span class="page-info">
+              {{ getPageStart() }} - {{ getPageEnd() }} of {{ totalItems }}
+            </span>
+            <button 
+              class="page-button"
+              [disabled]="pageIndex >= getMaxPage()"
+              (click)="changePage(pageIndex + 1)">
+              <mat-icon [icon]="'chevron_right'"></mat-icon>
+            </button>
+          </div>
+        </div>
           
           <!-- Loading Spinner -->
           <mat-spinner
@@ -46,55 +82,25 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
             class="loading-spinner">
           </mat-spinner>
           
-          <!-- Action Bar -->
-          <div class="action-bar">
-            @if (selection.length <= 0) {
-              <div class="filter-bar">
-                <!-- View Toggle -->
-                <app-button-group
-                  [items]="viewToggleItems"
-                  [activeId]="largeView ? 'grid' : 'list'"
-                  (selectionChange)="onViewToggleChange($event)">
-                </app-button-group>
-                
-                <!-- Pagination -->
-                <div class="pagination">
-                  <button 
-                    class="page-button"
-                    [disabled]="pageIndex === 0"
-                    (click)="changePage(pageIndex - 1)">
-                    <mat-icon [icon]="'chevron_left'"></mat-icon>
-                  </button>
-                  <span class="page-info">
-                    {{ getPageStart() }} - {{ getPageEnd() }} of {{ totalItems }}
-                  </span>
-                  <button 
-                    class="page-button"
-                    [disabled]="pageIndex >= getMaxPage()"
-                    (click)="changePage(pageIndex + 1)">
-                    <mat-icon [icon]="'chevron_right'"></mat-icon>
-                  </button>
-                </div>
-              </div>
-            } @else {
-              <div class="selection-bar">
-                <button class="icon-button" (click)="clearSelection()">
-                  <mat-icon [icon]="'close'"></mat-icon>
-                </button>
-                <span class="selection-count">{{ selection.length }} selected</span>
-                <button 
-                  class="text-button"
-                  (click)="toggleSelectAll()">
-                  {{ selection.length === currentPageItems.length ? 'Deselect All' : 'Select All' }}
-                </button>
-                <button 
-                  class="icon-button delete-button"
-                  (click)="deleteSelected()">
-                  <mat-icon [icon]="'delete'"></mat-icon>
-                </button>
-              </div>
-            }
-          </div>
+          <!-- Selection Bar -->
+          @if (selection.length > 0) {
+            <div class="selection-bar">
+              <button class="icon-button" (click)="clearSelection()">
+                <mat-icon [icon]="'close'"></mat-icon>
+              </button>
+              <span class="selection-count">{{ selection.length }} selected</span>
+              <button 
+                class="text-button"
+                (click)="toggleSelectAll()">
+                {{ isAllPageItemsSelected() ? 'Deselect Page' : 'Select Page' }}
+              </button>
+              <button 
+                class="icon-button delete-button"
+                (click)="deleteSelected()">
+                <mat-icon [icon]="'delete'"></mat-icon>
+              </button>
+            </div>
+          }
 
           <!-- Content Container -->
           <div class="content-container">
@@ -109,91 +115,64 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
               </app-empty-state>
             }
 
-            <!-- Grid View -->
-            @if (!isLoading && largeView && currentPageItems.length > 0) {
-              <div class="grid-layout" [style.opacity]="isLoading ? '0' : '1'">
-                @for (item of currentPageItems; track item.id) {
-                  <app-card
-                    variant="elevated"
-                    size="medium"
-                    [title]="getItemTitle(preset, item)"
-                    [subtitle]="getItemSubtitle(preset, item) || undefined"
-                    [avatarIcon]="preset.icon"
-                    [imageUrl]="getPrimaryImage(item)?.url"
-                    [imageAlt]="getPrimaryImage(item)?.altText || getItemTitle(preset, item)"
-                    [metadata]="getMetadata(item)"
-                    [actions]="getCardActions(item)"
-                    [clickable]="true"
-                    [class.selected]="isSelected(item)"
-                    (cardClick)="onItemClick(item)"
-                    class="item-card">
-                  </app-card>
-                }
-              </div>
-            }
-
-            <!-- List View -->
-            @if (!isLoading && !largeView && currentPageItems.length > 0) {
-              <div class="list-layout" [style.opacity]="isLoading ? '0' : '1'">
-                @for (item of currentPageItems; track item.id) {
-                  <div 
-                    class="list-item"
-                    [class.selected]="isSelected(item)"
-                    (click)="onItemClick(item)">
-                    
-                    <div class="item-avatar">
-                      @if (getPrimaryImage(item)?.url) {
-                        <img [src]="getPrimaryImage(item)!.url" [alt]="getPrimaryImage(item)!.altText || getItemTitle(preset, item)" />
-                      } @else {
-                        <div class="avatar-placeholder">
-                          <mat-icon [icon]="preset.icon || 'inventory_2'"></mat-icon>
-                        </div>
-                      }
-                    </div>
-                    
-                    <div class="item-content">
-                      <h3 class="item-title">{{ getItemTitle(preset, item) }}</h3>
-                      <p class="item-subtitle" *ngIf="getItemSubtitle(preset, item)">{{ getItemSubtitle(preset, item) }}</p>
-                      <div class="item-metadata">
-                        @for (meta of getMetadata(item); track meta.key) {
-                          <span class="metadata-item">
-                            <mat-icon [icon]="meta.icon || 'info'"></mat-icon>
-                            {{ meta.value }}
-                          </span>
-                        }
-                      </div>
-                    </div>
-                    
-                    <div class="item-actions">
-                      @for (action of getListActions(item); track action.label) {
-                        <button 
-                          class="icon-button"
-                          (click)="$event.stopPropagation(); action.action()"
-                          [title]="action.label">
-                          <mat-icon [icon]="action.icon"></mat-icon>
-                        </button>
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
+            <!-- Items Grid/List View -->
+            @if (!isLoading && allItems.length > 0) {
+              <app-wall-items-grid
+                [items]="allItems"
+                [preset]="preset"
+                [viewMode]="largeView ? 'grid' : 'list'"
+                [selectedItems]="selection"
+                [pageSize]="pageSize"
+                [pageIndex]="pageIndex"
+                (itemClick)="onItemClick($event)"
+                (viewItem)="onViewItem($event)"
+                (editItem)="onEditItem($event)">
+              </app-wall-items-grid>
             }
           </div>
           
-        </app-page-layout>
+          <!-- Floating Add Button -->
+          <button 
+            class="floating-add-button"
+            (click)="navigateToAdd()">
+            <mat-icon [icon]="'add'"></mat-icon>
+            <span>{{ nlpService.getAddButtonText(preset.name) }}</span>
+          </button>
+          
       </div>
     </div>
   `,
   styles: [`
-    .page-container {
+    :host {
       display: block;
       width: 100%;
       height: 100%;
-      display: grid;
-      grid-template-rows: min-content auto;
-      gap: 1em;
+      overflow: hidden;
+    }
+
+    .page-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .full-height {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
       position: relative;
-      padding: 24px;
+    }
+
+    /* Custom Header */
+    .custom-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 24px;
+      flex-shrink: 0;
     }
 
     .loading-spinner {
@@ -206,20 +185,8 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       transition: opacity 200ms;
     }
 
-    /* Header Styles */
-    .list-header {
-      display: grid;
-      grid-template-rows: min-content min-content;
-      grid-template-columns: 100%;
-      height: min-content;
-      align-items: center;
-      gap: 1em;
-    }
-
-    .header-top {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .header-info {
+      flex: 1;
     }
 
     .back-button {
@@ -254,8 +221,8 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
 
     .page-title {
       margin: 0;
-      font-size: 2.25rem;
-      font-weight: 400;
+      font-size: 1.75rem;
+      font-weight: 500;
       color: var(--md-sys-color-on-surface);
       line-height: 1.2;
     }
@@ -264,22 +231,57 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       margin: 4px 0 0 0;
       font-size: 0.875rem;
       color: var(--md-sys-color-on-surface-variant);
-      opacity: 0.7;
+      opacity: 0.8;
     }
 
-    /* Action Bar */
-    .action-bar {
-      border-radius: 100px;
-      background: var(--md-sys-color-surface-container);
-      z-index: 100;
-      overflow: hidden;
+    .header-actions {
+      display: flex;
+      gap: 12px;
     }
 
-    .filter-bar {
+    /* Floating Add Button */
+    .floating-add-button {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 56px;
+      padding: 0 24px;
+      border-radius: 28px;
+      border: none;
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      box-shadow: var(--md-sys-elevation-3);
       display: flex;
       align-items: center;
-      padding: 8px 12px;
-      gap: 16px;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 100;
+      font-size: 16px;
+      font-weight: 500;
+      font-family: 'Google Sans', 'Roboto', sans-serif;
+    }
+
+    .floating-add-button:hover {
+      box-shadow: var(--md-sys-elevation-4);
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    .floating-add-button:active {
+      transform: translateX(-50%) scale(0.95);
+    }
+
+    .floating-add-button mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+
+    /* View Toggle */
+    .view-toggle {
+      margin: 16px 0;
     }
 
     /* View Toggle Styles - Now handled by ButtonGroupComponent */
@@ -372,6 +374,20 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       margin-left: auto;
     }
 
+    /* Action Bar */
+    .action-bar {
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
     .page-button {
       width: 40px;
       height: 40px;
@@ -405,8 +421,10 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       display: flex;
       align-items: center;
       color: var(--md-sys-color-on-surface);
-      padding: 8px 16px;
+      padding: 12px 24px;
       gap: 12px;
+      background: var(--md-sys-color-surface-container);
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
     }
 
     .selection-count {
@@ -424,205 +442,24 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
 
     /* Content Container */
     .content-container {
-      overflow: hidden auto;
-      width: 100%;
-      display: grid;
-      grid-template-rows: 100%;
-      grid-template-columns: 100%;
-      place-items: center;
-      position: relative;
-      border-radius: calc(10px + 1em);
-      height: min-content;
-      min-height: 400px;
-    }
-
-    /* Grid Layout */
-    .grid-layout {
-      position: relative;
-      display: grid;
-      grid-auto-rows: 300px;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 16px;
-      transition: opacity 200ms;
-      width: 100%;
-      height: min-content;
-      place-self: start;
-    }
-
-    .item-card {
-      height: fit-content;
-      max-height: 300px;
-      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
-    }
-
-    .item-card.selected {
-      border: 2px solid var(--md-sys-color-primary);
-      background: color-mix(in srgb, var(--md-sys-color-primary) 8%, var(--md-sys-color-surface));
-    }
-
-    /* List Layout */
-    .list-layout {
-      position: relative;
-      border-radius: 25px;
-      display: grid;
-      grid-auto-rows: min-content;
-      grid-template-columns: 1fr;
-      transition: opacity 200ms;
-      width: 100%;
-      height: min-content;
-      place-self: start;
-      overflow: hidden;
-      background: var(--md-sys-color-surface-container);
-    }
-
-    .list-item {
-      display: grid;
-      grid-template-columns: 60px 1fr min-content;
-      gap: 16px;
-      padding: 16px;
-      border-bottom: 1px solid var(--md-sys-color-outline-variant);
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
-      align-items: center;
-    }
-
-    .list-item:hover {
-      background: color-mix(in srgb, var(--md-sys-color-primary) 4%, transparent);
-    }
-
-    .list-item.selected {
-      background: color-mix(in srgb, var(--md-sys-color-primary) 12%, var(--md-sys-color-surface));
-      border-left: 4px solid var(--md-sys-color-primary);
-    }
-
-    .list-item:last-child {
-      border-bottom: none;
-    }
-
-    .item-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .item-avatar img {
+      overflow-y: auto;
+      overflow-x: hidden;
       width: 100%;
       height: 100%;
-      object-fit: cover;
-    }
-
-    .avatar-placeholder {
-      width: 100%;
-      height: 100%;
-      background: var(--md-sys-color-primary-container);
-      color: var(--md-sys-color-on-primary-container);
       display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
+      flex-direction: column;
+      position: relative;
     }
 
-    .item-content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .item-title {
-      margin: 0 0 4px 0;
-      font-size: 1rem;
-      font-weight: 500;
-      color: var(--md-sys-color-on-surface);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .item-subtitle {
-      margin: 0 0 8px 0;
-      font-size: 0.875rem;
-      color: var(--md-sys-color-on-surface-variant);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .item-metadata {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .metadata-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.75rem;
-      color: var(--md-sys-color-on-surface-variant);
-    }
-
-    .metadata-item mat-icon {
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-    }
-
-    .item-actions {
-      display: flex;
-      gap: 4px;
-      opacity: 0;
-      transition: opacity 0.2s cubic-bezier(0.2, 0, 0, 1);
-    }
-
-    .list-item:hover .item-actions {
-      opacity: 1;
-    }
 
     /* Responsive Design */
     @media (max-width: 768px) {
-      .page-container {
-        padding: 16px;
-        gap: 16px;
-      }
-
-      .grid-layout {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 12px;
-      }
-
       .page-title {
         font-size: 1.75rem;
       }
 
-      .filter-bar {
-        flex-wrap: wrap;
-        gap: 12px;
-      }
-
-      .add-button {
-        margin-left: 0;
-        margin-top: 8px;
-        width: 100%;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .grid-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .list-item {
-        grid-template-columns: 40px 1fr min-content;
-        gap: 12px;
-        padding: 12px;
-      }
-
-      .item-avatar {
-        width: 40px;
-        height: 40px;
+      .floating-add-button {
+        bottom: 16px;
       }
     }
   `]
@@ -644,7 +481,7 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
   currentPageItems: WallItem[] = [];
   totalItems = 0;
   pageIndex = 0;
-  pageSize = 20;
+  pageSize = 50;
 
   emptyStateActions: EmptyStateAction[] = [
     {
@@ -801,15 +638,34 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
     }
   }
 
+  isAllPageItemsSelected(): boolean {
+    const startIndex = this.pageIndex * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    const currentPageItems = this.allItems.slice(startIndex, endIndex);
+    
+    return currentPageItems.length > 0 && currentPageItems.every(item => this.selection.includes(item));
+  }
+
   clearSelection() {
     this.selection = [];
   }
 
   toggleSelectAll() {
-    if (this.selection.length === this.currentPageItems.length) {
-      this.selection = [];
+    // Get current page items
+    const startIndex = this.pageIndex * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    const currentPageItems = this.allItems.slice(startIndex, endIndex);
+    
+    // Check if all current page items are selected
+    const allPageItemsSelected = currentPageItems.every(item => this.selection.includes(item));
+    
+    if (allPageItemsSelected) {
+      // Deselect all items from current page
+      this.selection = this.selection.filter(item => !currentPageItems.includes(item));
     } else {
-      this.selection = [...this.currentPageItems];
+      // Select all items from current page
+      const newSelections = currentPageItems.filter(item => !this.selection.includes(item));
+      this.selection = [...this.selection, ...newSelections];
     }
   }
 
@@ -823,86 +679,6 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Item Display Methods
-  getPrimaryImage(item: WallItem) {
-    if (!item.images || item.images.length === 0) return null;
-    
-    const primaryIndex = item.primaryImageIndex || 0;
-    return item.images[primaryIndex] || item.images[0];
-  }
-
-  getItemTitle(preset: WallObjectType, item: WallItem): string {
-    const primaryField = preset.displaySettings?.primaryField;
-    
-    if (primaryField && item.fieldData[primaryField]) {
-      return String(item.fieldData[primaryField]);
-    }
-    
-    // Fallback to first text field
-    const firstTextField = Object.keys(item.fieldData).find(key => 
-      typeof item.fieldData[key] === 'string' && item.fieldData[key].trim()
-    );
-    
-    return firstTextField ? String(item.fieldData[firstTextField]) : 'Untitled Item';
-  }
-
-  getItemSubtitle(preset: WallObjectType, item: WallItem): string | null {
-    const secondaryField = preset.displaySettings?.secondaryField;
-    
-    if (secondaryField && item.fieldData[secondaryField]) {
-      return String(item.fieldData[secondaryField]);
-    }
-    
-    return null;
-  }
-
-  getMetadata(item: WallItem): Array<{key: string; value: string; icon?: string}> {
-    return [
-      {
-        key: 'updated',
-        value: new Date(item.updatedAt).toLocaleDateString(),
-        icon: 'schedule'
-      },
-      {
-        key: 'images',
-        value: item.images?.length ? `${item.images.length} image${item.images.length > 1 ? 's' : ''}` : 'No images',
-        icon: 'photo_library'
-      }
-    ];
-  }
-
-  // Action Methods
-  getCardActions(item: WallItem): CardAction[] {
-    return [
-      {
-        label: 'View',
-        icon: 'visibility',
-        primary: false,
-        action: () => this.onViewItem(item)
-      },
-      {
-        label: 'Edit',
-        icon: 'edit',
-        primary: false,
-        action: () => this.onEditItem(item)
-      }
-    ];
-  }
-
-  getListActions(item: WallItem): Array<{label: string; icon: string; action: () => void}> {
-    return [
-      {
-        label: 'View',
-        icon: 'visibility',
-        action: () => this.onViewItem(item)
-      },
-      {
-        label: 'Edit',
-        icon: 'edit',
-        action: () => this.onEditItem(item)
-      }
-    ];
-  }
 
   getPageActions(preset: WallObjectType): PageAction[] {
     return [

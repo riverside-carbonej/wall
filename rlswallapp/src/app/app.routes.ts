@@ -12,6 +12,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   { 
+    path: 'walls/recycle', 
+    loadComponent: () => import('./features/walls/components/recycle-bin/recycle-bin.component').then(m => m.RecycleBinComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
     path: 'walls/create', 
     loadComponent: () => import('./features/walls/components/wall-form/wall-form.component').then(m => m.WallFormComponent),
     canActivate: [AuthGuard]

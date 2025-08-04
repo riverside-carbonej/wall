@@ -12,6 +12,7 @@ import {
   query, 
   orderBy, 
   where,
+  limit,
   serverTimestamp,
   Timestamp,
   onSnapshot
@@ -31,58 +32,143 @@ export class WallService {
     private injector: Injector
   ) {}
 
+  getDeletedWalls(): Observable<Wall[]> {
+    return this.authService.currentUser$.pipe(
+      map(user => {
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+        return user;
+      }),
+      switchMap(user => {
+        return runInInjectionContext(this.injector, () => {
+          const wallsCollection = collection(this.firestore, this.collectionName);
+          
+          // Query for walls owned by the user
+          // We can't query deletedAt directly due to index limitations
+          const ownedQuery = query(
+            wallsCollection,
+            where('permissions.owner', '==', user.uid),
+            limit(100)
+          );
+          
+          // Also query legacy owned walls
+          const legacyOwnedQuery = query(
+            wallsCollection,
+            where('ownerId', '==', user.email || user.uid),
+            limit(100)
+          );
+          
+          console.log('Fetching deleted walls for user:', user.uid);
+          
+          return from(Promise.all([
+            getDocs(ownedQuery).catch(() => ({ docs: [] })),
+            getDocs(legacyOwnedQuery).catch(() => ({ docs: [] }))
+          ])).pipe(
+            map(results => ({ results, user }))
+          );
+        });
+      }),
+      map(({ results, user }) => {
+        // Combine results from both queries
+        const allDocs = [...results[0].docs, ...results[1].docs];
+        
+        // Map all documents to walls
+        const allWalls = allDocs.map((doc: any) => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: this.timestampToDate(doc.data()['createdAt']),
+          updatedAt: this.timestampToDate(doc.data()['updatedAt']),
+          deletedAt: doc.data()['deletedAt'] ? this.timestampToDate(doc.data()['deletedAt']) : undefined
+        } as Wall));
+        
+        // Filter for deleted walls only and remove duplicates
+        const seenIds = new Set<string>();
+        const deletedWalls = allWalls.filter(wall => {
+          // Must be deleted
+          if (!wall.deletedAt) return false;
+          
+          // Avoid duplicates
+          if (seenIds.has(wall.id!)) return false;
+          seenIds.add(wall.id!);
+          
+          return true;
+        });
+        
+        // Sort by deletedAt desc
+        return deletedWalls.sort((a, b) => {
+          const aTime = a.deletedAt?.getTime() || 0;
+          const bTime = b.deletedAt?.getTime() || 0;
+          return bTime - aTime;
+        });
+      }),
+      catchError(error => {
+        console.error('Error getting deleted walls:', error);
+        return of([]);
+      })
+    );
+  }
+
   getAllWalls(): Observable<Wall[]> {
     return this.authService.currentUser$.pipe(
       map(user => {
         if (!user) {
           throw new Error('User not authenticated');
         }
-        return user.email!;
+        return user;
       }),
-      switchMap(userEmail => {
+      switchMap(user => {
         return runInInjectionContext(this.injector, () => {
           const wallsCollection = collection(this.firestore, this.collectionName);
-          // Get walls where user is owner or shared with user
-          const ownedQuery = query(
+          
+          // Simple query to get all walls, then filter client-side
+          // Remove orderBy to avoid index requirements and permission issues
+          const allWallsQuery = query(
             wallsCollection,
-            where('ownerId', '==', userEmail),
-            orderBy('updatedAt', 'desc')
-          );
-          const sharedQuery = query(
-            wallsCollection,
-            where('sharedWith', 'array-contains', userEmail),
-            orderBy('updatedAt', 'desc')
+            limit(100) // Limit to prevent loading too many documents
           );
           
-          // Execute both queries and combine results
-          console.log('Executing owned query for user:', userEmail);
-          console.log('Executing shared query for user:', userEmail);
-          return from(Promise.all([getDocs(ownedQuery), getDocs(sharedQuery)]));
+          console.log('Fetching walls for user:', user.uid, user.email);
+          
+          return from(getDocs(allWallsQuery)).pipe(
+            map(snapshot => ({ snapshot, user }))
+          );
         });
       }),
-      map(([ownedSnapshot, sharedSnapshot]) => {
-        const ownedWalls = ownedSnapshot.docs.map((doc: any) => ({
+      map(({ snapshot, user }) => {
+        // Map and filter walls client-side
+        const allWalls = snapshot.docs.map((doc: any) => ({
           id: doc.id,
           ...doc.data(),
           createdAt: this.timestampToDate(doc.data()['createdAt']),
-          updatedAt: this.timestampToDate(doc.data()['updatedAt'])
+          updatedAt: this.timestampToDate(doc.data()['updatedAt']),
+          deletedAt: doc.data()['deletedAt'] ? this.timestampToDate(doc.data()['deletedAt']) : undefined
         } as Wall));
         
-        const sharedWalls = sharedSnapshot.docs.map((doc: any) => ({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: this.timestampToDate(doc.data()['createdAt']),
-          updatedAt: this.timestampToDate(doc.data()['updatedAt'])
-        } as Wall));
+        // Filter walls the user can view and exclude soft-deleted
+        const filteredWalls = allWalls.filter(wall => {
+          // Exclude soft-deleted walls
+          if (wall.deletedAt) return false;
+          
+          // Check new permissions structure
+          if (wall.permissions) {
+            if (wall.permissions.owner === user.uid) return true;
+            if (wall.permissions.editors?.includes(user.uid)) return true;
+          }
+          
+          // Check legacy structure
+          if (wall.ownerId === user.email || wall.ownerId === user.uid) return true;
+          if (wall.sharedWith?.includes(user.email!) || wall.sharedWith?.includes(user.uid)) return true;
+          
+          // Check if wall is published and public
+          if (wall.visibility?.isPublished && !wall.visibility?.requiresLogin) return true;
+          if (wall.isPublic) return true; // Legacy public walls
+          
+          return false;
+        });
         
-        // Combine and deduplicate walls (in case user owns a wall that's also shared with them)
-        const allWalls = [...ownedWalls, ...sharedWalls];
-        const uniqueWalls = allWalls.filter((wall, index, self) => 
-          index === self.findIndex(w => w.id === wall.id)
-        );
-        
-        // Sort by updatedAt desc
-        return uniqueWalls.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+        // Sort by updatedAt desc (since we removed orderBy from query)
+        return filteredWalls.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
       }),
       catchError(error => {
         console.error('Error getting walls:', error);
@@ -97,17 +183,17 @@ export class WallService {
         if (!user) {
           throw new Error('User not authenticated');
         }
-        return user.email!;
+        return user;
       }),
-      switchMap(userEmail => {
+      switchMap(user => {
         return runInInjectionContext(this.injector, () => {
           const wallDoc = doc(this.firestore, this.collectionName, id);
           return from(getDoc(wallDoc)).pipe(
-            map(docSnap => ({ docSnap, userEmail }))
+            map(docSnap => ({ docSnap, user }))
           );
         });
       }),
-      map(({ docSnap, userEmail }) => {
+      map(({ docSnap, user }) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           const wall = {
@@ -117,13 +203,31 @@ export class WallService {
             updatedAt: this.timestampToDate(data['updatedAt'])
           } as Wall;
           
-          // Check if user has access to this wall
-          if (wall.ownerId === userEmail || wall.sharedWith?.includes(userEmail)) {
-            return wall;
-          } else {
-            console.warn('User does not have access to this wall');
-            return null;
+          // Check permissions - both old and new format
+          if (wall.permissions) {
+            // New permissions format
+            if (wall.permissions.owner === user.uid || 
+                wall.permissions.editors?.includes(user.uid)) {
+              return wall;
+            }
           }
+          
+          // Legacy permissions check
+          if (wall.ownerId === user.email || wall.ownerId === user.uid ||
+              wall.sharedWith?.includes(user.email!) || wall.sharedWith?.includes(user.uid)) {
+            return wall;
+          }
+          
+          // Check if wall is public
+          if (wall.visibility?.isPublished && !wall.visibility?.requiresLogin) {
+            return wall;
+          }
+          if (wall.isPublic) {
+            return wall;
+          }
+          
+          console.warn('User does not have access to this wall');
+          return null;
         }
         return null;
       }),
@@ -143,9 +247,9 @@ export class WallService {
         if (!user) {
           throw new Error('User not authenticated');
         }
-        return user.email!;
+        return user;
       }),
-      switchMap(userEmail => {
+      switchMap(user => {
         return new Observable<Wall | null>(subscriber => {
           const unsubscribe = runInInjectionContext(this.injector, () => {
             const wallDoc = doc(this.firestore, this.collectionName, id);
@@ -160,13 +264,35 @@ export class WallService {
                     updatedAt: this.timestampToDate(data['updatedAt'])
                   } as Wall;
                   
-                  // Check if user has access to this wall
-                  if (wall.ownerId === userEmail || wall.sharedWith?.includes(userEmail)) {
-                    subscriber.next(wall);
-                  } else {
-                    console.warn('User does not have access to this wall');
-                    subscriber.next(null);
+                  // Check permissions - both old and new format
+                  if (wall.permissions) {
+                    // New permissions format
+                    if (wall.permissions.owner === user.uid || 
+                        wall.permissions.editors?.includes(user.uid)) {
+                      subscriber.next(wall);
+                      return;
+                    }
                   }
+                  
+                  // Legacy permissions check
+                  if (wall.ownerId === user.email || wall.ownerId === user.uid ||
+                      wall.sharedWith?.includes(user.email!) || wall.sharedWith?.includes(user.uid)) {
+                    subscriber.next(wall);
+                    return;
+                  }
+                  
+                  // Check if wall is public
+                  if (wall.visibility?.isPublished && !wall.visibility?.requiresLogin) {
+                    subscriber.next(wall);
+                    return;
+                  }
+                  if (wall.isPublic) {
+                    subscriber.next(wall);
+                    return;
+                  }
+                  
+                  console.warn('User does not have access to this wall');
+                  subscriber.next(null);
                 } else {
                   subscriber.next(null);
                 }
@@ -195,17 +321,23 @@ export class WallService {
         if (!user) {
           throw new Error('User not authenticated');
         }
-        return user.email!;
+        return user;
       }),
-      switchMap(userEmail => {
+      switchMap(user => {
         return runInInjectionContext(this.injector, () => {
           const wallsCollection = collection(this.firestore, this.collectionName);
           // Clean up undefined values for Firestore
           const cleanWall = this.cleanUndefinedValues(wall);
+          
+          // Ensure permissions are set correctly with UID
+          if (cleanWall.permissions) {
+            cleanWall.permissions.owner = user.uid;
+          }
+          
           const wallData = {
             ...cleanWall,
             name: cleanWall.name || 'Untitled Wall',
-            ownerId: userEmail,
+            ownerId: cleanWall.ownerId || user.email, // Keep legacy field for compatibility
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           };
@@ -227,9 +359,9 @@ export class WallService {
         if (!user) {
           throw new Error('User not authenticated');
         }
-        return user.email!;
+        return user;
       }),
-      switchMap(userEmail => {
+      switchMap(user => {
         return runInInjectionContext(this.injector, () => {
           const wallDoc = doc(this.firestore, this.collectionName, id);
           const cleanUpdate = this.cleanUndefinedValues(wallUpdate);
@@ -253,13 +385,50 @@ export class WallService {
     );
   }
 
+  // Soft delete - marks wall as deleted
   deleteWall(id: string): Observable<void> {
+    return runInInjectionContext(this.injector, () => {
+      const wallDoc = doc(this.firestore, this.collectionName, id);
+      const updateData = {
+        deletedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      return from(updateDoc(wallDoc, updateData)).pipe(
+        catchError(error => {
+          console.error('Error soft deleting wall:', error);
+          throw error;
+        })
+      );
+    });
+  }
+
+  // Restore soft-deleted wall
+  restoreWall(id: string): Observable<void> {
+    return runInInjectionContext(this.injector, () => {
+      const wallDoc = doc(this.firestore, this.collectionName, id);
+      const updateData = {
+        deletedAt: null,
+        updatedAt: serverTimestamp()
+      };
+      
+      return from(updateDoc(wallDoc, updateData)).pipe(
+        catchError(error => {
+          console.error('Error restoring wall:', error);
+          throw error;
+        })
+      );
+    });
+  }
+
+  // Permanently delete wall
+  permanentlyDeleteWall(id: string): Observable<void> {
     return runInInjectionContext(this.injector, () => {
       const wallDoc = doc(this.firestore, this.collectionName, id);
       
       return from(deleteDoc(wallDoc)).pipe(
         catchError(error => {
-          console.error('Error deleting wall:', error);
+          console.error('Error permanently deleting wall:', error);
           throw error;
         })
       );

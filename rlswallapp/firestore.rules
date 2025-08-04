@@ -47,8 +47,11 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
                        request.auth.uid == request.resource.data.permissions.owner;
       
-      // Read walls based on visibility settings
-      allow read: if canViewWall(resource.data);
+      // Allow list operation for authenticated users (filtering happens client-side)
+      allow list: if isAuthenticated();
+      
+      // Read individual walls based on visibility settings
+      allow get: if canViewWall(resource.data);
       
       // Update walls if user can edit
       allow update: if isAuthenticated() && canEditWall(resource.data);

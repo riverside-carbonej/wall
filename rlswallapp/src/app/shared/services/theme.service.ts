@@ -135,6 +135,16 @@ export class ThemeService {
     root.style.setProperty('--md-sys-color-on-background', theme.onBackground);
     root.style.setProperty('--md-sys-color-outline', theme.outline);
     root.style.setProperty('--md-sys-color-surface-variant', theme.surfaceVariant);
+    
+    // Reset Material Design container variables to default values when not in wall context
+    if (!theme.isWallTheme) {
+      const primaryTint = this.hexToRgba(theme.primary, 0.08);
+      const surfaceTint = this.hexToRgba(theme.surface, 0.05);
+      
+      root.style.setProperty('--md-sys-color-primary-container', primaryTint);
+      root.style.setProperty('--md-sys-color-surface-container-low', surfaceTint);
+      root.style.setProperty('--md-sys-color-surface-container', theme.surfaceVariant);
+    }
 
     // Apply theme class to body
     document.body.classList.remove('light-theme', 'dark-theme');
@@ -143,6 +153,9 @@ export class ThemeService {
 
   // Apply wall-specific theme
   applyWallTheme(wallTheme: WallTheme): void {
+    // First remove any existing wall-specific styling to prevent conflicts
+    this.removeWallSpecificCSS();
+    
     const currentMode = this.currentTheme$.value.mode;
     const isDark = currentMode === 'dark';
     
@@ -152,8 +165,8 @@ export class ThemeService {
       secondary: wallTheme.secondaryColor,
       surface: this.adjustColorForMode(wallTheme.surfaceColor, isDark),
       background: this.adjustColorForMode(wallTheme.backgroundColor, isDark),
-      onSurface: wallTheme.bodyTextColor,
-      onBackground: wallTheme.bodyTextColor,
+      onSurface: wallTheme.bodyTextColor || wallTheme.textColor || '#2d2d2d',
+      onBackground: wallTheme.bodyTextColor || wallTheme.textColor || '#2d2d2d',
       outline: this.generateOutlineColor(wallTheme.primaryColor, isDark),
       surfaceVariant: this.generateSurfaceVariant(wallTheme.surfaceColor, isDark),
       isWallTheme: true,
@@ -167,9 +180,22 @@ export class ThemeService {
   
   // Clear wall theme and return to app default
   clearWallTheme(): void {
-    const savedMode = localStorage.getItem(this.THEME_KEY) as ThemeMode || 'dark';
-    this.setThemeMode(savedMode);
+    // First remove wall-specific CSS
     this.removeWallSpecificCSS();
+    
+    // Get the saved theme mode and ensure we reset to pure app theme
+    const savedMode = localStorage.getItem(this.THEME_KEY) as ThemeMode || 'dark';
+    const appTheme = this.getThemeForMode(savedMode);
+    
+    // Explicitly reset the theme state to app theme (not wall theme)
+    this.currentTheme$.next({
+      ...appTheme,
+      isWallTheme: false,
+      wallTheme: undefined
+    });
+    
+    // Apply the theme to the document
+    this.applyThemeToDocument(appTheme);
   }
   
   private adjustColorForMode(color: string, isDark: boolean): string {
@@ -220,9 +246,22 @@ export class ThemeService {
     root.style.removeProperty('--wall-secondary');
     root.style.removeProperty('--wall-surface');
     root.style.removeProperty('--wall-card');
+    root.style.removeProperty('--wall-primary-tint');
+    root.style.removeProperty('--wall-secondary-tint');
+    
+    // Remove overridden Material Design variables that wall themes modify
+    root.style.removeProperty('--md-sys-color-primary-container');
+    root.style.removeProperty('--md-sys-color-surface-container-low');
+    root.style.removeProperty('--md-sys-color-surface-container');
     
     // Remove wall theme class
     document.body.classList.remove('wall-themed');
+    
+    // Remove any custom CSS from wall themes if they exist
+    const existingWallStyle = document.getElementById('wall-theme-custom-css');
+    if (existingWallStyle) {
+      existingWallStyle.remove();
+    }
   }
   
   // Helper method to generate Material 3 tints for wall themes

@@ -31,22 +31,31 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
           </div>
           
           <div class="template-item" (click)="createFromTemplate('alumni')">
-            <div class="template-icon alumni-template">
-              <span class="material-icons md-32">school</span>
+            <div class="template-icon" 
+                 [style.background]="getTemplateColors('alumni').background"
+                 [style.box-shadow]="getTemplateColors('alumni').shadow"
+                 [style.border]="getTemplateColors('alumni').border">
+              <span class="material-icons md-32" [style.color]="getTemplateColors('alumni').icon">school</span>
             </div>
             <span class="template-label">Alumni Directory</span>
           </div>
 
           <div class="template-item" (click)="createFromTemplate('veterans')">
-            <div class="template-icon veterans-template">
-              <span class="material-icons md-32">military_tech</span>
+            <div class="template-icon" 
+                 [style.background]="getTemplateColors('veterans').background"
+                 [style.box-shadow]="getTemplateColors('veterans').shadow"
+                 [style.border]="getTemplateColors('veterans').border">
+              <span class="material-icons md-32" [style.color]="getTemplateColors('veterans').icon">military_tech</span>
             </div>
             <span class="template-label">Veterans Registry</span>
           </div>
 
           <div class="template-item" (click)="createFromTemplate('team')">
-            <div class="template-icon team-template">
-              <span class="material-icons md-32">groups</span>
+            <div class="template-icon" 
+                 [style.background]="getTemplateColors('team').background"
+                 [style.box-shadow]="getTemplateColors('team').shadow"
+                 [style.border]="getTemplateColors('team').border">
+              <span class="material-icons md-32" [style.color]="getTemplateColors('team').icon">groups</span>
             </div>
             <span class="template-label">Team Directory</span>
           </div>
@@ -92,19 +101,19 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
           <div class="walls-container" [class.list-view]="viewMode === 'list'" [class.grid-view]="viewMode === 'grid'">
             @if (filteredWalls$ | async; as walls) {
               @for (wall of walls; track trackByWallId($index, wall)) {
-                <div class="wall-item" (click)="openWall(wall.id!)">
+                <div class="wall-item" [class.menu-open]="openMenuId === wall.id" (click)="openWall(wall.id!)">
                   <div class="wall-thumbnail">
                     <div class="wall-preview" [style.background]="getWallGradient(wall)">
                       <div class="preview-content">
                         <div class="preview-dots">
-                          <div class="dot"></div>
-                          <div class="dot"></div>
-                          <div class="dot"></div>
+                          <div class="dot" [style.background-color]="getDotColor(wall)"></div>
+                          <div class="dot" [style.background-color]="getDotColor(wall)"></div>
+                          <div class="dot" [style.background-color]="getDotColor(wall)"></div>
                         </div>
                         <div class="preview-lines">
-                          <div class="line long"></div>
-                          <div class="line medium"></div>
-                          <div class="line short"></div>
+                          <div class="line long" [style.background-color]="getLineColor(wall)"></div>
+                          <div class="line medium" [style.background-color]="getLineColor(wall)"></div>
+                          <div class="line short" [style.background-color]="getLineColor(wall)"></div>
                         </div>
                       </div>
                     </div>
@@ -113,7 +122,6 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
                     <h3 class="wall-title">{{ wall.name }}</h3>
                     <div class="wall-meta">
                       <span class="wall-date">{{ getFormattedDate(wall.updatedAt) }}</span>
-                      <span class="wall-fields">{{ wall.fields?.length || 0 }} fields</span>
                     </div>
                   </div>
                   <div class="wall-menu">
@@ -165,11 +173,13 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
 
     .section-header {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       margin-bottom: var(--md-sys-spacing-6);
       padding-bottom: var(--md-sys-spacing-4);
       border-bottom: 1px solid var(--md-sys-color-outline-variant);
+      flex-direction: column;
+      gap: var(--md-sys-spacing-4);
     }
 
     .section-header h2 {
@@ -255,15 +265,6 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
 
-    .alumni-template, .veterans-template, .team-template {
-      background: linear-gradient(135deg, 
-        var(--md-sys-color-primary-container),
-        var(--md-sys-color-secondary-container));
-    }
-
-    .template-icon .material-icons {
-      color: #d4af37;
-    }
 
     .template-label {
       font-size: var(--md-sys-typescale-label-large-size);
@@ -304,7 +305,7 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
       border: 1px solid var(--md-sys-color-outline-variant);
-      overflow: hidden;
+      overflow: visible; /* Changed to visible to allow dropdown */
       position: relative;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
@@ -321,6 +322,11 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
     .wall-item:active {
       transform: translateY(-2px);
       transition-duration: 0.1s;
+    }
+
+    .wall-item.menu-open {
+      z-index: 10;
+      position: relative;
     }
 
     .grid-view .wall-item {
@@ -345,6 +351,7 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
     .grid-view .wall-thumbnail {
       height: 140px;
       border-radius: var(--md-sys-shape-corner-large) var(--md-sys-shape-corner-large) 0 0;
+      overflow: hidden;
     }
 
     .list-view .wall-thumbnail {
@@ -475,13 +482,7 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       position: absolute;
       top: var(--md-sys-spacing-2);
       right: var(--md-sys-spacing-2);
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
       z-index: 5;
-    }
-
-    .wall-item:hover .wall-menu {
-      opacity: 1;
     }
 
     .menu-button {
@@ -517,7 +518,7 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       box-shadow: var(--md-sys-elevation-4);
       padding: var(--md-sys-spacing-2) 0;
       min-width: 140px;
-      z-index: 100;
+      z-index: 1000; /* Increased z-index */
       animation: fadeInUp 0.2s cubic-bezier(0.2, 0, 0, 1);
     }
 
@@ -788,10 +789,6 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       .wall-item:hover {
         transform: none; /* Disable hover transforms on mobile */
       }
-
-      .wall-menu {
-        opacity: 1; /* Always show menu on mobile */
-      }
     }
 
     /* Accessibility enhancements */
@@ -874,6 +871,11 @@ export class WallListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadWalls();
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', () => {
+      this.openMenuId = null;
+    });
   }
 
   loadWalls(): void {
@@ -952,8 +954,12 @@ export class WallListComponent implements OnInit {
   }
 
   getWallGradient(wall: Wall): string {
-    const baseColor = wall.theme.primaryColor || '#d4af37';
-    return `linear-gradient(135deg, ${baseColor}15, ${baseColor}08)`;
+    const primary = wall.theme.primaryColor || '#d4af37';
+    const secondary = wall.theme.secondaryColor || primary;
+    const surface = wall.theme.surfaceColor || '#ffffff';
+    
+    // Create a more representative gradient using theme colors
+    return `linear-gradient(135deg, ${surface}, ${primary}20, ${secondary}15)`;
   }
 
   getFormattedDate(date: Date): string {
@@ -968,5 +974,46 @@ export class WallListComponent implements OnInit {
     if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
     
     return new Date(date).toLocaleDateString();
+  }
+
+  getDotColor(wall: Wall): string {
+    return wall.theme.primaryColor || '#d4af37';
+  }
+
+  getLineColor(wall: Wall): string {
+    return wall.theme.textColor || wall.theme.secondaryColor || '#6b7280';
+  }
+
+  getTemplateColors(templateId: string): { background: string; icon: string; shadow: string; border: string } {
+    switch (templateId) {
+      case 'alumni':
+        return { 
+          background: '#121212',
+          icon: '#ffd700',
+          shadow: '0 4px 8px rgba(255, 215, 0, 0.3)',
+          border: '2px solid #ffd700'
+        };
+      case 'veterans':
+        return { 
+          background: '#0d1421',
+          icon: '#ffffff',
+          shadow: '0 4px 8px rgba(220, 53, 69, 0.4)',
+          border: '2px solid #dc3545'
+        };
+      case 'team':
+        return { 
+          background: '#fafafa',
+          icon: '#2196f3',
+          shadow: '0 4px 8px rgba(33, 150, 243, 0.3)',
+          border: '2px solid #2196f3'
+        };
+      default:
+        return { 
+          background: 'var(--md-sys-color-surface-container)',
+          icon: 'var(--md-sys-color-primary)',
+          shadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+          border: '1px solid var(--md-sys-color-outline-variant)'
+        };
+    }
   }
 }

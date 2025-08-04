@@ -69,11 +69,13 @@ export interface WallTheme {
   id: string;
   name: string;
   description?: string;
+  mode?: 'light' | 'dark';
   
   // Core brand colors (required)
   primaryColor: string;
   secondaryColor: string;
-  tertiaryColor: string;
+  tertiaryColor?: string;
+  accentColor?: string;
   
   // Surface hierarchy colors
   backgroundColor: string;
@@ -81,10 +83,11 @@ export interface WallTheme {
   cardColor: string;
   
   // Typography hierarchy colors
-  titleColor: string;
-  bodyTextColor: string;
-  secondaryTextColor: string;
-  captionTextColor: string;
+  titleColor?: string;
+  bodyTextColor?: string;
+  secondaryTextColor?: string;
+  captionTextColor?: string;
+  textColor?: string;  // General text color option
   
   // Semantic colors
   errorColor: string;
@@ -169,12 +172,14 @@ export interface Wall {
     autoSave: boolean;
     maxItemsPerUser?: number;
     moderationRequired: boolean;
+    inactivityTimeout: number; // in minutes, default 5
   };
   
   // Metadata
   createdAt: Date;
   updatedAt: Date;
   lastActivityAt: Date;
+  deletedAt?: Date; // Soft delete timestamp
   
   // Legacy fields (for backward compatibility during migration)
   fields?: FieldDefinition[]; // Will be migrated to objectTypes system
@@ -238,7 +243,7 @@ export interface UserProfile {
   displayName: string;
   photoURL?: string;
   department?: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'teacher';
   createdAt: Date;
   lastLoginAt: Date;
 }

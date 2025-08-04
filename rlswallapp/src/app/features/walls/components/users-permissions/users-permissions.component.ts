@@ -1,18 +1,30 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators, AbstractControl } from '@angular/forms';
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
-import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { FormFieldComponent } from '../../../../shared/components/input-field/input-field.component';
-import { MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatCardActions, MatCheckbox, MatDivider, MatLabel, MatError } from '../../../../shared/components/material-stubs';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatCardActions, MatDivider, MatLabel, MatError, MatSelect, MatOption, MatIcon } from '../../../../shared/components/material-stubs';
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
+import { MaterialSwitchComponent } from '../../../../shared/components/material-switch/material-switch.component';
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
-import { Observable, Subject, takeUntil } from 'rxjs';
-import { switchMap, filter } from 'rxjs/operators';
+import { AuthService } from '../../../../core/services/auth.service';
+import { UserService } from '../../../../shared/services/user.service';
+import { Observable, Subject, takeUntil, startWith, map, of } from 'rxjs';
+import { FormsModule } from '@angular/forms';
+import { switchMap, filter, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 import { WallService } from '../../services/wall.service';
 import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wall.model';
+import { WallUserEntity } from '../../../../shared/models/user.model';
+
+interface WallUser {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
+  accessLevel: 'editor' | 'viewer';
+}
 
 @Component({
   selector: 'app-users-permissions',
@@ -20,8 +32,8 @@ import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wa
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     ThemedButtonComponent,
-    MaterialIconComponent,
     FormFieldComponent,
     MatCard,
     MatCardHeader,
@@ -29,11 +41,14 @@ import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wa
     MatCardSubtitle,
     MatCardContent,
     MatCardActions,
-    MatCheckbox,
     MatDivider,
     MatLabel,
     MatError,
-    PageLayoutComponent
+    MatSelect,
+    MatOption,
+    MatIcon,
+    PageLayoutComponent,
+    MaterialSwitchComponent
   ],
   template: `
     <div *ngIf="wall$ | async as wall">
@@ -47,152 +62,205 @@ import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wa
         <form [formGroup]="permissionsForm" class="permissions-form">
           
           <!-- Owner Section -->
-          <mat-card class="permissions-section">
-            <mat-card-header>
-              <mat-card-title>
-                <mat-icon>person</mat-icon>
-                Wall Owner
-              </mat-card-title>
-              <mat-card-subtitle>The user who created this wall and has full control</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="owner-info">
+          <div class="form-section">
+            <div class="section-header">
+              <mat-icon>person</mat-icon>
+              <div class="section-text">
+                <h3>Wall Owner</h3>
+                <p>The user who created this wall and has full control</p>
+              </div>
+            </div>
+            
+            <div class="owner-card">
+              <div class="user-info">
                 <div class="user-avatar">
-                  <mat-icon>account_circle</mat-icon>
+                  <img *ngIf="ownerProfile?.photoURL" [src]="ownerProfile?.photoURL" [alt]="ownerProfile?.displayName || ''" class="user-photo">
+                  <mat-icon *ngIf="!ownerProfile?.photoURL">account_circle</mat-icon>
                 </div>
                 <div class="user-details">
-                  <div class="user-name">{{ ownerProfile?.displayName || wall.permissions.owner }}</div>
-                  <div class="user-email">{{ wall.permissions.owner }}</div>
-                  <div class="user-role">Owner - Full Access</div>
+                  <div class="user-name">{{ ownerProfile?.displayName || 'Wall Owner' }}</div>
+                  <div class="user-email">{{ ownerProfile?.email || 'Unknown Email' }}</div>
+                  <div class="owner-badge">Owner</div>
                 </div>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
 
-          <!-- Editors Section -->
-          <mat-card class="permissions-section">
-            <mat-card-header>
-              <mat-card-title>
-                <mat-icon>group</mat-icon>
-                Editors
-              </mat-card-title>
-              <mat-card-subtitle>Users who can add, edit, and manage content</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="editors-list" formArrayName="editors">
-                @for (control of editorsArray.controls; track $index) {
-                  <div class="editor-row" [formGroupName]="$index">
-                    <mat-form-field 
-                      class="editor-email-field">
-                      <mat-label>Editor Email</mat-label>
-                      <input matInput 
-                             formControlName="email" 
-                             type="email" 
-                             placeholder="user@riversideschools.net"
-                             required>
-                      @if (control.get('email')?.hasError('required')) {
-                        <mat-error>Email is required</mat-error>
-                      }
-                      @if (control.get('email')?.hasError('email')) {
-                        <mat-error>Enter a valid email</mat-error>
-                      }
-                    </mat-form-field>
+          <!-- Users & Access Levels Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <mat-icon>group</mat-icon>
+              <div class="section-text">
+                <h3>Users & Access Levels</h3>
+                <p>Manage user permissions for this wall</p>
+              </div>
+            </div>
+            
+            <!-- Add User Form -->
+            <div class="add-user-form">
+              <div class="form-group">
+                <label for="newUserEmail">Add User</label>
+                <div class="input-with-button">
+                  <div class="input-container">
+                    <input 
+                      id="newUserEmail"
+                      type="email" 
+                      [(ngModel)]="newUserEmail"
+                      [ngModelOptions]="{standalone: true}"
+                      placeholder="user@riversideschools.net"
+                      class="form-input"
+                      (input)="onNewUserInput($event)"
+                      (focus)="showAddUserSuggestions = true"
+                      (blur)="hideAddUserSuggestions()">
                     
-                    <app-themed-button variant="icon" 
-                            type="button"
-                            color="warn" 
-                            (click)="removeEditor($index)"
-                            [disabled]="editorsArray.length <= 1">
-                      <mat-icon>delete</mat-icon>
-                    </app-themed-button>
+                    <!-- User Suggestions Dropdown -->
+                    <div class="user-suggestions" *ngIf="showAddUserSuggestions && filteredUsers.length > 0">
+                      <div class="user-suggestion" 
+                           *ngFor="let user of filteredUsers; trackBy: trackByEmail"
+                           (mousedown)="selectNewUser(user)">
+                        <div class="user-avatar small">
+                          <img *ngIf="user.photoURL" [src]="user.photoURL" [alt]="user.displayName" class="user-photo">
+                          <mat-icon *ngIf="!user.photoURL">account_circle</mat-icon>
+                        </div>
+                        <div class="user-info">
+                          <div class="user-name">{{ user.displayName || user.email }}</div>
+                          <div class="user-email">{{ user.email }}</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                }
+                  
+                  <button type="button"
+                          class="add-button"
+                          (click)="addUser()"
+                          [disabled]="!newUserEmail || !isValidEmail(newUserEmail)">
+                    <mat-icon>person_add</mat-icon>
+                    Add User
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="users-table">
+              <!-- Table Header -->
+              <div class="table-header">
+                <div class="header-cell user-col">User</div>
+                <div class="header-cell access-col">Access Level</div>
+                <div class="header-cell actions-col">Actions</div>
               </div>
               
-              <app-themed-button variant="stroked" type="button" (click)="addEditor()">
-                <mat-icon>add</mat-icon>
-                Add Editor
-              </app-themed-button>
-            </mat-card-content>
-          </mat-card>
+              <!-- Owner Row -->
+              <div class="table-row owner-row">
+                <div class="table-cell user-cell">
+                  <div class="user-info">
+                    <div class="user-avatar">
+                      <img *ngIf="ownerProfile?.photoURL" [src]="ownerProfile?.photoURL" [alt]="ownerProfile?.displayName || ''" class="user-photo">
+                      <mat-icon *ngIf="!ownerProfile?.photoURL">account_circle</mat-icon>
+                    </div>
+                    <div class="user-details">
+                      <div class="user-name">{{ ownerProfile?.displayName || 'Wall Owner' }}</div>
+                      <div class="user-email">{{ ownerProfile?.email }}</div>
+                      <div class="owner-badge small">Owner</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="table-cell access-cell">
+                  <span class="access-badge owner">Full Access</span>
+                </div>
+                <div class="table-cell actions-cell">
+                  <span class="no-actions">—</span>
+                </div>
+              </div>
 
-          <!-- Department Access Section -->
-          <mat-card class="permissions-section">
-            <mat-card-header>
-              <mat-card-title>
-                <mat-icon>business</mat-icon>
-                Department Access
-              </mat-card-title>
-              <mat-card-subtitle>Grant access to entire departments</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <mat-checkbox formControlName="allowDepartmentEdit" class="department-checkbox">
-                Enable department-based editing
-              </mat-checkbox>
-              
-              @if (permissionsForm.get('allowDepartmentEdit')?.value) {
-                <mat-form-field class="department-field">
-                  <mat-label>Department</mat-label>
-                  <select matNativeControl formControlName="department">
-                    <option value="">Select Department</option>
-                    <option value="Administration">Administration</option>
-                    <option value="English">English</option>
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="Science">Science</option>
-                    <option value="Social Studies">Social Studies</option>
-                    <option value="Fine Arts">Fine Arts</option>
-                    <option value="Physical Education">Physical Education</option>
-                    <option value="Technology">Technology</option>
-                    <option value="Support Staff">Support Staff</option>
+              <!-- User Rows -->
+              <div class="table-row" *ngFor="let user of currentUsers; trackBy: trackByEmail">
+                <div class="table-cell user-cell">
+                  <div class="user-info">
+                    <div class="user-avatar">
+                      <img *ngIf="user.photoURL" [src]="user.photoURL" [alt]="user.displayName" class="user-photo">
+                      <mat-icon *ngIf="!user.photoURL">account_circle</mat-icon>
+                    </div>
+                    <div class="user-details">
+                      <div class="user-name">{{ user.displayName || user.email }}</div>
+                      <div class="user-email">{{ user.email }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="table-cell access-cell">
+                  <select class="form-select" 
+                          [(ngModel)]="user.accessLevel" 
+                          [ngModelOptions]="{standalone: true}"
+                          (change)="onAccessLevelChange(user, $any($event.target).value)">
+                    <option value="editor">Editor</option>
+                    <option value="viewer">Viewer</option>
                   </select>
-                </mat-form-field>
-                
-                <div class="department-info">
-                  <mat-icon class="info-icon">info</mat-icon>
-                  <span>All users in the selected department will have editing access to this wall.</span>
                 </div>
-              }
-            </mat-card-content>
-          </mat-card>
-
-          <!-- Access Summary -->
-          <mat-card class="permissions-section">
-            <mat-card-header>
-              <mat-card-title>
-                <mat-icon>security</mat-icon>
-                Access Summary
-              </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="access-summary">
-                <div class="summary-item">
-                  <strong>Total Editors:</strong> 
-                  {{ editorsArray.length + (permissionsForm.get('allowDepartmentEdit')?.value ? 1 : 0) }}
-                  @if (permissionsForm.get('allowDepartmentEdit')?.value) {
-                    ({{ editorsArray.length }} individual + {{ permissionsForm.get('department')?.value || 'department' }} members)
-                  }
-                </div>
-                
-                <div class="summary-item">
-                  <strong>Access Level:</strong> Edit content and manage wall items
-                </div>
-                
-                <div class="summary-item">
-                  <strong>Wall Visibility:</strong> 
-                  @if (wall.visibility.isPublished) {
-                    Published 
-                    @if (wall.visibility.requiresLogin) {
-                      (Login Required)
-                    } @else {
-                      (Public)
-                    }
-                  } @else {
-                    Draft (Only editors can view)
-                  }
+                <div class="table-cell actions-cell">
+                  <button type="button"
+                          class="remove-button"
+                          (click)="removeUser(user)"
+                          [title]="'Remove ' + (user.displayName || user.email)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
                 </div>
               </div>
-            </mat-card-content>
-          </mat-card>
+
+              <!-- Empty State -->
+              <div class="table-row empty-row" *ngIf="currentUsers.length === 0">
+                <div class="empty-state">
+                  <mat-icon>person_add</mat-icon>
+                  <p>No additional users have been added to this wall</p>
+                  <p class="empty-subtitle">Add users above to grant them access</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Access Summary Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <mat-icon>security</mat-icon>
+              <div class="section-text">
+                <h3>Access Summary</h3>
+              </div>
+            </div>
+            
+            <div class="summary-grid">
+              <div class="summary-item">
+                <div class="summary-label">Total Users</div>
+                <div class="summary-value">{{ getTotalUsersCount() }}</div>
+                <div class="summary-detail">
+                  {{ getEditorsCount() }} editor{{ getEditorsCount() !== 1 ? 's' : '' }}, 
+                  {{ getViewersCount() }} viewer{{ getViewersCount() !== 1 ? 's' : '' }}
+                </div>
+              </div>
+              
+              <div class="summary-item">
+                <div class="summary-label">Wall Visibility</div>
+                <div class="summary-value">
+                  <span *ngIf="wall.visibility.isPublished">Published</span>
+                  <span *ngIf="!wall.visibility.isPublished">Draft</span>
+                </div>
+                <div class="summary-detail">
+                  <span *ngIf="wall.visibility.isPublished && wall.visibility.requiresLogin">Login Required</span>
+                  <span *ngIf="wall.visibility.isPublished && !wall.visibility.requiresLogin">Public</span>
+                  <span *ngIf="!wall.visibility.isPublished">Only editors can view</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="access-info">
+              <div class="access-level-info">
+                <div class="access-level-item">
+                  <strong>Editor:</strong> Can add, edit, and manage wall content
+                </div>
+                <div class="access-level-item">
+                  <strong>Viewer:</strong> Can view wall content (read-only access)
+                </div>
+              </div>
+            </div>
+          </div>
 
         </form>
         
@@ -205,25 +273,190 @@ import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wa
       margin: 0 auto;
     }
 
-    .permissions-section {
+    /* Form Sections */
+    .form-section {
+      margin-bottom: 32px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .section-header mat-icon {
+      color: var(--md-sys-color-primary);
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+
+    .section-text h3 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .section-text p {
+      margin: 4px 0 0 0;
+      font-size: 0.875rem;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--md-sys-color-on-surface);
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 16px 20px;
+      border: 1px solid var(--md-sys-color-outline);
+      border-radius: 16px;
+      font-size: 16px;
+      line-height: 24px;
+      background: var(--md-sys-color-surface);
+      color: var(--md-sys-color-on-surface);
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      min-height: 56px;
+      box-sizing: border-box;
+    }
+
+    .form-input:hover, .form-select:hover {
+      border-color: var(--md-sys-color-on-surface);
+    }
+
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--md-sys-color-primary);
+      border-width: 2px;
+      box-shadow: 0 0 0 3px var(--md-sys-color-primary-container);
+      padding: 15px 19px;
+    }
+
+    .form-select {
+      appearance: none;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 16px center;
+      background-repeat: no-repeat;
+      background-size: 16px;
+      padding-right: 48px;
+    }
+
+    /* Owner Card */
+    .owner-card {
+      background: var(--md-sys-color-primary-container);
+      border: 1px solid var(--md-sys-color-primary);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    /* Add User Form */
+    .add-user-form {
+      background: var(--md-sys-color-surface-container-lowest);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: 16px;
+      padding: 20px;
       margin-bottom: 24px;
     }
 
-    .permissions-section mat-card-header {
-      margin-bottom: 16px;
+    .input-with-button {
+      display: flex;
+      gap: 16px;
+      align-items: flex-end;
     }
 
-    .permissions-section mat-card-title {
+    .input-container {
+      flex: 1;
+      position: relative;
+    }
+
+    .add-button {
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      border: none;
+      border-radius: 16px;
+      padding: 16px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
       display: flex;
       align-items: center;
       gap: 8px;
+      min-height: 56px;
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
     }
 
-    /* Owner Section */
-    .owner-info {
+    .add-button:hover:not(:disabled) {
+      background: var(--md-sys-color-primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .add-button:disabled {
+      background: var(--md-sys-color-outline);
+      color: var(--md-sys-color-on-surface-variant);
+      cursor: not-allowed;
+    }
+
+    .add-button mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    /* User Suggestions */
+    .user-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--md-sys-color-surface);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      margin-top: 4px;
+    }
+
+    .user-suggestion {
+      padding: 12px 16px;
+      cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
+      transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .user-suggestion:hover {
+      background-color: var(--md-sys-color-primary-container);
+    }
+
+    .user-suggestion:first-child {
+      border-radius: 16px 16px 0 0;
+    }
+
+    .user-suggestion:last-child {
+      border-radius: 0 0 16px 16px;
+    }
+
+    /* User Info Components */
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .user-avatar {
@@ -231,10 +464,16 @@ import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wa
       height: 48px;
       border-radius: 50%;
       background: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--md-sys-color-on-primary-container);
+      flex-shrink: 0;
+    }
+
+    .user-avatar.small {
+      width: 32px;
+      height: 32px;
     }
 
     .user-avatar mat-icon {
@@ -243,94 +482,299 @@ import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wa
       height: 32px;
     }
 
+    .user-avatar.small mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+
+    .user-photo {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .user-details {
+      flex: 1;
+      min-width: 0;
+    }
+
     .user-name {
       font-weight: 500;
-      font-size: 1.1rem;
+      font-size: 1rem;
+      color: var(--md-sys-color-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .user-email {
+      font-size: 0.875rem;
       color: var(--md-sys-color-on-surface-variant);
-      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .user-role {
-      color: var(--md-sys-color-primary);
-      font-size: 0.9rem;
+    /* Badges */
+    .owner-badge {
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+      display: inline-block;
+    }
+
+    .owner-badge.small {
+      padding: 2px 8px;
+      font-size: 0.6875rem;
+    }
+
+    .access-badge {
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 0.875rem;
       font-weight: 500;
     }
 
-    /* Editors Section */
-    .editors-list {
-      margin-bottom: 16px;
+    .access-badge.owner {
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
     }
 
-    .editor-row {
+    /* Users Table */
+    .users-table {
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .table-header {
+      display: grid;
+      grid-template-columns: 2fr 1fr 100px;
+      gap: 16px;
+      background: var(--md-sys-color-surface-container-high);
+      padding: 16px 20px;
+    }
+
+    .header-cell {
+      font-weight: 600;
+      font-size: 0.75rem;
+      color: var(--md-sys-color-on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .table-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 100px;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+      transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .table-row:last-child {
+      border-bottom: none;
+    }
+
+    .table-row:hover {
+      background: var(--md-sys-color-surface-container-lowest);
+    }
+
+    .owner-row {
+      background: var(--md-sys-color-primary-container);
+    }
+
+    .owner-row:hover {
+      background: var(--md-sys-color-primary-container);
+    }
+
+    .table-cell {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 16px;
     }
 
-    .editor-email-field {
-      flex: 1;
+    .actions-cell {
+      justify-content: center;
     }
 
-    /* Department Section */
-    .department-checkbox {
-      margin-bottom: 16px;
-    }
-
-    .department-field {
-      width: 100%;
-      margin-bottom: 16px;
-    }
-
-    .department-info {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 12px;
-      background: var(--md-sys-color-primary-container);
-      color: var(--md-sys-color-on-primary-container);
+    .remove-button {
+      background: none;
+      border: none;
+      color: var(--md-sys-color-error);
+      cursor: pointer;
+      padding: 8px;
       border-radius: 8px;
-      font-size: 0.9rem;
+      transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
     }
 
-    .info-icon {
+    .remove-button:hover {
+      background: var(--md-sys-color-error-container);
+    }
+
+    .remove-button mat-icon {
       font-size: 18px;
       width: 18px;
       height: 18px;
-      margin-top: 2px;
     }
 
-    /* Access Summary */
-    .access-summary {
+    .no-actions {
+      color: var(--md-sys-color-outline);
+      font-size: 1.2rem;
+    }
+
+    /* Empty State */
+    .empty-row {
+      grid-column: 1 / -1;
+      border-bottom: none;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .empty-state mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      opacity: 0.6;
+    }
+
+    .empty-state p {
+      margin: 8px 0;
+      font-size: 1rem;
+    }
+
+    .empty-subtitle {
+      font-size: 0.875rem;
+      opacity: 0.8;
+    }
+
+    /* Summary Grid */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .summary-item {
+      background: var(--md-sys-color-surface-container-lowest);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .summary-label {
+      font-size: 0.875rem;
+      color: var(--md-sys-color-on-surface-variant);
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--md-sys-color-on-surface);
+      margin-bottom: 4px;
+    }
+
+    .summary-detail {
+      font-size: 0.75rem;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    /* Access Info */
+    .access-info {
+      background: var(--md-sys-color-surface-container-lowest);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .access-level-info {
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
-    .summary-item {
-      padding: 8px 0;
-      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    .access-level-item {
+      font-size: 0.875rem;
+      color: var(--md-sys-color-on-surface-variant);
     }
 
-    .summary-item:last-child {
-      border-bottom: none;
+    .access-level-item strong {
+      color: var(--md-sys-color-on-surface);
     }
 
-    /* Responsive design */
+    /* Responsive Design */
     @media (max-width: 768px) {
-      .editor-row {
+      .permissions-form {
+        max-width: 100%;
+        margin: 0;
+        padding: 0 16px;
+      }
+
+      .input-with-button {
         flex-direction: column;
         align-items: stretch;
-        gap: 8px;
       }
-      
-      .owner-info {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
+
+      .add-button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .table-header,
+      .table-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+
+      .header-cell {
+        display: none;
+      }
+
+      .table-cell {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--md-sys-color-outline-variant);
+      }
+
+      .table-cell:last-child {
+        border-bottom: none;
+      }
+
+      .actions-cell {
+        justify-content: flex-start;
+        padding-top: 12px;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+      }
+
+      .user-avatar mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
       }
     }
   `]
@@ -340,20 +784,37 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   
   wall$!: Observable<Wall>;
   permissionsForm!: FormGroup;
-  ownerProfile: UserProfile | null = null;
+  ownerProfile: WallUser | null = null;
   saving = false;
+  filteredUsers: WallUser[] = [];
+  currentUsers: WallUser[] = [];
+  newUserEmail: string = '';
+  showAddUserSuggestions: boolean = false;
+  currentUserEmail: string | null = null;
+  allUsers: WallUserEntity[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private wallService: WallService,
     private fb: FormBuilder,
-    private confirmationDialog: ConfirmationDialogService
+    private confirmationDialog: ConfirmationDialogService,
+    private authService: AuthService,
+    private userService: UserService
   ) {
     this.initializeForm();
+    this.currentUserEmail = this.authService.currentUser?.email || null;
   }
 
   ngOnInit() {
+    // Load all users first
+    this.userService.getAllUsers().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(users => {
+      this.allUsers = users;
+      this.updateFilteredUsers();
+    });
+
     this.wall$ = this.route.paramMap.pipe(
       switchMap(params => {
         const wallId = params.get('id')!;
@@ -376,49 +837,70 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
 
   private initializeForm() {
     this.permissionsForm = this.fb.group({
-      editors: this.fb.array([]),
-      department: [''],
-      allowDepartmentEdit: [false]
+      // We don't need form arrays anymore, just keep the form for consistency
     });
   }
 
   private loadWallPermissions(wall: Wall) {
-    const editorsArray = this.editorsArray;
+    // Clear existing users
+    this.currentUsers = [];
     
-    // Clear existing editors
-    editorsArray.clear();
-    
-    // Add current editors
+    // Load current editors from wall permissions
     wall.permissions.editors.forEach(email => {
-      editorsArray.push(this.fb.group({
-        email: [email, [Validators.required, Validators.email]]
-      }));
-    });
-
-    // If no editors, add empty one
-    if (editorsArray.length === 0) {
-      this.addEditor();
-    }
-
-    // Set department settings
-    this.permissionsForm.patchValue({
-      department: wall.permissions.department || '',
-      allowDepartmentEdit: wall.permissions.allowDepartmentEdit
+      const userEntity = this.allUsers.find(u => u.email === email);
+      if (userEntity) {
+        this.currentUsers.push({
+          uid: userEntity.id,
+          email: userEntity.email,
+          displayName: userEntity.displayName || `${userEntity.firstName} ${userEntity.lastName}`,
+          photoURL: userEntity.profilePicture,
+          accessLevel: 'editor' // Default to editor for existing permissions
+        });
+      } else {
+        // Create a basic profile for users not in our database
+        this.currentUsers.push({
+          uid: email,
+          email: email,
+          displayName: this.extractDisplayName(email),
+          accessLevel: 'editor'
+        });
+      }
     });
   }
 
   private loadOwnerProfile(ownerId: string) {
-    // For now, create a simple mock profile
-    // TODO: Implement actual user profile lookup
-    this.ownerProfile = {
-      uid: ownerId,
-      email: ownerId,
-      displayName: this.extractDisplayName(ownerId),
-      department: 'Unknown',
-      role: 'user',
-      createdAt: new Date(),
-      lastLoginAt: new Date()
-    };
+    // First try to find the owner in the user database by UID
+    const ownerEntity = this.allUsers.find(u => u.id === ownerId);
+    
+    if (ownerEntity) {
+      this.ownerProfile = {
+        uid: ownerEntity.id,
+        email: ownerEntity.email,
+        displayName: ownerEntity.displayName || `${ownerEntity.firstName} ${ownerEntity.lastName}`,
+        photoURL: ownerEntity.profilePicture,
+        accessLevel: 'editor' // Owners are always editors
+      };
+    } else {
+      // If not found in database, check if current user is the owner
+      const currentUser = this.authService.currentUser;
+      if (currentUser && currentUser.uid === ownerId) {
+        this.ownerProfile = {
+          uid: currentUser.uid,
+          email: currentUser.email || '',
+          displayName: currentUser.displayName || this.extractDisplayName(currentUser.email || ''),
+          photoURL: currentUser.photoURL || undefined,
+          accessLevel: 'editor'
+        };
+      } else {
+        // Fallback: create a basic profile
+        this.ownerProfile = {
+          uid: ownerId,
+          email: 'Unknown User',
+          displayName: 'Unknown User',
+          accessLevel: 'editor'
+        };
+      }
+    }
   }
 
   private extractDisplayName(email: string): string {
@@ -429,18 +911,127 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
       .join(' ');
   }
 
-  get editorsArray(): FormArray {
-    return this.permissionsForm.get('editors') as FormArray;
+  // Handle new user input with filtering
+  onNewUserInput(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const value = target.value;
+    this.updateFilteredUsers(value);
   }
 
-  addEditor() {
-    this.editorsArray.push(this.fb.group({
-      email: ['', [Validators.required, Validators.email]]
+  private updateFilteredUsers(searchTerm: string = ''): void {
+    const availableUsers = this.allUsers.map(user => ({
+      uid: user.id,
+      email: user.email,
+      displayName: user.displayName || `${user.firstName} ${user.lastName}`,
+      photoURL: user.profilePicture,
+      accessLevel: 'editor' as 'editor' | 'viewer'
     }));
+
+    if (searchTerm.length > 0) {
+      this.filteredUsers = availableUsers.filter(user => 
+        !this.isUserAlreadyAdded(user) &&
+        user.email !== this.currentUserEmail &&
+        (user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.displayName.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    } else {
+      this.filteredUsers = availableUsers.filter(user => 
+        !this.isUserAlreadyAdded(user) && user.email !== this.currentUserEmail
+      );
+    }
   }
 
-  removeEditor(index: number) {
-    this.editorsArray.removeAt(index);
+  // Hide add user suggestions
+  hideAddUserSuggestions(): void {
+    setTimeout(() => {
+      this.showAddUserSuggestions = false;
+    }, 200); // Delay to allow for selection
+  }
+
+  // Select a new user from suggestions
+  selectNewUser(user: WallUser): void {
+    this.newUserEmail = user.email;
+    this.showAddUserSuggestions = false;
+  }
+
+  // Check if user is already added
+  private isUserAlreadyAdded(user: WallUser): boolean {
+    return this.currentUsers.some(u => u.email === user.email) ||
+           user.email === this.currentUserEmail;
+  }
+
+  // Validate email format
+  isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  // Add new user to the table
+  addUser(): void {
+    if (!this.newUserEmail || !this.isValidEmail(this.newUserEmail)) {
+      return;
+    }
+
+    if (this.newUserEmail === this.currentUserEmail) {
+      alert('You cannot add yourself as an editor');
+      return;
+    }
+
+    if (this.isUserAlreadyAdded({ email: this.newUserEmail } as WallUser)) {
+      alert('This user is already added');
+      return;
+    }
+
+    const userEntity = this.allUsers.find(u => u.email === this.newUserEmail);
+    const newUser: WallUser = userEntity ? {
+      uid: userEntity.id,
+      email: userEntity.email,
+      displayName: userEntity.displayName || `${userEntity.firstName} ${userEntity.lastName}`,
+      photoURL: userEntity.profilePicture,
+      accessLevel: 'editor'
+    } : {
+      uid: this.newUserEmail,
+      email: this.newUserEmail,
+      displayName: this.extractDisplayName(this.newUserEmail),
+      accessLevel: 'editor'
+    };
+
+    this.currentUsers.push(newUser);
+    this.newUserEmail = '';
+    this.filteredUsers = [];
+  }
+
+  // Remove user from table
+  removeUser(user: WallUser): void {
+    const index = this.currentUsers.findIndex(u => u.email === user.email);
+    if (index > -1) {
+      this.currentUsers.splice(index, 1);
+    }
+  }
+
+  // Handle access level change
+  onAccessLevelChange(user: WallUser, newLevel: 'editor' | 'viewer'): void {
+    user.accessLevel = newLevel;
+  }
+
+  // Get total users count
+  getTotalUsersCount(): number {
+    return this.currentUsers.length + 1; // +1 for owner
+  }
+
+  // Get editors count
+  getEditorsCount(): number {
+    return this.currentUsers.filter(u => u.accessLevel === 'editor').length + 1; // +1 for owner
+  }
+
+  // Get viewers count
+  getViewersCount(): number {
+    return this.currentUsers.filter(u => u.accessLevel === 'viewer').length;
+  }
+
+  // Track by function for ngFor
+  trackByEmail(index: number, user: any): string {
+    return user.email;
   }
 
   getPageActions(): PageAction[] {
@@ -461,22 +1052,19 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   }
 
   savePermissions() {
-    if (!this.permissionsForm.valid) {
-      alert('Please fix validation errors before saving');
-      return;
-    }
-
     this.saving = true;
     
-    const formValue = this.permissionsForm.value;
     const wallId = this.route.snapshot.paramMap.get('id')!;
     
+    // Only include editors in the permissions (viewers will be handled differently in the future)
+    const editors = this.currentUsers
+      .filter(user => user.accessLevel === 'editor')
+      .map(user => user.email);
+    
     const updatedPermissions: Partial<WallPermissions> = {
-      editors: formValue.editors
-        .map((editor: any) => editor.email)
-        .filter((email: string) => email.trim() !== ''),
-      department: formValue.allowDepartmentEdit ? formValue.department : undefined,
-      allowDepartmentEdit: formValue.allowDepartmentEdit
+      editors: editors,
+      allowDepartmentEdit: false,
+      department: undefined
     };
 
     this.wallService.updateWallPermissions(wallId, updatedPermissions).subscribe({

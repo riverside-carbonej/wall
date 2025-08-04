@@ -12,6 +12,7 @@ import { WallService } from './features/walls/services/wall.service';
 import { Wall, WallTheme } from './shared/models/wall.model';
 import { NavigationService } from './shared/services/navigation.service';
 import { NavigationMenuComponent } from './shared/components/navigation-menu/navigation-menu.component';
+import { InactivityService } from './shared/services/inactivity.service';
 
 @Component({
   selector: 'app-root',
@@ -49,24 +50,20 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
             <a *ngIf="!currentWall()" routerLink="/" class="logo-link interactive focusable">
               <div class="logo-container">
                 <img src="assets/images/beaver-logo.png" alt="Riverside Schools Logo" class="logo-icon">
-                <span class="logo-text title-large">Riverside Wall</span>
+                <span class="logo-text title-large">Riverside Walls</span>
               </div>
             </a>
 
             <!-- Wall navigation (when viewing a wall) -->
             <div *ngIf="currentWall()" class="wall-nav">
                 <img 
-                  [src]="currentWall()?.logoUrl || 'assets/images/beaver-logo.png'" 
+                  [src]="currentWall()?.organizationLogoUrl || 'assets/images/beaver-logo.png'" 
                   [alt]="currentWall()?.name + ' Logo' || 'Wall Logo'" 
                   class="wall-logo-icon">
               <div class="wall-info">
                 <h1 class="wall-title" [style.color]="currentWall()?.theme?.titleColor">
                   {{ currentWall()?.name }}
                 </h1>
-                <span class="wall-breadcrumb" *ngIf="isWallEdit()">
-                  <span class="material-icons md-16">chevron_right</span>
-                  Edit
-                </span>
               </div>
             </div>
           </div>
@@ -117,6 +114,16 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
               </span>
             </button>
 
+
+            <!-- Share button for published walls -->
+            <button 
+              *ngIf="currentWall() && currentWall()?.visibility?.isPublished"
+              class="header-action-button touch-target interactive focusable"
+              (click)="shareWall()"
+              title="Share wall link"
+              aria-label="Share wall link">
+              <span class="material-icons md-24">share</span>
+            </button>
 
             <!-- User profile with enhanced presentation -->
             <div class="profile-section">
@@ -221,6 +228,7 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
       padding: var(--md-sys-spacing-4) var(--md-sys-spacing-6);
       min-height: 80px;
       gap: var(--md-sys-spacing-4);
+      position: relative;
     }
 
     /* Mobile-first logo section */
@@ -228,6 +236,20 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
       display: flex;
       align-items: center;
       flex-shrink: 0;
+      min-width: 0;
+      max-width: 60%;
+      position: relative;
+    }
+
+    /* Separate container for content that should overflow (like button hover) */
+    .header-start .menu-toggle-button {
+      flex-shrink: 0;
+    }
+
+    /* Container for content that should be clipped (logo/text) */
+    .header-start > :not(.menu-toggle-button) {
+      overflow: hidden;
+      min-width: 0;
     }
 
     .logo-link {
@@ -260,17 +282,19 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
     .wall-nav {
       display: flex;
       align-items: center;
-      gap: var(--md-sys-spacing-md);
+      gap: 0.5em;
       flex: 1;
       min-width: 0;
-      gap: 0.5em;
+      overflow: hidden;
     }
 
     .wall-logo-icon {
-      width: 40px;
-      height: 40px;
+      max-width: 40px;
+      max-height: 40px;
+      width: auto;
+      height: auto;
       border-radius: var(--md-sys-shape-corner-small);
-      object-fit: cover;
+      object-fit: contain;
     }
 
     .back-button {
@@ -283,6 +307,7 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
       gap: var(--md-sys-spacing-sm);
       min-width: 0;
       flex: 1;
+      overflow: hidden;
     }
 
     .wall-title {
@@ -299,30 +324,26 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
       min-width: 0;
     }
 
-    .wall-breadcrumb {
-      display: flex;
-      align-items: center;
-      gap: var(--md-sys-spacing-xs);
-      color: var(--md-sys-color-on-surface-variant);
-      font-family: var(--md-sys-typescale-body-medium-font-family);
-      font-size: var(--md-sys-typescale-body-medium-font-size);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
     @media (max-width: 768px) {
-      
-      .wall-breadcrumb {
-        display: none;
+      .wall-title {
+        font-size: 1.25rem;
+      }
+
+      .header-start {
+        max-width: 50%;
       }
     }
 
-    /* Adaptive search section */
+    /* Adaptive search section - centered to viewport */
     .header-center {
-      flex: 1;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
       max-width: 600px;
-      margin: 0 var(--md-sys-spacing-4);
+      width: 40%;
+      min-width: 300px;
       transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 1;
     }
 
     .search-container {
@@ -345,7 +366,7 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
 
     .search-input {
       width: 100%;
-      height: var(--md-sys-touch-target-min);
+      height: 64px;
       border: 1px solid var(--md-sys-color-outline);
       border-radius: var(--md-sys-shape-corner-extra-large);
       padding: 0 var(--md-sys-spacing-12) 0 var(--md-sys-spacing-12);
@@ -503,12 +524,24 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
       border-radius: 50%;
       color: var(--md-sys-color-on-surface);
       transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-      margin-right: var(--md-sys-spacing-2);
+      margin: 4px 8px 4px 4px;
+      padding: 8px;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: visible;
     }
 
     .menu-toggle-button:hover {
       background-color: var(--md-sys-color-primary-container);
       transform: scale(1.05);
+    }
+
+    .menu-toggle-button:active {
+      transform: scale(0.95);
     }
 
 
@@ -546,6 +579,21 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
       }
     }
 
+    /* Adjust search width on medium screens to avoid overlap */
+    @media (max-width: 1200px) {
+      .header-center {
+        width: 35%;
+        min-width: 250px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .header-center {
+        width: 30%;
+        min-width: 200px;
+      }
+    }
+
     @media (max-width: 480px) {
       .header-content {
         padding: var(--md-sys-spacing-3) var(--md-sys-spacing-3);
@@ -558,8 +606,10 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
       }
 
       .wall-logo-icon {
-        width: 32px;
-        height: 32px;
+        max-width: 32px;
+        max-height: 32px;
+        width: auto;
+        height: auto;
       }
 
     }
@@ -626,6 +676,7 @@ export class App implements OnInit {
   private router = inject(Router);
   private wallService = inject(WallService);
   public navigationService = inject(NavigationService);
+  private inactivityService = inject(InactivityService);
   protected currentTheme = signal(this.themeService.getCurrentThemeSync());
   
   // Route-aware navigation
@@ -679,28 +730,45 @@ export class App implements OnInit {
       switchMap((event: NavigationEnd) => {
         this.currentRoute.set(event.url);
         
-        // Check if we're on a wall route
-        const wallMatch = event.url.match(/\/walls\/([^\/]+)/);
-        if (wallMatch && wallMatch[1] !== 'new') {
+        // Check if we're on a specific wall route (not just /walls or /walls/*)
+        const wallMatch = event.url.match(/\/walls\/([^\/\?]+)/);
+        const excludedRoutes = ['new', 'create', 'recycle'];
+        
+        // Only treat as wall route if we have a wall ID that's not in excluded routes
+        const isWallRoute = wallMatch && 
+          wallMatch[1] && 
+          wallMatch[1].length > 0 && 
+          !excludedRoutes.includes(wallMatch[1]);
+        
+        if (isWallRoute) {
           const wallId = wallMatch[1];
           return this.wallService.getWallById(wallId);
         } else {
+          // We're NOT on a specific wall route (could be /walls, /walls/create, etc.)
           this.currentWall.set(null);
           // Clear wall theme when leaving wall context
           this.themeService.clearWallTheme();
+          // Stop inactivity monitoring when leaving wall
+          this.inactivityService.stopMonitoring();
           return of(null);
         }
       })
     ).subscribe(wall => {
       if (wall) {
         this.currentWall.set(wall);
-        // Apply wall theme (use default if none exists)
+        // Apply wall theme (automatically clears previous theme first)
         const wallTheme = wall.theme || this.themeService.generateDefaultWallTheme();
         this.themeService.applyWallTheme(wallTheme);
         // Update navigation context
         this.navigationService.updateWallContext(wall, true, true); // TODO: Get real permissions
+        
+        // Start inactivity monitoring for this wall
+        const timeoutMinutes = wall.settings?.inactivityTimeout || 5;
+        this.inactivityService.startMonitoring(wall.id, timeoutMinutes);
       } else {
         this.navigationService.clearWallContext();
+        // Stop inactivity monitoring when no wall
+        this.inactivityService.stopMonitoring();
       }
     });
 
@@ -725,9 +793,45 @@ export class App implements OnInit {
     this.router.navigate(['/walls']);
   }
 
-  isWallEdit(): boolean {
-    return this.currentRoute().includes('/edit');
+  // Share wall functionality
+  shareWall(): void {
+    const wall = this.currentWall();
+    if (!wall || !wall.visibility?.isPublished) {
+      return;
+    }
+
+    // Generate the share URL
+    const baseUrl = window.location.origin;
+    const shareUrl = `${baseUrl}/walls/${wall.id}`;
+    
+    // Try to use the Web Share API if available (mobile devices)
+    if (navigator.share) {
+      navigator.share({
+        title: wall.name,
+        text: `Check out ${wall.name} on Riverside Walls`,
+        url: shareUrl
+      }).catch(error => {
+        console.error('Error sharing:', error);
+        this.fallbackShare(shareUrl);
+      });
+    } else {
+      // Fallback to clipboard copy
+      this.fallbackShare(shareUrl);
+    }
   }
+
+  private fallbackShare(url: string): void {
+    // Copy to clipboard
+    navigator.clipboard.writeText(url).then(() => {
+      // Show a simple notification (you could replace this with a proper toast notification)
+      alert('Wall link copied to clipboard!');
+    }).catch(error => {
+      console.error('Failed to copy to clipboard:', error);
+      // Fallback: show the URL in a prompt
+      prompt('Copy this link to share the wall:', url);
+    });
+  }
+
 
   getSearchPlaceholder(): string {
     if (this.currentWall()) {
