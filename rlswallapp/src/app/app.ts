@@ -7,7 +7,7 @@ import { filter, switchMap, map } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeService } from './shared/services/theme.service';
-import { UserAvatarComponent } from './shared/components/user-avatar.component';
+import { UserAccountMenuComponent } from './shared/components/user-account-menu/user-account-menu.component';
 import { WallService } from './features/walls/services/wall.service';
 import { Wall, WallTheme } from './shared/models/wall.model';
 import { NavigationService } from './shared/services/navigation.service';
@@ -16,7 +16,7 @@ import { InactivityService } from './shared/services/inactivity.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterModule, CommonModule, FormsModule, UserAvatarComponent, NavigationMenuComponent],
+  imports: [RouterOutlet, RouterModule, CommonModule, FormsModule, UserAccountMenuComponent, NavigationMenuComponent],
   animations: [
     trigger('slideDown', [
       transition(':enter', [
@@ -127,11 +127,7 @@ import { InactivityService } from './shared/services/inactivity.service';
 
             <!-- User profile with enhanced presentation -->
             <div class="profile-section">
-              <app-user-avatar 
-                [size]="40" 
-                [clickable]="true"
-                class="interactive">
-              </app-user-avatar>
+              <app-user-account-menu></app-user-account-menu>
             </div>
           </div>
         </div>

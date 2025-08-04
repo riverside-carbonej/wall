@@ -107,14 +107,14 @@ interface WallUser {
                       type="email" 
                       [(ngModel)]="newUserEmail"
                       [ngModelOptions]="{standalone: true}"
-                      placeholder="user@riversideschools.net"
+                      placeholder="Enter complete email address (e.g., user@riversideschools.net)"
                       class="form-input"
                       (input)="onNewUserInput($event)"
                       (focus)="showAddUserSuggestions = true"
                       (blur)="hideAddUserSuggestions()">
                     
                     <!-- User Suggestions Dropdown -->
-                    <div class="user-suggestions" *ngIf="showAddUserSuggestions && filteredUsers.length > 0">
+                    <div class="user-suggestions" *ngIf="showAddUserSuggestions">
                       <div class="user-suggestion" 
                            *ngFor="let user of filteredUsers; trackBy: trackByEmail"
                            (mousedown)="selectNewUser(user)">
@@ -126,6 +126,17 @@ interface WallUser {
                           <div class="user-name">{{ user.displayName || user.email }}</div>
                           <div class="user-email">{{ user.email }}</div>
                         </div>
+                      </div>
+                      
+                      <div class="no-suggestions" *ngIf="filteredUsers.length === 0 && newUserEmail.length > 0">
+                        <mat-icon>info</mat-icon>
+                        <span *ngIf="!isValidEmail(newUserEmail)">Please enter a valid email address</span>
+                        <span *ngIf="isValidEmail(newUserEmail)">Email ready to add - click "Add User" button</span>
+                      </div>
+                      
+                      <div class="no-suggestions" *ngIf="filteredUsers.length === 0 && newUserEmail.length === 0">
+                        <mat-icon>person_search</mat-icon>
+                        <span>Enter the complete email address of the user you want to add</span>
                       </div>
                     </div>
                   </div>
@@ -450,6 +461,24 @@ interface WallUser {
 
     .user-suggestion:last-child {
       border-radius: 0 0 16px 16px;
+    }
+
+    .no-suggestions {
+      padding: 16px;
+      text-align: center;
+      color: var(--md-sys-color-on-surface-variant);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.875rem;
+      background: var(--md-sys-color-surface-container-lowest);
+      border-radius: 12px;
+      margin: 4px;
+    }
+
+    .no-suggestions mat-icon {
+      color: var(--md-sys-color-primary);
     }
 
     /* User Info Components */
@@ -807,7 +836,7 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Load all users - Firebase Security Rules will restrict what can be read
+    // Load initial users (this will likely be empty since users are in Firebase Auth, not Firestore)
     this.userService.getAllUsers().pipe(
       takeUntil(this.destroy$)
     ).subscribe(users => {
@@ -915,7 +944,7 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   onNewUserInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     const value = target.value;
-    this.showAddUserSuggestions = true; // Ensure suggestions are shown when typing
+    this.showAddUserSuggestions = value.length > 0; // Only show when there's text
     this.updateFilteredUsers(value);
   }
 

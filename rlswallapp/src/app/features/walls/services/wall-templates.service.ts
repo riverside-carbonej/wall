@@ -120,29 +120,18 @@ export class WallTemplatesService {
   private getVeteransObjectTypes(): WallObjectType[] {
     const veteranFields: FieldDefinition[] = [
       {
-        id: 'firstName',
-        name: 'First Name',
+        id: 'name',
+        name: 'Name',
         type: 'text',
         required: true,
-        placeholder: 'Enter first name'
-      },
-      {
-        id: 'lastName',
-        name: 'Last Name',
-        type: 'text',  
-        required: true,
-        placeholder: 'Enter last name'
+        placeholder: 'Enter full name'
       },
       {
         id: 'graduationYear',
         name: 'Graduation Year',
         type: 'number',
         required: false,
-        placeholder: 'Year of graduation',
-        validation: {
-          minLength: 4,
-          maxLength: 4
-        }
+        placeholder: 'Year of graduation (e.g., 2010)'
       },
       {
         id: 'rank',
@@ -193,17 +182,6 @@ export class WallTemplatesService {
         type: 'richtext',
         required: false,
         placeholder: 'Share your service story and experiences'
-      },
-      {
-        id: 'photos',
-        name: 'Photos',
-        type: 'file',
-        required: false,
-        fileConfig: {
-          allowedTypes: ['image/*'],
-          maxSize: 10,
-          multiple: true
-        }
       }
     ];
 
@@ -242,20 +220,6 @@ export class WallTemplatesService {
         type: 'longtext',
         required: false,
         placeholder: 'Describe the deployment mission'
-      },
-      {
-        id: 'positionX',
-        name: 'Map Position X',
-        type: 'number',
-        required: false,
-        placeholder: 'X coordinate on world map'
-      },
-      {
-        id: 'positionY',
-        name: 'Map Position Y',
-        type: 'number',
-        required: false,
-        placeholder: 'Y coordinate on world map'
       }
     ];
 
@@ -298,9 +262,9 @@ export class WallTemplatesService {
         fields: veteranFields,
         relationships: [],
         displaySettings: {
-          primaryField: 'firstName',
-          secondaryField: 'lastName',
-          imageField: 'photos',
+          primaryField: 'name',
+          secondaryField: 'rank',
+          tertiaryField: 'graduationYear',
           showOnMap: false,
           cardLayout: 'detailed' as 'compact' | 'detailed' | 'timeline'
         },

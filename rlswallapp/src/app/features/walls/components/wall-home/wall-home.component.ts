@@ -1,11 +1,12 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { Observable, Subject, takeUntil, combineLatest } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, Subject, takeUntil, combineLatest, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { WallService } from '../../services/wall.service';
 import { WallItemService } from '../../../wall-items/services/wall-item.service';
 import { NavigationService } from '../../../../shared/services/navigation.service';
+import { WallPermissionsService } from '../../../../core/services/wall-permissions.service';
 import { Wall, WallItem, WallObjectType } from '../../../../shared/models/wall.model';
 import { WallItemsGridComponent } from '../../../wall-items/components/wall-items-grid/wall-items-grid.component';
 
@@ -172,6 +173,7 @@ export class WallHomeComponent implements OnInit, OnDestroy {
     private wallService: WallService,
     private wallItemService: WallItemService,
     private navigationService: NavigationService,
+    private wallPermissionsService: WallPermissionsService,
     private elementRef: ElementRef,
     private cdr: ChangeDetectorRef
   ) {}
@@ -196,13 +198,28 @@ export class WallHomeComponent implements OnInit, OnDestroy {
 
     // Update navigation context when data is available - but debounce to prevent flashing
     setTimeout(() => {
-      combineLatest([this.wall$, this.wallItems$]).subscribe(([wall, items]) => {
-        if (wall) {
-          // TODO: Get actual user permissions from auth service
-          const canEdit = true; // Placeholder
-          const canAdmin = true; // Placeholder
-          const itemCount = items?.length || 0;
-          this.navigationService.updateWallContext(wall, canEdit, canAdmin, itemCount);
+      combineLatest([this.wall$, this.wallItems$]).pipe(
+        switchMap(([wall, items]) => {
+          if (!wall) {
+            return of([null, false, false, 0]);
+          }
+          
+          return combineLatest([
+            of(wall),
+            this.wallPermissionsService.canEditWall(wall),
+            this.wallPermissionsService.isWallOwner(wall),
+            of(items?.length || 0)
+          ]);
+        })
+      ).subscribe((result) => {
+        const [wall, canEdit, canAdmin, itemCount] = result;
+        if (wall && typeof wall === 'object' && 'id' in wall) {
+          this.navigationService.updateWallContext(
+            wall, 
+            typeof canEdit === 'boolean' ? canEdit : false, 
+            typeof canAdmin === 'boolean' ? canAdmin : false, 
+            typeof itemCount === 'number' ? itemCount : 0
+          );
         }
       });
     }, 100); // Small delay to allow navigation to settle

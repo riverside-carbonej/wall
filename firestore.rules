@@ -20,44 +20,23 @@ service cloud.firestore {
       allow read: if request.auth != null && 
         // Wall must not be soft deleted
         (!('deletedAt' in resource.data) || resource.data.deletedAt == null) && (
-          // Owner access (new permissions format)
+          // Owner access
           ('permissions' in resource.data && 
            'owner' in resource.data.permissions && 
            resource.data.permissions.owner == request.auth.uid) ||
           
-          // Editor access (new permissions format)
+          // Editor access
           ('permissions' in resource.data && 
            'editors' in resource.data.permissions && 
            resource.data.permissions.editors != null && 
            request.auth.uid in resource.data.permissions.editors) ||
           
-          // Legacy owner check (email)
-          ('ownerId' in resource.data && 
-           resource.data.ownerId == request.auth.token.email) ||
-          
-          // Legacy owner check (uid)
-          ('ownerId' in resource.data && 
-           resource.data.ownerId == request.auth.uid) ||
-          
-          // Legacy shared access (email)
-          ('sharedWith' in resource.data && 
-           resource.data.sharedWith != null && 
-           request.auth.token.email in resource.data.sharedWith) ||
-          
-          // Legacy shared access (uid)
-          ('sharedWith' in resource.data && 
-           resource.data.sharedWith != null && 
-           request.auth.uid in resource.data.sharedWith) ||
-          
-          // Public access (new format)
+          // Public access
           ('visibility' in resource.data && 
            'isPublished' in resource.data.visibility && 
            resource.data.visibility.isPublished == true && 
            'requiresLogin' in resource.data.visibility && 
-           resource.data.visibility.requiresLogin == false) ||
-          
-          // Legacy public access
-          ('isPublic' in resource.data && resource.data.isPublic == true)
+           resource.data.visibility.requiresLogin == false)
         );
       
       // Allow create for authenticated users
@@ -69,83 +48,75 @@ service cloud.firestore {
       
       // Allow update only for owners and editors
       allow update: if request.auth != null && (
-        // Owner access (new permissions format)
+        // Owner access
         ('permissions' in resource.data && 
          'owner' in resource.data.permissions && 
          resource.data.permissions.owner == request.auth.uid) ||
         
-        // Editor access (new permissions format) - but can't change ownership
+        // Editor access - but can't change ownership
         ('permissions' in resource.data && 
          'editors' in resource.data.permissions && 
          resource.data.permissions.editors != null && 
          request.auth.uid in resource.data.permissions.editors &&
          // Ensure editors can't change ownership
-         request.resource.data.permissions.owner == resource.data.permissions.owner) ||
-        
-        // Legacy owner check (email)
-        ('ownerId' in resource.data && 
-         resource.data.ownerId == request.auth.token.email) ||
-        
-        // Legacy owner check (uid)
-        ('ownerId' in resource.data && 
-         resource.data.ownerId == request.auth.uid)
+         request.resource.data.permissions.owner == resource.data.permissions.owner)
       );
       
       // Allow delete only for owners
-      allow delete: if request.auth != null && (
-        // Owner access (new permissions format)
+      allow delete: if request.auth != null && 
+        // Owner access only
         ('permissions' in resource.data && 
          'owner' in resource.data.permissions && 
-         resource.data.permissions.owner == request.auth.uid) ||
-        
-        // Legacy owner check
-        ('ownerId' in resource.data && 
-         (resource.data.ownerId == request.auth.token.email || 
-          resource.data.ownerId == request.auth.uid))
-      );
+         resource.data.permissions.owner == request.auth.uid);
     }
     
     // Wall items collection
     match /wall-items/{itemId} {
-      // Allow read if user can access the parent wall
+      // Allow read only if user has access to the parent wall
       allow read: if request.auth != null &&
-        // Must check wall access through a function or ensure wallId is accessible
-        exists(/databases/$(database)/documents/walls/$(resource.data.wallId));
+        // Get the parent wall and check permissions
+        (get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.owner == request.auth.uid ||
+         ('editors' in get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions &&
+          get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.editors != null &&
+          request.auth.uid in get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.editors));
       
-      // Allow write if user can edit the parent wall
+      // Allow write only if user can edit the parent wall
       allow write: if request.auth != null &&
-        // Must have edit access to the parent wall
-        exists(/databases/$(database)/documents/walls/$(resource.data.wallId));
+        // Get the parent wall and check edit permissions
+        (get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.owner == request.auth.uid ||
+         ('editors' in get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions &&
+          get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.editors != null &&
+          request.auth.uid in get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.editors));
     }
     
     // User invites collection
     match /user_invites/{inviteId} {
-      // Allow read if user is the invitee or has access to the wall
+      // Allow read if user is the invitee or has owner access to the wall
       allow read: if request.auth != null && (
         request.auth.token.email == resource.data.email ||
-        exists(/databases/$(database)/documents/walls/$(resource.data.wallId))
+        get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.owner == request.auth.uid
       );
       
-      // Allow create if user has admin access to the wall
+      // Allow create if user is the owner of the wall
       allow create: if request.auth != null &&
-        exists(/databases/$(database)/documents/walls/$(request.resource.data.wallId));
+        get(/databases/$(database)/documents/walls/$(request.resource.data.wallId)).data.permissions.owner == request.auth.uid;
       
-      // Allow update for accepting invites or wall admins
+      // Allow update for accepting invites or wall owners
       allow update: if request.auth != null && (
         request.auth.token.email == resource.data.email ||
-        exists(/databases/$(database)/documents/walls/$(resource.data.wallId))
+        get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.owner == request.auth.uid
       );
     }
     
     // Wall roles collection
     match /wall_roles/{roleId} {
-      // Allow read if user has access to the parent wall
+      // Allow read if user is the owner of the parent wall
       allow read: if request.auth != null &&
-        exists(/databases/$(database)/documents/walls/$(resource.data.wallId));
+        get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.owner == request.auth.uid;
       
-      // Allow write if user has admin access to the parent wall
+      // Allow write if user is the owner of the parent wall
       allow write: if request.auth != null &&
-        exists(/databases/$(database)/documents/walls/$(resource.data.wallId));
+        get(/databases/$(database)/documents/walls/$(resource.data.wallId)).data.permissions.owner == request.auth.uid;
     }
     
     // Default deny all other collections

@@ -325,7 +325,9 @@ export class LoginComponent {
       next: (user) => {
         console.log('Login successful:', user.email);
         this.loading = false;
-        this.router.navigate(['/walls']);
+        this.router.navigate(['/walls']).then(() => {
+          window.location.reload();
+        });
       },
       error: (error) => {
         this.loading = false;

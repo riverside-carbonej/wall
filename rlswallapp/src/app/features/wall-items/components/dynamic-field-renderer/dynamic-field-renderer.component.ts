@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormControl, FormGroup } from '@angular/forms';
 import { MatFormField, MatInput, MatLabel, MatError } from '../../../../shared/components/material-stubs';
 import { SelectComponent } from '../../../../shared/components/select/select.component';
 import { MatCheckbox } from '../../../../shared/components/material-stubs';
@@ -13,6 +13,7 @@ import { LocationPickerComponent } from '../../../maps/components/location-picke
 import { FormFieldComponent } from '../../../../shared/components/form-field/form-field.component';
 import { MaterialTextInputComponent } from '../../../../shared/components/material-text-input/material-text-input.component';
 import { MaterialSelectComponent, SelectOption } from '../../../../shared/components/material-select/material-select.component';
+import { MaterialSwitchComponent } from '../../../../shared/components/material-switch/material-switch.component';
 
 @Component({
   selector: 'app-dynamic-field-renderer',
@@ -20,6 +21,7 @@ import { MaterialSelectComponent, SelectOption } from '../../../../shared/compon
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     MatFormField, MatInput, MatLabel, MatError,
     SelectComponent,
     MatCheckbox,
@@ -30,7 +32,8 @@ import { MaterialSelectComponent, SelectOption } from '../../../../shared/compon
     LocationPickerComponent,
     FormFieldComponent,
     MaterialTextInputComponent,
-    MaterialSelectComponent
+    MaterialSelectComponent,
+    MaterialSwitchComponent
   ],
   templateUrl: './dynamic-field-renderer.component.html',
   styleUrls: ['./dynamic-field-renderer.component.css']
@@ -48,9 +51,34 @@ export class DynamicFieldRendererComponent implements OnInit {
   // For multiselect fields
   selectedOptions: string[] = [];
   
+  // For relationship fields
+  selectedRelationships: Array<{id: string; name: string; subtitle?: string}> = [];
+  filteredRelationships: Array<{id: string; name: string; subtitle?: string}> = [];
+  relationshipSearchTerm: string = '';
+  showRelationshipSuggestions: boolean = false;
+  allRelationshipItems: Array<{id: string; name: string; subtitle?: string}> = [];
+  
   ngOnInit() {
     if (this.field.type === 'multiselect' && this.value) {
       this.selectedOptions = Array.isArray(this.value) ? this.value : [];
+    }
+    
+    if (this.field.type === 'relationship') {
+      this.loadRelationshipItems();
+      
+      // Initialize selected relationships from current value
+      if (this.value) {
+        // Handle both single and multiple relationship values
+        const relationshipIds = Array.isArray(this.value) ? this.value : [this.value];
+        
+        // TODO: In real implementation, this would fetch the actual relationship objects
+        // For now, create placeholder objects
+        this.selectedRelationships = relationshipIds.map(id => ({
+          id: String(id),
+          name: `Item ${id}`,
+          subtitle: 'Selected item'
+        }));
+      }
     }
   }
 
@@ -69,6 +97,14 @@ export class DynamicFieldRendererComponent implements OnInit {
 
   isDate(): boolean {
     return this.field.type === 'date';
+  }
+
+  isDateRange(): boolean {
+    return this.field.type === 'daterange';
+  }
+
+  isNumberRange(): boolean {
+    return this.field.type === 'numberrange';
   }
 
   isBoolean(): boolean {
@@ -128,6 +164,35 @@ export class DynamicFieldRendererComponent implements OnInit {
     
     if (this.field.type === 'date') {
       return new Date(this.value).toLocaleDateString();
+    }
+    
+    if (this.field.type === 'daterange') {
+      if (this.value && this.value.start && this.value.end) {
+        const startDate = new Date(this.value.start).toLocaleDateString();
+        const endDate = new Date(this.value.end).toLocaleDateString();
+        return `${startDate} - ${endDate}`;
+      }
+      if (this.value && this.value.start) {
+        return `From ${new Date(this.value.start).toLocaleDateString()}`;
+      }
+      return '';
+    }
+    
+    if (this.field.type === 'numberrange') {
+      if (this.value && typeof this.value === 'object') {
+        const min = this.value.min !== undefined ? this.value.min : '';
+        const max = this.value.max !== undefined ? this.value.max : '';
+        if (min && max) {
+          return `${min} - ${max}`;
+        }
+        if (min) {
+          return `From ${min}`;
+        }
+        if (max) {
+          return `Up to ${max}`;
+        }
+      }
+      return '';
     }
     
     if (this.field.type === 'boolean') {
@@ -282,5 +347,142 @@ export class DynamicFieldRendererComponent implements OnInit {
       }));
     }
     return [];
+  }
+
+  // Date range handlers
+  onDateRangeStartChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const currentValue = this.formControl?.value || {};
+    this.formControl?.setValue({
+      ...currentValue,
+      start: input.value
+    });
+  }
+
+  onDateRangeEndChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const currentValue = this.formControl?.value || {};
+    this.formControl?.setValue({
+      ...currentValue,
+      end: input.value
+    });
+  }
+
+  // Number range handlers
+  onNumberRangeMinChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const currentValue = this.formControl?.value || {};
+    this.formControl?.setValue({
+      ...currentValue,
+      min: input.value ? parseFloat(input.value) : undefined
+    });
+  }
+
+  onNumberRangeMaxChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const currentValue = this.formControl?.value || {};
+    this.formControl?.setValue({
+      ...currentValue,
+      max: input.value ? parseFloat(input.value) : undefined
+    });
+  }
+
+  // Relationship field methods
+  getRelationshipTypeName(): string {
+    if (!this.field.relationshipConfig) return 'items';
+    
+    // Get the target object type name - this would need to be passed from parent component
+    // For now, return a generic name based on the field configuration
+    const targetType = this.field.relationshipConfig.targetObjectTypeId;
+    
+    // Capitalize and make it user-friendly
+    switch (targetType) {
+      case 'branch': return 'Branches';
+      case 'deployment': return 'Deployments';
+      case 'award': return 'Awards';
+      default: return 'Items';
+    }
+  }
+
+  onRelationshipSearch(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.relationshipSearchTerm = input.value;
+    this.updateFilteredRelationships();
+    this.showRelationshipSuggestions = true;
+  }
+
+  private updateFilteredRelationships() {
+    if (!this.relationshipSearchTerm.trim()) {
+      this.filteredRelationships = this.allRelationshipItems.filter(item => 
+        !this.selectedRelationships.some(selected => selected.id === item.id)
+      );
+      return;
+    }
+
+    const searchTerm = this.relationshipSearchTerm.toLowerCase();
+    this.filteredRelationships = this.allRelationshipItems.filter(item => 
+      !this.selectedRelationships.some(selected => selected.id === item.id) &&
+      (item.name.toLowerCase().includes(searchTerm) || 
+       (item.subtitle && item.subtitle.toLowerCase().includes(searchTerm)))
+    );
+  }
+
+  selectRelationship(item: {id: string; name: string; subtitle?: string}) {
+    if (!this.field.relationshipConfig?.allowMultiple) {
+      this.selectedRelationships = [item];
+    } else {
+      if (!this.selectedRelationships.some(selected => selected.id === item.id)) {
+        this.selectedRelationships.push(item);
+      }
+    }
+    
+    this.updateFormControlValue();
+    this.relationshipSearchTerm = '';
+    this.showRelationshipSuggestions = false;
+    this.updateFilteredRelationships();
+  }
+
+  removeRelationship(item: {id: string; name: string; subtitle?: string}) {
+    this.selectedRelationships = this.selectedRelationships.filter(
+      selected => selected.id !== item.id
+    );
+    this.updateFormControlValue();
+    this.updateFilteredRelationships();
+  }
+
+  private updateFormControlValue() {
+    if (!this.field.relationshipConfig?.allowMultiple) {
+      this.formControl?.setValue(this.selectedRelationships[0]?.id || null);
+    } else {
+      this.formControl?.setValue(this.selectedRelationships.map(item => item.id));
+    }
+  }
+
+  hideRelationshipSuggestions() {
+    setTimeout(() => {
+      this.showRelationshipSuggestions = false;
+    }, 200);
+  }
+
+  // TODO: This would need to be injected from parent component with actual relationship data
+  // For now, load empty relationships - actual items should come from database
+  private loadRelationshipItems() {
+    if (!this.field.relationshipConfig) return;
+    
+    // In a real implementation, this would fetch actual items from the database
+    // For now, initialize with empty array - only show items that actually exist
+    this.allRelationshipItems = [];
+    
+    // TODO: Replace with actual service call to fetch relationship items
+    // Example: this.wallItemService.getItemsByObjectType(targetType).subscribe(items => {
+    //   this.allRelationshipItems = items.map(item => ({
+    //     id: item.id,
+    //     name: item.fieldData[primaryField] || 'Untitled',
+    //     subtitle: item.fieldData[secondaryField] || ''
+    //   }));
+    //   this.updateFilteredRelationships();
+    // });
+    
+    this.updateFilteredRelationships();
   }
 }

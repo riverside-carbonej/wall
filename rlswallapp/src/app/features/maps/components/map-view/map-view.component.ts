@@ -195,7 +195,10 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
       });
       
       // Add click event
-      marker.on('click', () => {
+      marker.on('click', (e: any) => {
+        // Prevent default zoom behavior
+        e.originalEvent?.stopPropagation();
+        
         const wallItem = this.wallItems.find(item => item.id === markerData.wallItemId);
         if (wallItem) {
           this.itemClick.emit({

@@ -11,6 +11,7 @@ import { ItemImageGalleryComponent } from '../../../wall-items/components/item-i
 import { MapViewComponent } from '../../../maps/components/map-view/map-view.component';
 import { Wall, WallItem, WallViewMode, FieldDefinition, WallItemImage } from '../../../../shared/models/wall.model';
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
+import { UserActivityService } from '../../../../shared/services/user-activity.service';
 
 @Component({
   selector: 'app-wall-viewer',
@@ -738,7 +739,8 @@ export class WallViewerComponent implements OnInit {
     private wallItemService: WallItemService,
     private imageUploadService: ImageUploadService,
     private confirmationDialog: ConfirmationDialogService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private userActivityService: UserActivityService
   ) {}
 
   ngOnInit(): void {
@@ -754,6 +756,9 @@ export class WallViewerComponent implements OnInit {
     this.wall$.subscribe({
       next: (wall) => {
         if (wall) {
+          // Track wall visit
+          this.userActivityService.trackWallVisit(wall.id!, wall.name);
+          
           this.initializeAddItemForm(wall.fields || []);
           this.isLoading = false;
         } else {

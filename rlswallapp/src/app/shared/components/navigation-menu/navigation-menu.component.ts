@@ -47,6 +47,13 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
             </div>
             
             <app-side-button
+              title="Back to Walls"
+              icon="arrow_back"
+              [selected]="false"
+              (buttonClick)="navigateToWalls()">
+            </app-side-button>
+            
+            <app-side-button
               title="Wall Item Presets"
               icon="category"
               [selected]="isAdminPathSelectedWithCD('/presets')"
@@ -380,6 +387,15 @@ export class NavigationMenuComponent implements OnInit, OnDestroy, AfterViewInit
         condition: () => true
       });
     }
+  }
+
+  navigateToWalls() {
+    this.navigationService.navigateToMenuItem({
+      title: 'Walls',
+      icon: 'home',
+      path: '/walls',
+      condition: () => true
+    });
   }
 
   getItemBadge(item: WallMenuItem): string | undefined {

@@ -12,6 +12,7 @@ import {
   onAuthStateChanged,
   updateProfile
 } from '@angular/fire/auth';
+import { Firestore, doc, setDoc, serverTimestamp } from '@angular/fire/firestore';
 
 export interface AppUser {
   uid: string;

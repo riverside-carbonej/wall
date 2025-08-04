@@ -125,17 +125,127 @@
         </app-form-field>
       }
 
-      <!-- Boolean/Checkbox -->
-      @if (isBoolean()) {
-        <div class="checkbox-field">
-          <mat-checkbox [formControl]="formControl">
+      <!-- Date Range Input -->
+      @if (isDateRange()) {
+        <div class="daterange-field">
+          <div class="field-label">
             {{ field.name }}
             @if (field.required) {
               <span class="required-indicator">*</span>
             }
-          </mat-checkbox>
+          </div>
+          
+          <div class="daterange-inputs">
+            <app-form-field
+              label="Start Date"
+              [suffixIcon]="'calendar_today'"
+              appearance="outline"
+              spacing="comfortable"
+              class="daterange-start">
+              <input 
+                matInput
+                type="date"
+                [value]="formControl?.value?.start || ''"
+                (change)="onDateRangeStartChange($event)"
+                [required]="field.required">
+            </app-form-field>
+            
+            <div class="daterange-separator">to</div>
+            
+            <app-form-field
+              label="End Date"
+              [suffixIcon]="'calendar_today'"
+              appearance="outline"
+              spacing="comfortable"
+              class="daterange-end">
+              <input 
+                matInput
+                type="date"
+                [value]="formControl?.value?.end || ''"
+                (change)="onDateRangeEndChange($event)">
+            </app-form-field>
+          </div>
+          
           @if (formControl?.invalid && formControl?.touched) {
             <div class="field-error">
+              <mat-icon [icon]="'error'"></mat-icon>
+              {{ getErrorMessage() }}
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Number Range Input -->
+      @if (isNumberRange()) {
+        <div class="numberrange-field">
+          <div class="field-label">
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </div>
+          
+          <div class="numberrange-inputs">
+            <app-form-field
+              label="Minimum"
+              [suffixIcon]="'numbers'"
+              appearance="outline"
+              spacing="comfortable"
+              class="numberrange-min">
+              <input 
+                matInput
+                type="number"
+                [value]="formControl?.value?.min || ''"
+                (change)="onNumberRangeMinChange($event)"
+                [placeholder]="'Min value'"
+                [required]="field.required">
+            </app-form-field>
+            
+            <div class="numberrange-separator">to</div>
+            
+            <app-form-field
+              label="Maximum"
+              [suffixIcon]="'numbers'"
+              appearance="outline"
+              spacing="comfortable"
+              class="numberrange-max">
+              <input 
+                matInput
+                type="number"
+                [value]="formControl?.value?.max || ''"
+                (change)="onNumberRangeMaxChange($event)"
+                [placeholder]="'Max value'">
+            </app-form-field>
+          </div>
+          
+          @if (formControl?.invalid && formControl?.touched) {
+            <div class="field-error">
+              <mat-icon [icon]="'error'"></mat-icon>
+              {{ getErrorMessage() }}
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Boolean/Switch -->
+      @if (isBoolean()) {
+        <div class="boolean-field">
+          <div class="field-label">
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </div>
+          
+          <app-material-switch
+            [formControl]="formControl!"
+            [label]="field.placeholder || (field.required ? 'Required' : 'Optional')"
+            [disabled]="readonly">
+          </app-material-switch>
+          
+          @if (formControl?.invalid && formControl?.touched) {
+            <div class="field-error">
+              <mat-icon [icon]="'error'"></mat-icon>
               {{ getErrorMessage() }}
             </div>
           }
@@ -271,19 +381,19 @@
           <!-- Read-only Location Display -->
           @if (readonly) {
             <div class="location-display">
-              @if (value && value.lat && value.lng) {
-                <div class="coordinates">
-                  <mat-icon>place</mat-icon>
-                  <span>{{ value.lat.toFixed(6) }}, {{ value.lng.toFixed(6) }}</span>
-                </div>
-              }
               @if (value && value.address) {
-                <div class="address">
+                <div class="address-primary">
                   <mat-icon>location_on</mat-icon>
                   <span>{{ value.address }}</span>
                 </div>
               }
-              @if (!value || (!value.lat && !value.lng)) {
+              @if (value && value.lat && value.lng && !value.address) {
+                <div class="coordinates-fallback">
+                  <mat-icon>place</mat-icon>
+                  <span>{{ value.lat.toFixed(4) }}, {{ value.lng.toFixed(4) }}</span>
+                </div>
+              }
+              @if (!value || (!value.lat && !value.lng && !value.address)) {
                 <div class="no-location">
                   <mat-icon>location_off</mat-icon>
                   <span>No location set</span>
@@ -298,6 +408,9 @@
               <app-location-picker
                 [initialCoordinates]="value"
                 [height]="'250px'"
+                [showCoordinateInputs]="false"
+                [showAddressSearch]="true"
+                [allowMapClick]="true"
                 (locationSelected)="onLocationSelected($event)"
                 (locationCleared)="onLocationCleared()">
               </app-location-picker>
@@ -322,9 +435,72 @@
             }
           </div>
           
-          <div class="relationship-info">
-            <p>Relationship management will be available in the Relationships section.</p>
+          <!-- Selected Relationships Display -->
+          @if (selectedRelationships && selectedRelationships.length > 0) {
+            <div class="selected-relationships">
+              @for (relationship of selectedRelationships; track relationship.id) {
+                <div class="relationship-chip">
+                  <span class="relationship-name">{{ relationship.name }}</span>
+                  <button 
+                    type="button"
+                    class="remove-relationship"
+                    (click)="removeRelationship(relationship)"
+                    title="Remove">
+                    <mat-icon [icon]="'close'"></mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+          
+          <!-- Add Relationship Interface -->
+          <div class="add-relationship">
+            <div class="search-container">
+              <input 
+                type="text"
+                class="relationship-search"
+                [(ngModel)]="relationshipSearchTerm"
+                [ngModelOptions]="{standalone: true}"
+                (input)="onRelationshipSearch($event)"
+                (focus)="showRelationshipSuggestions = true"
+                (blur)="hideRelationshipSuggestions()"
+                placeholder="Search {{ getRelationshipTypeName() }}..."
+                [disabled]="!field.relationshipConfig?.allowMultiple && selectedRelationships && selectedRelationships.length > 0">
+              
+              <!-- Search Results Dropdown -->
+              @if (showRelationshipSuggestions && filteredRelationships && filteredRelationships.length > 0) {
+                <div class="relationship-suggestions">
+                  @for (item of filteredRelationships; track item.id) {
+                    <div class="relationship-suggestion"
+                         (mousedown)="selectRelationship(item)">
+                      <div class="suggestion-content">
+                        <div class="suggestion-name">{{ item.name }}</div>
+                        @if (item.subtitle) {
+                          <div class="suggestion-subtitle">{{ item.subtitle }}</div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+              
+              @if (showRelationshipSuggestions && relationshipSearchTerm && (!filteredRelationships || filteredRelationships.length === 0)) {
+                <div class="relationship-suggestions">
+                  <div class="no-results">
+                    <mat-icon [icon]="'search_off'"></mat-icon>
+                    <span>No {{ getRelationshipTypeName() }} found</span>
+                  </div>
+                </div>
+              }
+            </div>
           </div>
+          
+          @if (formControl?.invalid && formControl?.touched) {
+            <div class="field-error">
+              <mat-icon [icon]="'error'"></mat-icon>
+              {{ getErrorMessage() }}
+            </div>
+          }
         </div>
       }
 

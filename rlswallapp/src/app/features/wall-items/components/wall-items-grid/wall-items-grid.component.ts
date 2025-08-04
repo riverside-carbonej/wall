@@ -345,26 +345,89 @@ export class WallItemsGridComponent {
     if (!this.preset) return null;
     
     const secondaryField = this.preset.displaySettings?.secondaryField;
+    const tertiaryField = this.preset.displaySettings?.tertiaryField;
     
+    const subtitleParts: string[] = [];
+    
+    // Add secondary field if present
     if (secondaryField && item.fieldData[secondaryField]) {
-      return String(item.fieldData[secondaryField]);
+      subtitleParts.push(String(item.fieldData[secondaryField]));
     }
     
-    return null;
+    // Add tertiary field if present
+    if (tertiaryField && item.fieldData[tertiaryField]) {
+      const tertiaryValue = item.fieldData[tertiaryField];
+      // Format graduation year specifically 
+      if (tertiaryField === 'graduationYear' && tertiaryValue) {
+        subtitleParts.push(`Class of ${tertiaryValue}`);
+      } else {
+        subtitleParts.push(String(tertiaryValue));
+      }
+    }
+    
+    return subtitleParts.length > 0 ? subtitleParts.join(' • ') : null;
   }
 
   getMetadata(item: WallItem): Array<{key: string; value: string; icon?: string}> {
-    return [
-      {
-        key: 'updated',
-        value: new Date(item.updatedAt).toLocaleDateString(),
-        icon: 'schedule'
-      },
-      {
-        key: 'images',
-        value: item.images?.length ? `${item.images.length} image${item.images.length > 1 ? 's' : ''}` : 'No images',
-        icon: 'photo_library'
-      }
-    ];
+    const metadata: Array<{key: string; value: string; icon?: string}> = [];
+    
+    // Add last updated date
+    metadata.push({
+      key: 'updated',
+      value: new Date(item.updatedAt).toLocaleDateString(),
+      icon: 'schedule'
+    });
+    
+    // Add additional relevant field data if available and not already in subtitle
+    if (this.preset) {
+      const displaySettings = this.preset.displaySettings;
+      const usedFields = [
+        displaySettings.primaryField,
+        displaySettings.secondaryField,
+        displaySettings.tertiaryField
+      ].filter(Boolean);
+      
+      // Find other meaningful fields to display
+      Object.keys(item.fieldData).forEach(fieldId => {
+        if (!usedFields.includes(fieldId) && item.fieldData[fieldId]) {
+          const fieldValue = item.fieldData[fieldId];
+          const field = this.preset?.fields.find(f => f.id === fieldId);
+          
+          if (field && fieldValue && metadata.length < 3) { // Limit to 3 metadata items
+            let displayValue = String(fieldValue);
+            
+            // Format specific field types
+            if (field.type === 'date') {
+              displayValue = new Date(fieldValue).toLocaleDateString();
+            } else if (field.type === 'boolean') {
+              displayValue = fieldValue ? 'Yes' : 'No';
+            } else if (field.type === 'multiselect' && Array.isArray(fieldValue)) {
+              displayValue = fieldValue.join(', ');
+            }
+            
+            metadata.push({
+              key: fieldId,
+              value: displayValue,
+              icon: this.getFieldIcon(field.type)
+            });
+          }
+        }
+      });
+    }
+    
+    return metadata;
+  }
+  
+  private getFieldIcon(fieldType: string): string {
+    switch (fieldType) {
+      case 'email': return 'email';
+      case 'url': return 'link';
+      case 'date': return 'event';
+      case 'location': return 'place';
+      case 'boolean': return 'check_circle';
+      case 'multiselect': return 'list';
+      case 'number': return 'numbers';
+      default: return 'info';
+    }
   }
 }

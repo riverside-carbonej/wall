@@ -2515,10 +2515,7 @@ export class WallFormComponent implements OnInit {
       requiresLogin: [true], // Default to login-required
       
       // Settings
-      inactivityTimeout: [5, [Validators.required, Validators.min(1), Validators.max(60)]],
-      
-      // Legacy field for backward compatibility
-      isPublic: [false]
+      inactivityTimeout: [5, [Validators.required, Validators.min(1), Validators.max(60)]]
     });
   }
 
@@ -2534,7 +2531,7 @@ export class WallFormComponent implements OnInit {
         organizationSubtitle: template.wall.organizationSubtitle || '',
         allowDepartmentEdit: false,
         isPublished: template.wall.visibility?.isPublished || false,
-        requiresLogin: template.wall.visibility?.requiresLogin !== false,
+        requiresLogin: template.wall.visibility?.requiresLogin ?? true,
         inactivityTimeout: template.wall.settings?.inactivityTimeout || 5
       });
 
@@ -2568,8 +2565,10 @@ export class WallFormComponent implements OnInit {
             organizationName: wall.organizationName,
             organizationSubtitle: wall.organizationSubtitle,
             organizationLogoUrl: wall.organizationLogoUrl,
-            isPublic: wall.isPublic,
-            inactivityTimeout: wall.settings?.inactivityTimeout || 5
+            inactivityTimeout: wall.settings?.inactivityTimeout || 5,
+            // Load visibility settings
+            isPublished: wall.visibility?.isPublished || false,
+            requiresLogin: wall.visibility?.requiresLogin ?? true // Default to true (internal) if not set
           });
 
         }
@@ -2750,8 +2749,7 @@ export class WallFormComponent implements OnInit {
             organizationLogoUrl: this.wallForm.get('organizationLogoUrl')?.value,
             theme: this.selectedTheme,
             permissions,
-            visibility,
-            isPublic: this.wallForm.get('isPublished')?.value && !this.wallForm.get('requiresLogin')?.value
+            visibility
           };
           
           this.wallService.updateWall(this.wallId, updateData).subscribe({
@@ -2794,11 +2792,7 @@ export class WallFormComponent implements OnInit {
             // Metadata
             createdAt: new Date(),
             updatedAt: new Date(),
-            lastActivityAt: new Date(),
-            
-            ownerId: user.email!, // Use email for consistency with queries
-            isPublic: this.wallForm.get('isPublished')?.value && !this.wallForm.get('requiresLogin')?.value,
-            sharedWith: []
+            lastActivityAt: new Date()
           };
           
           this.wallService.createWall(wallData).subscribe({

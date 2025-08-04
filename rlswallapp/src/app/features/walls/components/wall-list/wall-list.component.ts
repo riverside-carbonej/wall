@@ -10,6 +10,9 @@ import { WallService } from '../../services/wall.service';
 import { Wall } from '../../../../shared/models/wall.model';
 import { ButtonGroupComponent, ButtonGroupItem } from '../../../../shared/components/button-group/button-group.component';
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
+import { UserActivityService } from '../../../../shared/services/user-activity.service';
+import { WallPermissionsService } from '../../../../core/services/wall-permissions.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-wall-list',
@@ -847,7 +850,10 @@ export class WallListComponent implements OnInit {
   constructor(
     private wallService: WallService, 
     private router: Router,
-    private confirmationDialog: ConfirmationDialogService
+    private confirmationDialog: ConfirmationDialogService,
+    private userActivityService: UserActivityService,
+    private wallPermissionsService: WallPermissionsService,
+    private authService: AuthService
   ) {
     this.filteredWalls$ = combineLatest([
       this.walls$,
@@ -880,9 +886,54 @@ export class WallListComponent implements OnInit {
 
   loadWalls(): void {
     this.isLoading = true;
-    this.wallService.getAllWalls().subscribe({
-      next: (walls) => {
-        this.walls$.next(walls);
+    
+    // Get all walls user has access to, plus recently visited walls
+    combineLatest([
+      this.userActivityService.getRecentWallIds(),
+      this.wallService.getAllWalls()
+    ]).subscribe({
+      next: ([recentWallIds, allWalls]) => {
+        // Show walls that are either:
+        // 1. Owned by the user (always visible)
+        // 2. User is an editor (always visible) 
+        // 3. Recently visited and user has access
+        const currentUser = this.authService.currentUser;
+        const visibleWalls = allWalls.filter(wall => {
+          const isOwnerOrEditor = currentUser && (
+            wall.permissions?.owner === currentUser.uid ||
+            wall.permissions?.editors?.includes(currentUser.uid)
+          );
+          const isRecentlyVisited = recentWallIds.includes(wall.id!);
+          return isOwnerOrEditor || isRecentlyVisited;
+        });
+        
+        // Sort: owned/editor walls first, then by recent activity
+        const sortedWalls = visibleWalls.sort((a, b) => {
+          const aIsOwnerOrEditor = currentUser && (
+            a.permissions?.owner === currentUser.uid ||
+            a.permissions?.editors?.includes(currentUser.uid)
+          );
+          const bIsOwnerOrEditor = currentUser && (
+            b.permissions?.owner === currentUser.uid ||
+            b.permissions?.editors?.includes(currentUser.uid)
+          );
+          
+          // Owned/editor walls come first
+          if (aIsOwnerOrEditor && !bIsOwnerOrEditor) return -1;
+          if (!aIsOwnerOrEditor && bIsOwnerOrEditor) return 1;
+          
+          // Among owned/editor walls, sort by last modified
+          if (aIsOwnerOrEditor && bIsOwnerOrEditor) {
+            return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+          }
+          
+          // Among recently visited walls, sort by visit order
+          const aIndex = recentWallIds.indexOf(a.id!);
+          const bIndex = recentWallIds.indexOf(b.id!);
+          return aIndex - bIndex; // Lower index = more recent
+        });
+        
+        this.walls$.next(sortedWalls);
         this.isLoading = false;
       },
       error: (error) => {
@@ -936,6 +987,11 @@ export class WallListComponent implements OnInit {
   }
 
   openWall(id: string): void {
+    // Find the wall to get its name for tracking
+    const wall = this.walls$.value.find(w => w.id === id);
+    if (wall) {
+      this.userActivityService.trackWallVisit(id, wall.name);
+    }
     this.router.navigate(['/walls', id]);
   }
 

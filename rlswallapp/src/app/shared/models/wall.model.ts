@@ -52,7 +52,8 @@ export interface WallObjectType {
     cardLayout: 'compact' | 'detailed' | 'timeline';
     showOnMap: boolean;
     primaryField: string; // Field ID for card titles
-    secondaryField?: string; // Field ID for card subtitles
+    secondaryField?: string; // Field ID for card subtitles (first subtitle line)
+    tertiaryField?: string; // Field ID for tertiary information (second subtitle line)
     imageField?: string; // Field ID for card images
   };
   defaultImage?: {

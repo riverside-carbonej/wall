@@ -52,26 +52,17 @@ export class WallService {
             limit(100)
           );
           
-          // Also query legacy owned walls
-          const legacyOwnedQuery = query(
-            wallsCollection,
-            where('ownerId', '==', user.email || user.uid),
-            limit(100)
-          );
           
           console.log('Fetching deleted walls for user:', user.uid);
           
-          return from(Promise.all([
-            getDocs(ownedQuery).catch(() => ({ docs: [] })),
-            getDocs(legacyOwnedQuery).catch(() => ({ docs: [] }))
-          ])).pipe(
+          return from(getDocs(ownedQuery).catch(() => ({ docs: [] }))).pipe(
             map(results => ({ results, user }))
           );
         });
       }),
       map(({ results, user }) => {
-        // Combine results from both queries
-        const allDocs = [...results[0].docs, ...results[1].docs];
+        // Get all documents from query
+        const allDocs = results.docs;
         
         // Map all documents to walls
         const allWalls = allDocs.map((doc: any) => ({
@@ -125,21 +116,21 @@ export class WallService {
           
           // Create separate queries that match our security rules
           const queries = [
-            // Query for walls owned by user (new format)
+            // Query for walls owned by user
             query(
               wallsCollection,
               where('permissions.owner', '==', user.uid),
               limit(50)
             ),
             
-            // Query for walls where user is an editor (new format)
+            // Query for walls where user is an editor
             query(
               wallsCollection,
               where('permissions.editors', 'array-contains', user.uid),
               limit(50)
             ),
             
-            // Query for public walls (new format)
+            // Query for public walls
             query(
               wallsCollection,
               where('visibility.isPublished', '==', true),
@@ -147,46 +138,6 @@ export class WallService {
               limit(50)
             )
           ];
-          
-          // Add legacy queries if user has email
-          if (user.email) {
-            queries.push(
-              // Legacy owned walls (email)
-              query(
-                wallsCollection,
-                where('ownerId', '==', user.email),
-                limit(50)
-              ),
-              
-              // Legacy owned walls (uid)
-              query(
-                wallsCollection,
-                where('ownerId', '==', user.uid),
-                limit(50)
-              ),
-              
-              // Legacy shared walls (email)
-              query(
-                wallsCollection,
-                where('sharedWith', 'array-contains', user.email),
-                limit(50)
-              ),
-              
-              // Legacy shared walls (uid)
-              query(
-                wallsCollection,
-                where('sharedWith', 'array-contains', user.uid),
-                limit(50)
-              ),
-              
-              // Legacy public walls
-              query(
-                wallsCollection,
-                where('isPublic', '==', true),
-                limit(50)
-              )
-            );
-          }
           
           // Execute all queries in parallel
           return from(Promise.all(
@@ -213,8 +164,26 @@ export class WallService {
                 deletedAt: doc.data()['deletedAt'] ? this.timestampToDate(doc.data()['deletedAt']) : undefined
               } as Wall;
               
-              // Security rules should prevent soft-deleted walls from being returned,
-              // but add extra check as defense in depth
+              // DEBUG: Log wall data to understand permission structure
+              console.warn('SECURITY DEBUG: Wall returned by Firebase:', {
+                wallId: wallData.id,
+                wallName: wallData.name,
+                hasPermissions: !!wallData.permissions,
+                permissionsOwner: wallData.permissions?.owner,
+                permissionsEditors: wallData.permissions?.editors,
+                currentUserId: user.uid,
+                currentUserEmail: user.email,
+                isPublished: wallData.visibility?.isPublished,
+                requiresLogin: wallData.visibility?.requiresLogin,
+                hasVisibility: !!wallData.visibility,
+                // Check for legacy fields that might be causing issues
+                legacyIsPublic: (wallData as any).isPublic,
+                legacyOwnerId: (wallData as any).ownerId,
+                legacySharedWith: (wallData as any).sharedWith
+              });
+              
+              // Security rules should prevent unauthorized walls from being returned
+              // If Firebase returns it, the user should have access to it
               if (!wallData.deletedAt) {
                 allWalls.push(wallData);
               }
@@ -346,7 +315,6 @@ export class WallService {
           const wallData = {
             ...cleanWall,
             name: cleanWall.name || 'Untitled Wall',
-            ownerId: cleanWall.ownerId || user.email, // Keep legacy field for compatibility
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           };
@@ -450,9 +418,9 @@ export class WallService {
         if (!user) {
           throw new Error('User not authenticated');
         }
-        return user.email!;
+        return user.uid;
       }),
-      switchMap(userEmail => {
+      switchMap(userUid => {
         return runInInjectionContext(this.injector, () => {
           const wallsCollection = collection(this.firestore, this.collectionName);
           // Note: Firestore doesn't support full-text search natively
@@ -461,25 +429,25 @@ export class WallService {
           // Search in owned walls
           const ownedQuery = query(
             wallsCollection,
-            where('ownerId', '==', userEmail),
+            where('permissions.owner', '==', userUid),
             where('name', '>=', searchTerm),
             where('name', '<=', searchTerm + '\uf8ff'),
             orderBy('name')
           );
           
-          // Search in shared walls
-          const sharedQuery = query(
+          // Search in walls where user is editor
+          const editorQuery = query(
             wallsCollection,
-            where('sharedWith', 'array-contains', userEmail),
+            where('permissions.editors', 'array-contains', userUid),
             where('name', '>=', searchTerm),
             where('name', '<=', searchTerm + '\uf8ff'),
             orderBy('name')
           );
           
-          return from(Promise.all([getDocs(ownedQuery), getDocs(sharedQuery)]));
+          return from(Promise.all([getDocs(ownedQuery), getDocs(editorQuery)]));
         });
       }),
-      map(([ownedSnapshot, sharedSnapshot]) => {
+      map(([ownedSnapshot, editorSnapshot]) => {
         const ownedWalls = ownedSnapshot.docs.map((doc: any) => ({
           id: doc.id,
           ...doc.data(),
@@ -487,7 +455,7 @@ export class WallService {
           updatedAt: this.timestampToDate(doc.data()['updatedAt'])
         } as Wall));
         
-        const sharedWalls = sharedSnapshot.docs.map((doc: any) => ({
+        const editorWalls = editorSnapshot.docs.map((doc: any) => ({
           id: doc.id,
           ...doc.data(),
           createdAt: this.timestampToDate(doc.data()['createdAt']),
@@ -495,7 +463,7 @@ export class WallService {
         } as Wall));
         
         // Combine and deduplicate walls
-        const allWalls = [...ownedWalls, ...sharedWalls];
+        const allWalls = [...ownedWalls, ...editorWalls];
         const uniqueWalls = allWalls.filter((wall, index, self) => 
           index === self.findIndex(w => w.id === wall.id)
         );
@@ -971,4 +939,5 @@ export class WallService {
       // Add other alumni directory object types as needed
     ];
   }
+
 }
