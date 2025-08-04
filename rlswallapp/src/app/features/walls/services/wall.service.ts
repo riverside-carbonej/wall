@@ -121,54 +121,109 @@ export class WallService {
         return runInInjectionContext(this.injector, () => {
           const wallsCollection = collection(this.firestore, this.collectionName);
           
-          // Simple query to get all walls, then filter client-side
-          // Remove orderBy to avoid index requirements and permission issues
-          const allWallsQuery = query(
-            wallsCollection,
-            limit(100) // Limit to prevent loading too many documents
-          );
-          
           console.log('Fetching walls for user:', user.uid, user.email);
           
-          return from(getDocs(allWallsQuery)).pipe(
-            map(snapshot => ({ snapshot, user }))
+          // Create separate queries that match our security rules
+          const queries = [
+            // Query for walls owned by user (new format)
+            query(
+              wallsCollection,
+              where('permissions.owner', '==', user.uid),
+              limit(50)
+            ),
+            
+            // Query for walls where user is an editor (new format)
+            query(
+              wallsCollection,
+              where('permissions.editors', 'array-contains', user.uid),
+              limit(50)
+            ),
+            
+            // Query for public walls (new format)
+            query(
+              wallsCollection,
+              where('visibility.isPublished', '==', true),
+              where('visibility.requiresLogin', '==', false),
+              limit(50)
+            )
+          ];
+          
+          // Add legacy queries if user has email
+          if (user.email) {
+            queries.push(
+              // Legacy owned walls (email)
+              query(
+                wallsCollection,
+                where('ownerId', '==', user.email),
+                limit(50)
+              ),
+              
+              // Legacy owned walls (uid)
+              query(
+                wallsCollection,
+                where('ownerId', '==', user.uid),
+                limit(50)
+              ),
+              
+              // Legacy shared walls (email)
+              query(
+                wallsCollection,
+                where('sharedWith', 'array-contains', user.email),
+                limit(50)
+              ),
+              
+              // Legacy shared walls (uid)
+              query(
+                wallsCollection,
+                where('sharedWith', 'array-contains', user.uid),
+                limit(50)
+              ),
+              
+              // Legacy public walls
+              query(
+                wallsCollection,
+                where('isPublic', '==', true),
+                limit(50)
+              )
+            );
+          }
+          
+          // Execute all queries in parallel
+          return from(Promise.all(
+            queries.map(q => getDocs(q).catch(() => ({ docs: [] }))) // Ignore individual query failures
+          )).pipe(
+            map(snapshots => ({ snapshots, user }))
           );
         });
       }),
-      map(({ snapshot, user }) => {
-        // Map and filter walls client-side
-        const allWalls = snapshot.docs.map((doc: any) => ({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: this.timestampToDate(doc.data()['createdAt']),
-          updatedAt: this.timestampToDate(doc.data()['updatedAt']),
-          deletedAt: doc.data()['deletedAt'] ? this.timestampToDate(doc.data()['deletedAt']) : undefined
-        } as Wall));
+      map(({ snapshots, user }) => {
+        // Combine all results and deduplicate
+        const seenIds = new Set<string>();
+        const allWalls: Wall[] = [];
         
-        // Filter walls the user can view and exclude soft-deleted
-        const filteredWalls = allWalls.filter(wall => {
-          // Exclude soft-deleted walls
-          if (wall.deletedAt) return false;
-          
-          // Check new permissions structure
-          if (wall.permissions) {
-            if (wall.permissions.owner === user.uid) return true;
-            if (wall.permissions.editors?.includes(user.uid)) return true;
-          }
-          
-          // Check legacy structure
-          if (wall.ownerId === user.email || wall.ownerId === user.uid) return true;
-          if (wall.sharedWith?.includes(user.email!) || wall.sharedWith?.includes(user.uid)) return true;
-          
-          // Check if wall is published and public
-          if (wall.visibility?.isPublished && !wall.visibility?.requiresLogin) return true;
-          if (wall.isPublic) return true; // Legacy public walls
-          
-          return false;
+        snapshots.forEach(snapshot => {
+          snapshot.docs.forEach((doc: any) => {
+            if (!seenIds.has(doc.id)) {
+              seenIds.add(doc.id);
+              const wallData = {
+                id: doc.id,
+                ...doc.data(),
+                createdAt: this.timestampToDate(doc.data()['createdAt']),
+                updatedAt: this.timestampToDate(doc.data()['updatedAt']),
+                deletedAt: doc.data()['deletedAt'] ? this.timestampToDate(doc.data()['deletedAt']) : undefined
+              } as Wall;
+              
+              // Security rules should prevent soft-deleted walls from being returned,
+              // but add extra check as defense in depth
+              if (!wallData.deletedAt) {
+                allWalls.push(wallData);
+              }
+            }
+          });
         });
         
-        // Sort by updatedAt desc (since we removed orderBy from query)
-        return filteredWalls.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+        // Sort by updatedAt desc
+        return allWalls.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
       }),
       catchError(error => {
         console.error('Error getting walls:', error);
@@ -200,34 +255,13 @@ export class WallService {
             id: docSnap.id,
             ...data,
             createdAt: this.timestampToDate(data['createdAt']),
-            updatedAt: this.timestampToDate(data['updatedAt'])
+            updatedAt: this.timestampToDate(data['updatedAt']),
+            deletedAt: data['deletedAt'] ? this.timestampToDate(data['deletedAt']) : undefined
           } as Wall;
           
-          // Check permissions - both old and new format
-          if (wall.permissions) {
-            // New permissions format
-            if (wall.permissions.owner === user.uid || 
-                wall.permissions.editors?.includes(user.uid)) {
-              return wall;
-            }
-          }
-          
-          // Legacy permissions check
-          if (wall.ownerId === user.email || wall.ownerId === user.uid ||
-              wall.sharedWith?.includes(user.email!) || wall.sharedWith?.includes(user.uid)) {
-            return wall;
-          }
-          
-          // Check if wall is public
-          if (wall.visibility?.isPublished && !wall.visibility?.requiresLogin) {
-            return wall;
-          }
-          if (wall.isPublic) {
-            return wall;
-          }
-          
-          console.warn('User does not have access to this wall');
-          return null;
+          // Firestore Security Rules now handle permission and soft-delete checks
+          // If we can read the document, we have permission to access it
+          return wall;
         }
         return null;
       }),
@@ -261,38 +295,13 @@ export class WallService {
                     id: docSnap.id,
                     ...data,
                     createdAt: this.timestampToDate(data['createdAt']),
-                    updatedAt: this.timestampToDate(data['updatedAt'])
+                    updatedAt: this.timestampToDate(data['updatedAt']),
+                    deletedAt: data['deletedAt'] ? this.timestampToDate(data['deletedAt']) : undefined
                   } as Wall;
                   
-                  // Check permissions - both old and new format
-                  if (wall.permissions) {
-                    // New permissions format
-                    if (wall.permissions.owner === user.uid || 
-                        wall.permissions.editors?.includes(user.uid)) {
-                      subscriber.next(wall);
-                      return;
-                    }
-                  }
-                  
-                  // Legacy permissions check
-                  if (wall.ownerId === user.email || wall.ownerId === user.uid ||
-                      wall.sharedWith?.includes(user.email!) || wall.sharedWith?.includes(user.uid)) {
-                    subscriber.next(wall);
-                    return;
-                  }
-                  
-                  // Check if wall is public
-                  if (wall.visibility?.isPublished && !wall.visibility?.requiresLogin) {
-                    subscriber.next(wall);
-                    return;
-                  }
-                  if (wall.isPublic) {
-                    subscriber.next(wall);
-                    return;
-                  }
-                  
-                  console.warn('User does not have access to this wall');
-                  subscriber.next(null);
+                  // Firestore Security Rules now handle permission and soft-delete checks
+                  // If we can read the document, we have permission to access it
+                  subscriber.next(wall);
                 } else {
                   subscriber.next(null);
                 }
@@ -862,7 +871,7 @@ export class WallService {
           },
           {
             id: 'branch',
-            name: 'Service Branch',
+            name: 'Branch',
             type: 'text',
             required: true,
             placeholder: 'Army, Navy, Air Force, Marines, Coast Guard...'

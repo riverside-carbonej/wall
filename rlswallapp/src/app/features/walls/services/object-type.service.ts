@@ -226,7 +226,7 @@ export class ObjectTypeService {
           },
           {
             id: 'branch',
-            name: 'Service Branch',
+            name: 'Branch',
             type: 'text',
             required: true,
             placeholder: 'Army, Navy, Air Force, Marines, Coast Guard...'
@@ -321,7 +321,7 @@ export class ObjectTypeService {
           },
           {
             id: 'branch',
-            name: 'Service Branch',
+            name: 'Branch',
             type: 'text',
             required: true,
             placeholder: 'Army, Navy, Air Force, Marines, Coast Guard...'

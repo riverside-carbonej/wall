@@ -807,7 +807,7 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Load all users first
+    // Load all users - Firebase Security Rules will restrict what can be read
     this.userService.getAllUsers().pipe(
       takeUntil(this.destroy$)
     ).subscribe(users => {
@@ -915,6 +915,7 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   onNewUserInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     const value = target.value;
+    this.showAddUserSuggestions = true; // Ensure suggestions are shown when typing
     this.updateFilteredUsers(value);
   }
 

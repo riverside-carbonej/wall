@@ -336,7 +336,7 @@ export class WallTemplatesService {
       {
         id: 'branch',
         wallId: '',
-        name: 'Service Branch',
+        name: 'Branch',
         description: 'Military service branch (Army, Navy, etc.)',
         icon: 'military_tech',
         color: '#f57c00',

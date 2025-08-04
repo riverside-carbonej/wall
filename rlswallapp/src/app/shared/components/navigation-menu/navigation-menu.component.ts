@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DividerComponent } from '../divider/divider.component';
 import { Subject, takeUntil } from 'rxjs';
@@ -19,7 +19,7 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
   ],
   template: `
     <div class="navigation-menu" [class.open]="isMenuOpen" [class.closed]="!isMenuOpen">
-      <div class="menu-content">
+      <div class="menu-content" #menuContent (scroll)="onScroll()">
         
 
 
@@ -70,6 +70,11 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
         }
 
       </div>
+      
+      <!-- Scroll indicator overlay -->
+      <div class="scroll-indicator" *ngIf="showScrollIndicator" [class.visible]="showScrollIndicator">
+        <span class="material-icons">keyboard_arrow_down</span>
+      </div>
     </div>
   `,
   styles: [`
@@ -77,7 +82,7 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
       height: 100%;
       transition: all 200ms;
       background: var(--md-sys-color-surface-container-low);
-      --side-bar-radius: 3.125em;
+      --side-bar-radius: 3.25em;
       border-radius: 0 var(--side-bar-radius) var(--side-bar-radius) 0;
       contain: strict;
       overflow: hidden;
@@ -141,8 +146,8 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
       flex-direction: column;
       gap: 16px;
       overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--md-sys-color-outline) transparent;
+      scrollbar-width: none; /* Firefox - hide scrollbar */
+      -ms-overflow-style: none; /* IE and Edge - hide scrollbar */
     }
 
     @media (max-width: 800px) {
@@ -151,17 +156,9 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
       }
     }
 
+    /* Webkit browsers - hide scrollbar */
     .menu-content::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .menu-content::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .menu-content::-webkit-scrollbar-thumb {
-      background: var(--md-sys-color-outline);
-      border-radius: 3px;
+      display: none;
     }
 
     /* Header Section */
@@ -191,8 +188,7 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
 
     /* Menu Items */
     .menu-items {
-      flex: 1;
-      min-height: 0;
+      flex: none; /* Don't flex-shrink the menu items */
       display: flex;
       flex-direction: column;
       gap: 2px;
@@ -214,6 +210,7 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
 
     /* Admin Section */
     .admin-section {
+      flex: none; /* Don't flex-shrink the admin section */
       display: flex;
       flex-direction: column;
       gap: 2px;
@@ -248,15 +245,55 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
     }
 
     /* Focus and Accessibility */
+    
+    /* Scroll Indicator */
+    .scroll-indicator {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      color: var(--md-sys-color-on-surface-variant);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.6;
+      transition: opacity 0.3s cubic-bezier(0.2, 0, 0, 1);
+      pointer-events: none;
+      z-index: 100;
+    }
+    
+    .scroll-indicator.visible {
+      opacity: 0.6;
+    }
+    
+    .scroll-indicator span {
+      font-size: 24px;
+      animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+      }
+      40% {
+        transform: translateY(-4px);
+      }
+      60% {
+        transform: translateY(-2px);
+      }
+    }
   `]
 })
-export class NavigationMenuComponent implements OnInit, OnDestroy {
+export class NavigationMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   private destroy$ = new Subject<void>();
+  private resizeListener?: () => void;
+  
+  @ViewChild('menuContent') menuContent!: ElementRef<HTMLDivElement>;
   
   isMenuOpen = false;
   currentContext: WallNavigationContext | null = null;
   activeMenuItems: WallMenuItem[] = [];
   currentUrl = '';
+  showScrollIndicator = false;
 
   constructor(
     public navigationService: NavigationService,
@@ -292,13 +329,29 @@ export class NavigationMenuComponent implements OnInit, OnDestroy {
     this.updateActiveMenuItems();
   }
 
+  ngAfterViewInit() {
+    // Check scroll indicator after view is initialized
+    setTimeout(() => this.checkScrollIndicator(), 100);
+    
+    // Also check on window resize
+    this.resizeListener = () => this.checkScrollIndicator();
+    window.addEventListener('resize', this.resizeListener);
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    
+    // Clean up resize listener
+    if (this.resizeListener) {
+      window.removeEventListener('resize', this.resizeListener);
+    }
   }
 
   private updateActiveMenuItems() {
     this.activeMenuItems = this.navigationService.getActiveMenuItems();
+    // Check scroll indicator after menu items change
+    setTimeout(() => this.checkScrollIndicator(), 0);
   }
 
 
@@ -349,6 +402,21 @@ export class NavigationMenuComponent implements OnInit, OnDestroy {
   // TrackBy functions for performance
   trackMenuItem(index: number, item: WallMenuItem): string {
     return `${item.title}-${item.path}`;
+  }
+
+  // Scroll detection methods
+  onScroll(): void {
+    this.checkScrollIndicator();
+  }
+
+  private checkScrollIndicator(): void {
+    if (this.menuContent?.nativeElement) {
+      const element = this.menuContent.nativeElement;
+      const hasOverflow = element.scrollHeight > element.clientHeight;
+      
+      // Show indicator if there's overflow content (so users know they can scroll)
+      this.showScrollIndicator = hasOverflow;
+    }
   }
 
 }

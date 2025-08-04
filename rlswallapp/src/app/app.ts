@@ -742,7 +742,9 @@ export class App implements OnInit {
         
         if (isWallRoute) {
           const wallId = wallMatch[1];
-          return this.wallService.getWallById(wallId);
+          return this.wallService.getWallById(wallId).pipe(
+            map(wall => ({ wall, wallId, currentUrl: event.url }))
+          );
         } else {
           // We're NOT on a specific wall route (could be /walls, /walls/create, etc.)
           this.currentWall.set(null);
@@ -750,10 +752,12 @@ export class App implements OnInit {
           this.themeService.clearWallTheme();
           // Stop inactivity monitoring when leaving wall
           this.inactivityService.stopMonitoring();
-          return of(null);
+          return of({ wall: null, wallId: null, currentUrl: event.url });
         }
       })
-    ).subscribe(wall => {
+    ).subscribe(result => {
+      const { wall, wallId, currentUrl } = result;
+      
       if (wall) {
         this.currentWall.set(wall);
         // Apply wall theme (automatically clears previous theme first)
@@ -765,6 +769,16 @@ export class App implements OnInit {
         // Start inactivity monitoring for this wall
         const timeoutMinutes = wall.settings?.inactivityTimeout || 5;
         this.inactivityService.startMonitoring(wall.id, timeoutMinutes);
+      } else if (wallId) {
+        // Wall was not found or not accessible, but we were trying to access one
+        console.warn(`Wall not found or not accessible: ${wallId}`);
+        alert('Wall not found. Returning to walls list.');
+        this.currentWall.set(null);
+        this.navigationService.clearWallContext();
+        this.inactivityService.stopMonitoring();
+        this.themeService.clearWallTheme();
+        // Redirect to walls list
+        this.router.navigate(['/walls']);
       } else {
         this.navigationService.clearWallContext();
         // Stop inactivity monitoring when no wall

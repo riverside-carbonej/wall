@@ -357,7 +357,7 @@ export class TemplateLibraryComponent implements OnInit {
             fields: [
               { id: 'name', name: 'Full Name', type: 'text', required: true },
               { id: 'rank', name: 'Rank', type: 'text', required: false },
-              { id: 'branch', name: 'Service Branch', type: 'text', required: true },
+              { id: 'branch', name: 'Branch', type: 'text', required: true },
               { id: 'serviceYears', name: 'Years of Service', type: 'text', required: false },
               { id: 'bio', name: 'Biography', type: 'longtext', required: false }
             ]
