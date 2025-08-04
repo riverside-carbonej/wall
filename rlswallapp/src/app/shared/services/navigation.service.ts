@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Router, ActivatedRoute } from '@angular/router';
+import { NlpService } from './nlp.service';
 import { WallMenuItem, WallNavigationContext, AddMode, WallObjectTypeNav } from '../models/navigation.model';
 import { Wall, WallObjectType } from '../models/wall.model';
 
@@ -18,7 +19,8 @@ export class NavigationService {
 
   constructor(
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private nlpService: NlpService
   ) {}
 
   get isMenuOpen(): boolean {
@@ -43,7 +45,7 @@ export class NavigationService {
       id: ot.id,
       name: ot.name,
       icon: ot.icon || 'category',
-      pluralName: this.generatePluralName(ot.name),
+      pluralName: this.nlpService.getMenuItemTitle(ot.name),
       itemCount: 0 // TODO: Get actual count from service per object type
     }));
 
@@ -69,42 +71,6 @@ export class NavigationService {
     );
   }
   
-  // Generate plural names intelligently
-  private generatePluralName(singular: string): string {
-    // Handle common irregular plurals
-    const irregulars: { [key: string]: string } = {
-      'person': 'people',
-      'child': 'children',
-      'man': 'men',
-      'woman': 'women',
-      'foot': 'feet',
-      'tooth': 'teeth',
-      'mouse': 'mice',
-      'goose': 'geese'
-    };
-    
-    const lower = singular.toLowerCase();
-    if (irregulars[lower]) {
-      return irregulars[lower];
-    }
-    
-    // Handle regular plural rules
-    if (lower.endsWith('y') && !['a', 'e', 'i', 'o', 'u'].includes(lower[lower.length - 2])) {
-      return singular.slice(0, -1) + 'ies';
-    }
-    if (lower.endsWith('s') || lower.endsWith('sh') || lower.endsWith('ch') || lower.endsWith('x') || lower.endsWith('z')) {
-      return singular + 'es';
-    }
-    if (lower.endsWith('f')) {
-      return singular.slice(0, -1) + 'ves';
-    }
-    if (lower.endsWith('fe')) {
-      return singular.slice(0, -2) + 'ves';
-    }
-    
-    // Default: just add 's'
-    return singular + 's';
-  }
 
   // Clear context when leaving wall
   clearWallContext() {
@@ -160,22 +126,13 @@ export class NavigationService {
     // Wall-specific menu items (conditionally shown)
     const wallMenuItems: WallMenuItem[] = [
       {
-        title: 'Overview',
+        title: 'About',
         icon: 'view_quilt',
         path: `/walls/${context.wallId}/overview`,
         condition: () => true
       }
     ];
 
-    // Only show "All Items" if there are items or object types configured
-    if ((context.totalItemCount && context.totalItemCount > 0) || (context.objectTypes && context.objectTypes.length > 0)) {
-      wallMenuItems.push({
-        title: 'All Items',
-        icon: 'view_list',
-        path: `/walls/${context.wallId}/items`,
-        condition: () => true
-      });
-    }
 
     // Only show "Map View" if there are object types with location fields and items exist
     if (context.hasLocationEnabledTypes && context.totalItemCount && context.totalItemCount > 0) {
@@ -187,21 +144,19 @@ export class NavigationService {
       });
     }
 
-    // Add object type specific menu items (only if they have items)
-    const objectTypeMenuItems: WallMenuItem[] = context.objectTypes
-      .filter(ot => ot.itemCount > 0) // Only show object types that have items
-      .map(ot => ({
+    // Add object type specific menu items directly to wallMenuItems
+    context.objectTypes.forEach(ot => {
+      wallMenuItems.push({
         title: ot.pluralName,
         icon: ot.icon,
-        path: `/walls/${context.wallId}/items`,
-        condition: () => true,
-        params: [{ name: 'objectType', value: ot.id }]
-      }));
+        path: `/walls/${context.wallId}/preset/${ot.id}/items`,
+        condition: () => true
+      });
+    });
 
     return [
       ...baseMenuItems,
-      ...wallMenuItems,
-      ...objectTypeMenuItems
+      ...wallMenuItems
     ];
   }
 
@@ -317,7 +272,7 @@ export class NavigationService {
         
       case AddMode.WallItem:
         if (context && context.objectTypes.length === 1) {
-          return `Add ${context.objectTypes[0].name}`;
+          return this.nlpService.getAddButtonText(context.objectTypes[0].name);
         }
         return 'Add Item';
         

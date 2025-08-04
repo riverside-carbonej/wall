@@ -8,10 +8,10 @@ import { switchMap, filter, map } from 'rxjs/operators';
 import { WallService } from '../../../walls/services/wall.service';
 import { WallItemService } from '../../services/wall-item.service';
 import { Wall, WallObjectType, WallItem, WallItemImage } from '../../../../shared/models/wall.model';
-import { PresetItemBasePageComponent } from '../../components/preset-item-base-page/preset-item-base-page.component';
+import { PresetItemBasePageComponent, PageMode } from '../../components/preset-item-base-page/preset-item-base-page.component';
 
 @Component({
-  selector: 'app-preset-item-add',
+  selector: 'app-preset-item-page',
   standalone: true,
   imports: [
     CommonModule,
@@ -21,8 +21,9 @@ import { PresetItemBasePageComponent } from '../../components/preset-item-base-p
     <app-preset-item-base-page
       [wall]="currentWall"
       [preset]="currentPreset"
+      [item]="currentItem"
       [itemForm]="itemForm"
-      [mode]="'create'"
+      [mode]="currentMode"
       [isLoading]="isLoading"
       [isSaving]="isSaving"
       [attemptedSubmit]="attemptedSubmit"
@@ -34,20 +35,24 @@ import { PresetItemBasePageComponent } from '../../components/preset-item-base-p
       (removeImage)="removeImage($event)"
       (setPrimaryImage)="setPrimaryImage($event)"
       (save)="onSave()"
-      (cancel)="onCancel()">
+      (cancel)="onCancel()"
+      (edit)="toggleEditMode()">
     </app-preset-item-base-page>
   `,
   styles: []
 })
-export class PresetItemAddComponent implements OnInit, OnDestroy {
+export class PresetItemPageComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   
   wall$!: Observable<Wall | null>;
   preset$!: Observable<WallObjectType | null>;
+  item$!: Observable<WallItem | null>;
   
   // Properties for base page component
   currentWall: Wall | null = null;
   currentPreset: WallObjectType | null = null;
+  currentItem: WallItem | null = null;
+  currentMode: PageMode = 'view';
   itemForm!: FormGroup;
   isLoading = true;
   isSaving = false;
@@ -66,11 +71,15 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    // Determine mode based on route
+    this.currentMode = this.router.url.includes('/edit') ? 'edit' : 'view';
+
     // Get route parameters
     const routeParams$ = this.route.paramMap.pipe(
       map(params => ({
         wallId: params.get('wallId')!,
-        presetId: params.get('presetId')!
+        presetId: params.get('presetId')!,
+        itemId: params.get('itemId')!
       }))
     );
 
@@ -90,15 +99,22 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     );
 
-    // Subscribe to wall and preset data for the base page component
-    this.wall$.subscribe(wall => {
-      this.currentWall = wall;
-    });
+    // Load item data
+    this.item$ = routeParams$.pipe(
+      switchMap(({ itemId }) => this.wallItemService.getWallItemById(itemId)),
+      filter(item => item !== null),
+      takeUntil(this.destroy$)
+    ) as Observable<WallItem>;
 
-    this.preset$.subscribe(preset => {
+    // Subscribe to all data streams
+    combineLatest([this.wall$, this.preset$, this.item$]).subscribe(([wall, preset, item]) => {
+      this.currentWall = wall;
       this.currentPreset = preset;
-      if (preset) {
-        this.initializeForm(preset);
+      this.currentItem = item;
+
+      if (wall && preset && item) {
+        this.initializeForm(preset, item);
+        this.initializeImages(item);
         this.isLoading = false;
       }
     });
@@ -109,15 +125,26 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private initializeForm(preset: WallObjectType) {
+  private initializeForm(preset: WallObjectType, item: WallItem) {
     const formControls: any = {};
     
     preset.fields.forEach(field => {
       const validators = field.required ? [Validators.required] : [];
-      formControls[field.id] = ['', validators];
+      const value = item.fieldData[field.id] || '';
+      formControls[field.id] = [value, validators];
     });
 
     this.itemForm = this.fb.group(formControls);
+
+    // If in view mode, disable the form
+    if (this.currentMode === 'view') {
+      this.itemForm.disable();
+    }
+  }
+
+  private initializeImages(item: WallItem) {
+    this.images = item.images || [];
+    this.primaryImageIndex = item.primaryImageIndex || 0;
   }
 
   goBack() {
@@ -126,6 +153,20 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
     this.router.navigate(['/walls', wallId, 'preset', presetId, 'items']);
   }
 
+  // Toggle between view and edit modes
+  toggleEditMode() {
+    if (this.currentMode === 'view') {
+      this.currentMode = 'edit';
+      this.itemForm.enable();
+    } else {
+      this.currentMode = 'view';
+      this.itemForm.disable();
+      // Reset form to original values
+      if (this.currentItem && this.currentPreset) {
+        this.initializeForm(this.currentPreset, this.currentItem);
+      }
+    }
+  }
 
   // Image Gallery Methods
   addImage() {
@@ -141,7 +182,7 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
       uploadedAt: new Date()
     };
     
-    this.images.push(newImage);
+    this.images = [...this.images, newImage];
     
     // Set as primary if it's the first image
     if (this.images.length === 1) {
@@ -163,12 +204,13 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
     };
     
     if (index >= 0 && index < this.images.length) {
+      this.images = [...this.images];
       this.images[index] = replacementImage;
     }
   }
 
   removeImage(index: number) {
-    this.images.splice(index, 1);
+    this.images = this.images.filter((_, i) => i !== index);
     
     // Adjust primary image index if needed
     if (this.primaryImageIndex >= this.images.length) {
@@ -184,7 +226,11 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
 
   // Form Actions
   onCancel() {
-    this.goBack();
+    if (this.currentMode === 'edit') {
+      this.toggleEditMode(); // Go back to view mode
+    } else {
+      this.goBack();
+    }
   }
 
   onSave() {
@@ -197,25 +243,41 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
     this.isSaving = true;
     
     const wallId = this.route.snapshot.paramMap.get('wallId')!;
-    const presetId = this.route.snapshot.paramMap.get('presetId')!;
+    const itemId = this.route.snapshot.paramMap.get('itemId')!;
     
-    const newItem: Partial<WallItem> = {
-      wallId,
-      objectTypeId: presetId,
+    const updatedItem: Partial<WallItem> = {
       fieldData: this.itemForm.value,
       images: this.images,
       primaryImageIndex: this.primaryImageIndex,
-      createdAt: new Date(),
       updatedAt: new Date()
     };
 
-    this.wallItemService.createWallItem(newItem as WallItem).subscribe({
-      next: (createdItemId) => {
-        console.log('Item created successfully:', createdItemId);
-        this.router.navigate(['/walls', wallId, 'preset', presetId, 'items', createdItemId]);
+    this.wallItemService.updateWallItem(itemId, updatedItem).subscribe({
+      next: () => {
+        console.log('Item updated successfully');
+        this.isSaving = false;
+        this.attemptedSubmit = false;
+        
+        // Refresh the item data
+        this.item$ = this.wallItemService.getWallItemById(itemId).pipe(
+          filter(item => item !== null),
+          takeUntil(this.destroy$)
+        ) as Observable<WallItem>;
+        
+        this.item$.subscribe(item => {
+          this.currentItem = item;
+          if (this.currentPreset) {
+            this.initializeForm(this.currentPreset, item!);
+            this.initializeImages(item!);
+          }
+        });
+        
+        // Switch back to view mode
+        this.currentMode = 'view';
+        this.itemForm.disable();
       },
       error: (error) => {
-        console.error('Error creating item:', error);
+        console.error('Error updating item:', error);
         this.isSaving = false;
         // TODO: Show error message to user
       }

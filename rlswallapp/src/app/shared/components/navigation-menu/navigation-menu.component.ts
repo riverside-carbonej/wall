@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ThemedButtonComponent } from '../themed-button/themed-button.component';
 import { DividerComponent } from '../divider/divider.component';
 import { Subject, takeUntil } from 'rxjs';
 import { Router, NavigationEnd } from '@angular/router';
@@ -15,7 +14,6 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
   standalone: true,
   imports: [
     CommonModule,
-    ThemedButtonComponent,
     DividerComponent,
     SideButtonComponent
   ],
@@ -24,21 +22,6 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
       <div class="menu-content">
         
 
-        <!-- Add Button -->
-        @if (canShowAddButton()) {
-          <div class="add-section">
-            <app-themed-button
-              variant="raised"
-              color="primary"
-              [fullWidth]="true"
-              height="56px"
-              [icon]="'edit'"
-              [label]="navigationService.getAddButtonText()"
-              [disabled]="!navigationService.canAdd()"
-              (buttonClick)="handleAddClick()">
-            </app-themed-button>
-          </div>
-        }
 
         <!-- Navigation Items -->
         <div class="menu-items">
@@ -53,25 +36,6 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
           }
         </div>
 
-        <!-- Context Section -->
-        @if (currentContext && currentContext.objectTypes.length > 0) {
-          <div class="context-section">
-            <mat-divider></mat-divider>
-            
-            <div class="section-header">
-              <h3>Content Types</h3>
-            </div>
-            
-            @for (objectType of currentContext.objectTypes; track trackObjectType($index, objectType)) {
-              <app-side-button
-                [title]="objectType.pluralName"
-                [icon]="objectType.icon"
-                [selected]="isObjectTypeSelectedWithCD(objectType.id)"
-                (buttonClick)="handleObjectTypeClick(objectType.id)">
-              </app-side-button>
-            }
-          </div>
-        }
 
         <!-- Admin Section -->
         @if (currentContext?.canAdmin) {
@@ -113,7 +77,8 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
       height: 100%;
       transition: all 200ms;
       background: var(--md-sys-color-surface-container-low);
-      border-radius: 0 25px 25px 0;
+      --side-bar-radius: 3em;
+      border-radius: 0 var(--side-bar-radius) var(--side-bar-radius) 0;
       contain: strict;
       overflow: hidden;
     }
@@ -152,10 +117,6 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
         gap: 20px;
       }
       
-      .add-section {
-        display: flex;
-        justify-content: center;
-      }
       
       .menu-items {
         align-items: center;
@@ -163,11 +124,6 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
         gap: 8px;
       }
       
-      .context-section {
-        align-items: center;
-        width: 100%;
-        gap: 8px;
-      }
       
       .admin-section {
         align-items: center;
@@ -180,9 +136,6 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
         max-width: none;
       }
       
-      .add-section {
-        display: none;
-      }
     }
 
     .menu-content {
@@ -240,11 +193,6 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
       letter-spacing: 0.5px;
     }
 
-    /* Add Button */
-    .add-section {
-      margin: 0.5em;
-      margin-bottom: 1em;
-    }
 
     /* Menu Items */
     .menu-items {
@@ -269,8 +217,7 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
       letter-spacing: 0.5px;
     }
 
-    /* Context and Admin Sections */
-    .context-section,
+    /* Admin Section */
     .admin-section {
       display: flex;
       flex-direction: column;
@@ -284,10 +231,6 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
         gap: 12px;
       }
       
-      .add-button {
-        height: 44px;
-        max-width: 300px;
-      }
       
       .wall-name, .app-name {
         font-size: 16px;
@@ -310,10 +253,6 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
     }
 
     /* Focus and Accessibility */
-    .add-button:focus-visible {
-      outline: 2px solid var(--md-sys-color-primary);
-      outline-offset: 2px;
-    }
   `]
 })
 export class NavigationMenuComponent implements OnInit, OnDestroy {
@@ -367,44 +306,11 @@ export class NavigationMenuComponent implements OnInit, OnDestroy {
     this.activeMenuItems = this.navigationService.getActiveMenuItems();
   }
 
-  canShowAddButton(): boolean {
-    return this.navigationService.canAdd();
-  }
-
-  handleAddClick() {
-    if (this.currentContext && this.currentContext.objectTypes.length === 1) {
-      // Auto-select single object type
-      this.navigationService.navigateToAddPage(this.currentContext.objectTypes[0].id);
-    } else {
-      this.navigationService.navigateToAddPage();
-    }
-  }
 
   handleMenuItemClick(item: WallMenuItem) {
     this.navigationService.navigateToMenuItem(item);
   }
 
-  handleObjectTypeClick(objectTypeId: string) {
-    if (this.currentContext) {
-      this.navigationService.navigateToMenuItem({
-        title: '',
-        icon: '',
-        path: `/walls/${this.currentContext.wallId}/items`,
-        condition: () => true,
-        params: [{ name: 'objectType', value: objectTypeId }]
-      });
-    }
-  }
-
-  isObjectTypeSelected(objectTypeId: string): boolean {
-    return this.navigationService.isMenuItemSelected({
-      title: '',
-      icon: '',
-      path: `/walls/${this.currentContext?.wallId}/items`,
-      condition: () => true,
-      params: [{ name: 'objectType', value: objectTypeId }]
-    });
-  }
 
   isAdminPathSelected(path: string): boolean {
     if (!this.currentContext) return false;
@@ -439,10 +345,6 @@ export class NavigationMenuComponent implements OnInit, OnDestroy {
     return !!this.currentUrl && this.navigationService.isMenuItemSelected(item);
   }
 
-  // Object type selection with change detection
-  isObjectTypeSelectedWithCD(objectTypeId: string): boolean {
-    return !!this.currentUrl && this.isObjectTypeSelected(objectTypeId);
-  }
 
   // Admin path selection with change detection
   isAdminPathSelectedWithCD(path: string): boolean {
@@ -454,7 +356,4 @@ export class NavigationMenuComponent implements OnInit, OnDestroy {
     return `${item.title}-${item.path}`;
   }
 
-  trackObjectType(index: number, objectType: any): string {
-    return objectType.id;
-  }
 }

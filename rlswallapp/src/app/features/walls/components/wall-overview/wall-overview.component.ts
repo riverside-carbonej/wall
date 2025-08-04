@@ -28,7 +28,7 @@ import { CardComponent } from '../../../../shared/components/card/card.component
     @if (!isLoading) {
       @if (currentWall) {
         <app-page-layout
-          title="Overview"
+          title="About"
           [actions]="getPageActions()"
           (backClick)="goBack()">
           

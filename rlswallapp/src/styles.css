@@ -15,6 +15,12 @@
   border: none !important;
 }
 
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 .custom-marker {
   width: 32px;
   height: 32px;

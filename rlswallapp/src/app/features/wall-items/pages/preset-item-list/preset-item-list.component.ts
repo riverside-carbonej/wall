@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subject, takeUntil, combineLatest } from 'rxjs';
 import { switchMap, filter, map } from 'rxjs/operators';
+import { NlpService } from '../../../../shared/services/nlp.service';
 
 import { WallService } from '../../../walls/services/wall.service';
 import { WallItemService } from '../../services/wall-item.service';
@@ -13,6 +14,7 @@ import { CardComponent, CardAction } from '../../../../shared/components/card/ca
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { MatSpinner } from '../../../../shared/components/material-stubs';
+import { ButtonGroupComponent, ButtonGroupItem } from '../../../../shared/components/button-group/button-group.component';
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 
 @Component({
@@ -25,102 +27,73 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
     CardComponent,
     LoadingStateComponent,
     MaterialIconComponent,
-    MatSpinner
+    MatSpinner,
+    ButtonGroupComponent
   ],
   template: `
     <div *ngIf="wall$ | async as wall">
       <div *ngIf="preset$ | async as preset">
-        <div class="page-container">
+        <app-page-layout
+          [title]="nlpService.getPresetPageTitle(preset.name)"
+          [subtitle]="!isLoading ? nlpService.getCountText(totalItems, preset.name) : ''"
+          [showBackButton]="true"
+          [actions]="getPageActions(preset)"
+          (backClick)="goBack()">
           
           <!-- Loading Spinner -->
           <mat-spinner
-            [style.opacity]="isLoading ? '1' : '0'"
+            *ngIf="isLoading"
             class="loading-spinner">
           </mat-spinner>
           
-          <!-- Header -->
-          <div class="list-header">
-            <div class="header-top">
-              <button 
-                mat-icon-button 
-                (click)="goBack()" 
-                class="back-button">
-                <mat-icon [icon]="'arrow_back'"></mat-icon>
-              </button>
-              <div class="title-section">
-                <h1 class="page-title">{{ preset.name }} Items</h1>
-                <p class="page-subtitle" *ngIf="!isLoading">{{ totalItems }} {{ preset.name.toLowerCase() }}{{ totalItems !== 1 ? 's' : '' }}</p>
+          <!-- Action Bar -->
+          <div class="action-bar">
+            @if (selection.length <= 0) {
+              <div class="filter-bar">
+                <!-- View Toggle -->
+                <app-button-group
+                  [items]="viewToggleItems"
+                  [activeId]="largeView ? 'grid' : 'list'"
+                  (selectionChange)="onViewToggleChange($event)">
+                </app-button-group>
+                
+                <!-- Pagination -->
+                <div class="pagination">
+                  <button 
+                    class="page-button"
+                    [disabled]="pageIndex === 0"
+                    (click)="changePage(pageIndex - 1)">
+                    <mat-icon [icon]="'chevron_left'"></mat-icon>
+                  </button>
+                  <span class="page-info">
+                    {{ getPageStart() }} - {{ getPageEnd() }} of {{ totalItems }}
+                  </span>
+                  <button 
+                    class="page-button"
+                    [disabled]="pageIndex >= getMaxPage()"
+                    (click)="changePage(pageIndex + 1)">
+                    <mat-icon [icon]="'chevron_right'"></mat-icon>
+                  </button>
+                </div>
               </div>
-            </div>
-            
-            <!-- Action Bar -->
-            <div class="action-bar">
-              @if (selection.length <= 0) {
-                <div class="filter-bar">
-                  <!-- View Toggle -->
-                  <div class="view-toggle">
-                    <button 
-                      class="toggle-button"
-                      [class.active]="largeView"
-                      (click)="setLargeView(true)">
-                      <mat-icon [icon]="'grid_view'"></mat-icon>
-                      Grid
-                    </button>
-                    <button 
-                      class="toggle-button"
-                      [class.active]="!largeView"
-                      (click)="setLargeView(false)">
-                      <mat-icon [icon]="'view_list'"></mat-icon>
-                      List
-                    </button>
-                  </div>
-                  
-                  <!-- Add Button -->
-                  <button 
-                    class="add-button primary-button"
-                    (click)="navigateToAdd()">
-                    <mat-icon [icon]="'add'"></mat-icon>
-                    Add {{ preset.name }}
-                  </button>
-                  
-                  <!-- Pagination -->
-                  <div class="pagination">
-                    <button 
-                      class="page-button"
-                      [disabled]="pageIndex === 0"
-                      (click)="changePage(pageIndex - 1)">
-                      <mat-icon [icon]="'chevron_left'"></mat-icon>
-                    </button>
-                    <span class="page-info">
-                      {{ getPageStart() }} - {{ getPageEnd() }} of {{ totalItems }}
-                    </span>
-                    <button 
-                      class="page-button"
-                      [disabled]="pageIndex >= getMaxPage()"
-                      (click)="changePage(pageIndex + 1)">
-                      <mat-icon [icon]="'chevron_right'"></mat-icon>
-                    </button>
-                  </div>
-                </div>
-              } @else {
-                <div class="selection-bar">
-                  <button class="icon-button" (click)="clearSelection()">
-                    <mat-icon [icon]="'close'"></mat-icon>
-                  </button>
-                  <span class="selection-count">{{ selection.length }} selected</span>
-                  <button 
-                    class="text-button"
-                    (click)="toggleSelectAll()">
-                    {{ selection.length === currentPageItems.length ? 'Deselect All' : 'Select All' }}
-                  </button>
-                  <button 
-                    class="icon-button delete-button"
-                    (click)="deleteSelected()">
-                    <mat-icon [icon]="'delete'"></mat-icon>
-                  </button>
-                </div>
-              }
-            </div>
+            } @else {
+              <div class="selection-bar">
+                <button class="icon-button" (click)="clearSelection()">
+                  <mat-icon [icon]="'close'"></mat-icon>
+                </button>
+                <span class="selection-count">{{ selection.length }} selected</span>
+                <button 
+                  class="text-button"
+                  (click)="toggleSelectAll()">
+                  {{ selection.length === currentPageItems.length ? 'Deselect All' : 'Select All' }}
+                </button>
+                <button 
+                  class="icon-button delete-button"
+                  (click)="deleteSelected()">
+                  <mat-icon [icon]="'delete'"></mat-icon>
+                </button>
+              </div>
+            }
           </div>
 
           <!-- Content Container -->
@@ -130,7 +103,7 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
             @if (!isLoading && totalItems === 0) {
               <app-empty-state
                 [icon]="preset.icon || 'inventory_2'"
-                [title]="'No ' + preset.name.toLowerCase() + ' yet'"
+                [title]="nlpService.getEmptyStateTitle(preset.name)"
                 [message]="'Add your first ' + preset.name.toLowerCase() + ' entry to get started!'"
                 [actions]="emptyStateActions">
               </app-empty-state>
@@ -207,7 +180,7 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
             }
           </div>
           
-        </div>
+        </app-page-layout>
       </div>
     </div>
   `,
@@ -251,6 +224,28 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
 
     .back-button {
       color: var(--md-sys-color-on-surface);
+      background: transparent;
+      border: none;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .back-button:hover {
+      background: var(--md-sys-color-surface-variant);
+    }
+
+    .back-button mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .title-section {
@@ -283,42 +278,11 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
     .filter-bar {
       display: flex;
       align-items: center;
-      padding: 8px 16px;
+      padding: 8px 12px;
       gap: 16px;
     }
 
-    /* View Toggle Styles */
-    .view-toggle {
-      display: flex;
-      border-radius: 100px;
-      background: var(--md-sys-color-surface-container-low);
-      padding: 4px;
-      gap: 4px;
-    }
-
-    .toggle-button {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border: none;
-      background: transparent;
-      color: var(--md-sys-color-on-surface-variant);
-      border-radius: 100px;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-
-    .toggle-button:hover {
-      background: var(--md-sys-color-surface-container);
-    }
-
-    .toggle-button.active {
-      background: var(--md-sys-color-primary);
-      color: var(--md-sys-color-on-primary);
-    }
+    /* View Toggle Styles - Now handled by ButtonGroupComponent */
 
     /* Button Styles */
     .primary-button {
@@ -343,6 +307,15 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       box-shadow: var(--md-sys-elevation-2);
     }
 
+    .primary-button mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .icon-button {
       width: 40px;
       height: 40px;
@@ -364,6 +337,15 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
     .icon-button:disabled {
       opacity: 0.38;
       cursor: not-allowed;
+    }
+
+    .icon-button mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .text-button {
@@ -673,12 +655,26 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
     }
   ];
 
+  viewToggleItems: ButtonGroupItem[] = [
+    {
+      id: 'grid',
+      label: 'Grid',
+      icon: 'grid_view'
+    },
+    {
+      id: 'list',
+      label: 'List',
+      icon: 'view_list'
+    }
+  ];
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private wallService: WallService,
     private wallItemService: WallItemService,
-    private confirmationDialog: ConfirmationDialogService
+    private confirmationDialog: ConfirmationDialogService,
+    public nlpService: NlpService
   ) {}
 
   ngOnInit() {
@@ -758,6 +754,10 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
   // View Mode Methods
   setLargeView(isLarge: boolean) {
     this.largeView = isLarge;
+  }
+
+  onViewToggleChange(item: ButtonGroupItem) {
+    this.setLargeView(item.id === 'grid');
   }
 
   // Navigation Methods
@@ -903,4 +903,17 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
       }
     ];
   }
+
+  getPageActions(preset: WallObjectType): PageAction[] {
+    return [
+      {
+        label: this.nlpService.getAddButtonText(preset.name),
+        icon: 'add',
+        variant: 'raised',
+        color: 'primary',
+        action: () => this.navigateToAdd()
+      }
+    ];
+  }
+
 }

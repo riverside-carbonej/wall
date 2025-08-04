@@ -65,12 +65,12 @@ export const routes: Routes = [
   },
   { 
     path: 'walls/:wallId/preset/:presetId/items/:itemId', 
-    loadComponent: () => import('./features/wall-items/pages/preset-item-view/preset-item-view.component').then(m => m.PresetItemViewComponent),
+    loadComponent: () => import('./features/wall-items/pages/preset-item-page/preset-item-page.component').then(m => m.PresetItemPageComponent),
     canActivate: [AuthGuard]
   },
   { 
     path: 'walls/:wallId/preset/:presetId/items/:itemId/edit', 
-    loadComponent: () => import('./features/wall-items/pages/preset-item-edit/preset-item-edit.component').then(m => m.PresetItemEditComponent),
+    loadComponent: () => import('./features/wall-items/pages/preset-item-page/preset-item-page.component').then(m => m.PresetItemPageComponent),
     canActivate: [AuthGuard]
   },
   

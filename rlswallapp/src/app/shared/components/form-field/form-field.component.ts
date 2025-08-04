@@ -1,6 +1,6 @@
 import { Component, Input, ContentChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatFormField, MatLabel, MatHint, MatError } from '../material-stubs';
+import { MatFormField, MatInput, MatLabel, MatHint, MatError } from '../material-stubs';
 import { MaterialIconComponent } from '../material-icon/material-icon.component';
 import { TooltipDirective } from '../tooltip/tooltip.component';
 
@@ -10,7 +10,7 @@ export type FormFieldFloatLabel = 'always' | 'auto';
 @Component({
   selector: 'app-form-field',
   standalone: true,
-  imports: [CommonModule, MatFormField, MatLabel, MatHint, MatError, MaterialIconComponent, TooltipDirective],
+  imports: [CommonModule, MatFormField, MatInput, MatLabel, MatHint, MatError, MaterialIconComponent, TooltipDirective],
   template: `
     <mat-form-field 
       [appearance]="appearance"

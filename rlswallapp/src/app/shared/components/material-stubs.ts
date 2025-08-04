@@ -1,4 +1,4 @@
-import { Component, input, output, model, signal, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, Directive, input, output, model, signal, HostListener, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MaterialIconComponent } from './material-icon/material-icon.component';
@@ -562,13 +562,171 @@ export class MatProgressBar {
   selector: 'mat-form-field',
   standalone: true,
   imports: [CommonModule],
-  template: '<div class="mat-form-field"><ng-content></ng-content></div>',
-  styles: [`.mat-form-field { display: block; margin-bottom: 16px; position: relative; }`]
+  template: `
+    <div class="mat-form-field" [class.mat-form-field-appearance-outline]="appearance() === 'outline'" [class.mat-form-field-appearance-fill]="appearance() === 'fill'">
+      <div class="mat-form-field-wrapper">
+        <div class="mat-form-field-flex">
+          <div class="mat-form-field-outline" *ngIf="appearance() === 'outline'">
+            <div class="mat-form-field-outline-start"></div>
+            <div class="mat-form-field-outline-gap"></div>
+            <div class="mat-form-field-outline-end"></div>
+          </div>
+          <div class="mat-form-field-prefix">
+            <ng-content select="[matPrefix], mat-icon[matPrefix]"></ng-content>
+          </div>
+          <div class="mat-form-field-infix">
+            <ng-content select="mat-label"></ng-content>
+            <ng-content select="input, textarea, mat-select"></ng-content>
+          </div>
+          <div class="mat-form-field-suffix">
+            <ng-content select="[matSuffix], mat-icon[matSuffix]"></ng-content>
+          </div>
+        </div>
+        <div class="mat-form-field-subscript-wrapper">
+          <ng-content select="mat-hint, mat-error"></ng-content>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .mat-form-field {
+      display: block;
+      position: relative;
+      text-align: left;
+      width: 100%;
+      margin-bottom: 16px;
+      font-family: 'Google Sans', 'Roboto', sans-serif;
+    }
+    
+    .mat-form-field-wrapper {
+      position: relative;
+      padding-bottom: 1.25em;
+    }
+    
+    .mat-form-field-flex {
+      display: inline-flex;
+      align-items: baseline;
+      box-sizing: border-box;
+      width: 100%;
+      position: relative;
+    }
+    
+    .mat-form-field-infix {
+      display: block;
+      position: relative;
+      flex: auto;
+      min-width: 0;
+      width: 180px;
+      padding: 16px 0;
+    }
+    
+    .mat-form-field-prefix,
+    .mat-form-field-suffix {
+      white-space: nowrap;
+      flex: none;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    
+    .mat-form-field-prefix {
+      padding-left: 16px;
+    }
+    
+    .mat-form-field-suffix {
+      padding-right: 16px;
+    }
+    
+    /* Outline appearance */
+    .mat-form-field-appearance-outline .mat-form-field-outline {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      border-radius: var(--md-sys-shape-corner-extra-small);
+      border: 1px solid var(--md-sys-color-outline);
+      transition: border-color 0.2s ease;
+    }
+    
+    .mat-form-field-appearance-outline:hover .mat-form-field-outline {
+      border-color: var(--md-sys-color-on-surface);
+    }
+    
+    .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline {
+      border-color: var(--md-sys-color-primary);
+      border-width: 2px;
+    }
+    
+    .mat-form-field-appearance-outline.mat-form-field-invalid .mat-form-field-outline {
+      border-color: var(--md-sys-color-error);
+    }
+    
+    /* Input styling */
+    .mat-form-field input,
+    .mat-form-field textarea {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--md-sys-color-on-surface);
+      font-family: 'Google Sans', 'Roboto', sans-serif;
+      font-size: var(--md-sys-typescale-body-large-size);
+      width: 100%;
+      caret-color: var(--md-sys-color-primary);
+    }
+    
+    .mat-form-field input::placeholder,
+    .mat-form-field textarea::placeholder {
+      color: var(--md-sys-color-on-surface-variant);
+      opacity: 1;
+    }
+    
+    .mat-form-field input:disabled,
+    .mat-form-field textarea:disabled {
+      color: var(--md-sys-color-on-surface);
+      opacity: 0.38;
+    }
+    
+    /* Subscript wrapper */
+    .mat-form-field-subscript-wrapper {
+      position: absolute;
+      box-sizing: border-box;
+      width: 100%;
+      min-height: 1.25em;
+      padding: 0 16px;
+      top: 100%;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .mat-form-field-prefix,
+      .mat-form-field-suffix {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+      
+      .mat-form-field-subscript-wrapper {
+        padding: 0 12px;
+      }
+    }
+  `]
 })
 export class MatFormField {
   appearance = input<string>('outline');
   floatLabel = input<string>('auto');
 }
+
+// Input Directive for Material Design
+@Directive({
+  selector: '[matInput]',
+  standalone: true,
+  host: {
+    'class': 'mat-mdc-input-element mdc-text-field__input cdk-text-field-autofill-monitored',
+    '[class.mdc-text-field__input--with-trailing-icon]': 'true'
+  }
+})
+export class MatInput {}
 
 // Hint Component
 @Component({

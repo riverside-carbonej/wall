@@ -343,6 +343,16 @@ export class WallItemListComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Check for legacy URL with objectType query parameter and redirect to new preset-based URL
+    const objectTypeParam = this.route.snapshot.queryParamMap.get('objectType');
+    if (objectTypeParam) {
+      // Redirect to new preset-based URL structure
+      this.router.navigate(['/walls', this.wallId, 'preset', objectTypeParam, 'items'], {
+        replaceUrl: true // Replace the current URL in history
+      });
+      return;
+    }
+
     // Load wall data
     this.wall$ = this.wallService.getWallById(this.wallId).pipe(
       takeUntil(this.destroy$)
@@ -424,10 +434,8 @@ export class WallItemListComponent implements OnInit, OnDestroy {
       // No object types available - redirect to manage page
       this.navigateToObjectTypes();
     } else if (this.objectTypes.length === 1) {
-      // Auto-select single object type
-      this.router.navigate(['/walls', this.wallId, 'items', 'add'], {
-        queryParams: { objectType: this.objectTypes[0].id }
-      });
+      // Auto-select single object type and navigate to preset-based add page
+      this.router.navigate(['/walls', this.wallId, 'preset', this.objectTypes[0].id, 'items', 'add']);
     } else {
       // Multiple object types - let user choose
       this.router.navigate(['/walls', this.wallId, 'items', 'select-type']);

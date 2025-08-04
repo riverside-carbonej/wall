@@ -39,20 +39,31 @@
       
       <!-- Text Input Fields (text, email, url) -->
       @if (isTextInput()) {
-        <app-form-field
-          [label]="field.name"
-          [required]="field.required"
-          [suffixIcon]="getFieldIcon()"
-          [error]="formControl.invalid && formControl.touched ? getErrorMessage() : undefined"
-          appearance="outline"
-          spacing="comfortable">
-          <input 
-            matInput 
-            [type]="getInputType()"
-            [formControl]="formControl"
-            [placeholder]="field.placeholder || ''"
-            [required]="field.required">
-        </app-form-field>
+        <div class="form-field">
+          <label class="field-label">
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </label>
+          <div class="input-container" [class.error]="formControl?.invalid && formControl?.touched">
+            @if (getFieldIcon()) {
+              <mat-icon class="prefix-icon" [icon]="getFieldIcon()"></mat-icon>
+            }
+            <input 
+              class="material-input" 
+              [type]="getTextInputType()"
+              [formControl]="formControl!"
+              [placeholder]="field.placeholder || ''"
+              [required]="field.required">
+          </div>
+          @if (formControl?.invalid && formControl?.touched) {
+            <div class="field-error">
+              <mat-icon [icon]="'error'"></mat-icon>
+              {{ getErrorMessage() }}
+            </div>
+          }
+        </div>
       }
 
       <!-- Textarea Fields (longtext, richtext) -->
@@ -61,13 +72,13 @@
           [label]="field.name"
           [required]="field.required"
           [suffixIcon]="getFieldIcon()"
-          [error]="formControl.invalid && formControl.touched ? getErrorMessage() : undefined"
+          [error]="formControl?.invalid && formControl?.touched ? getErrorMessage() : undefined"
           [hint]="field.placeholder"
           appearance="outline"
           spacing="comfortable">
           <textarea 
             matInput 
-            [formControl]="formControl"
+            [formControl]="formControl!"
             [placeholder]="field.placeholder || ''"
             [required]="field.required"
             rows="4"
@@ -80,51 +91,38 @@
 
       <!-- Number Input -->
       @if (isNumber()) {
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>
-            {{ field.name }}
-            @if (field.required) {
-              <span class="required-indicator">*</span>
-            }
-          </mat-label>
+        <app-form-field
+          [label]="field.name"
+          [required]="field.required"
+          [suffixIcon]="getFieldIcon()"
+          [error]="formControl?.invalid && formControl?.touched ? getErrorMessage() : undefined"
+          [hint]="field.placeholder"
+          appearance="outline"
+          spacing="comfortable">
           <input 
             matInput 
             type="number"
-            [formControl]="formControl"
+            [formControl]="formControl!"
             [placeholder]="field.placeholder || ''"
             [required]="field.required">
-          @if (getFieldIcon()) {
-            <mat-icon matSuffix>{{ getFieldIcon() }}</mat-icon>
-          }
-          @if (formControl.invalid && formControl.touched) {
-            <mat-error>
-              {{ getErrorMessage() }}
-            </mat-error>
-          }
-        </mat-form-field>
+        </app-form-field>
       }
 
       <!-- Date Input -->
       @if (isDate()) {
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>
-            {{ field.name }}
-            @if (field.required) {
-              <span class="required-indicator">*</span>
-            }
-          </mat-label>
+        <app-form-field
+          [label]="field.name"
+          [required]="field.required"
+          [suffixIcon]="'calendar_today'"
+          [error]="formControl?.invalid && formControl?.touched ? getErrorMessage() : undefined"
+          appearance="outline"
+          spacing="comfortable">
           <input 
+            matInput
             type="date"
-            [formControl]="formControl"
-            [required]="field.required"
-            class="date-input">
-          <mat-datepicker #datePicker></mat-datepicker>
-          @if (formControl.invalid && formControl.touched) {
-            <mat-error>
-              {{ getErrorMessage() }}
-            </mat-error>
-          }
-        </mat-form-field>
+            [formControl]="formControl!"
+            [required]="field.required">
+        </app-form-field>
       }
 
       <!-- Boolean/Checkbox -->
@@ -136,7 +134,7 @@
               <span class="required-indicator">*</span>
             }
           </mat-checkbox>
-          @if (formControl.invalid && formControl.touched) {
+          @if (formControl?.invalid && formControl?.touched) {
             <div class="field-error">
               {{ getErrorMessage() }}
             </div>
@@ -147,26 +145,22 @@
       <!-- Color Input -->
       @if (isColor()) {
         <div class="color-field">
-          <mat-form-field appearance="outline" class="color-input">
-            <mat-label>
-              {{ field.name }}
-              @if (field.required) {
-                <span class="required-indicator">*</span>
-              }
-            </mat-label>
+          <app-form-field
+            [label]="field.name"
+            [required]="field.required"
+            [suffixIcon]="'palette'"
+            [error]="formControl?.invalid && formControl?.touched ? getErrorMessage() : undefined"
+            appearance="outline"
+            spacing="comfortable"
+            class="color-input">
             <input 
               matInput 
               type="color"
-              [formControl]="formControl"
+              [formControl]="formControl!"
               [required]="field.required">
-            @if (formControl.invalid && formControl.touched) {
-              <mat-error>
-                {{ getErrorMessage() }}
-              </mat-error>
-            }
-          </mat-form-field>
+          </app-form-field>
           <div class="color-preview">
-            <div class="color-swatch" [style.background-color]="formControl.value"></div>
+            <div class="color-swatch" [style.background-color]="formControl?.value"></div>
           </div>
         </div>
       }
@@ -196,10 +190,11 @@
           
           <!-- Custom option input (if allowed) -->
           @if (field.multiselectConfig?.allowCustom) {
-            <mat-form-field 
-              appearance="outline" 
+            <app-form-field
+              label="Add custom option"
+              appearance="outline"
+              spacing="comfortable"
               class="custom-option-input">
-              <mat-label>Add custom option</mat-label>
               <input matInput #customInput>
               <button 
                 matSuffix 
@@ -207,10 +202,10 @@
                 (click)="addCustomOption(customInput.value); customInput.value = ''">
                 <mat-icon>add</mat-icon>
               </button>
-            </mat-form-field>
+            </app-form-field>
           }
           
-          @if (formControl.invalid && formControl.touched) {
+          @if (formControl?.invalid && formControl?.touched) {
             <div class="field-error">
               {{ getErrorMessage() }}
             </div>
@@ -245,7 +240,7 @@
               Choose {{ field.fileConfig?.multiple ? 'Files' : 'File' }}
             </button>
             
-            @if (formControl.value) {
+            @if (formControl?.value) {
               <div class="selected-files">
                 <div class="file-info">
                   <mat-icon>attachment</mat-icon>
@@ -255,7 +250,7 @@
             }
           </div>
           
-          @if (formControl.invalid && formControl.touched) {
+          @if (formControl?.invalid && formControl?.touched) {
             <div class="field-error">
               {{ getErrorMessage() }}
             </div>
@@ -309,7 +304,7 @@
             </div>
           }
           
-          @if (formControl.invalid && formControl.touched) {
+          @if (formControl?.invalid && formControl?.touched) {
             <div class="field-error">
               {{ getErrorMessage() }}
             </div>

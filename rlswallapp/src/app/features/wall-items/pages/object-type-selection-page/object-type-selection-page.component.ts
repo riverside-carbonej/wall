@@ -99,10 +99,8 @@ export class ObjectTypeSelectionPageComponent implements OnInit, OnDestroy {
   }
 
   onObjectTypeSelected(objectType: WallObjectType): void {
-    // Navigate to add page with selected object type
-    this.router.navigate(['/walls', this.wallId, 'items', 'add'], {
-      queryParams: { objectType: objectType.id }
-    });
+    // Navigate to preset-based add page with selected object type
+    this.router.navigate(['/walls', this.wallId, 'preset', objectType.id, 'items', 'add']);
   }
 
   onCancel(): void {

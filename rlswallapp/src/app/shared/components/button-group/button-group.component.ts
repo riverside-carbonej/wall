@@ -22,7 +22,7 @@ export interface ButtonGroupItem {
         [disabled]="item.disabled"
         (click)="onItemClick(item)"
         *ngFor="let item of items; trackBy: trackByFn">
-        <mat-icon *ngIf="item.icon">{{ item.icon }}</mat-icon>
+        <mat-icon *ngIf="item.icon" [icon]="item.icon"></mat-icon>
         {{ item.label }}
       </button>
     </div>
@@ -30,29 +30,42 @@ export interface ButtonGroupItem {
   styles: [`
     .button-group-container {
       display: flex;
-      gap: 12px;
-      padding: 8px;
-      background: var(--md-sys-color-surface-container);
-      border-radius: calc(var(--md-sys-shape-corner-full) + 8px);
-      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: 100px;
+      background: var(--md-sys-color-surface-container-low);
+      padding: 6px;
+      gap: 6px;
       max-width: fit-content;
-      box-shadow: var(--md-sys-elevation-1);
     }
 
     .button-group-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      border-radius: var(--md-sys-shape-corner-full);
-      padding: 12px 20px !important;
+      gap: 10px;
+      padding: 12px 20px;
+      border: none;
+      background: transparent;
+      color: var(--md-sys-color-on-surface-variant);
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      font-size: 0.875rem;
+      font-weight: 500;
       min-height: 44px;
       white-space: nowrap;
-      transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .button-group-item:hover {
+      background: var(--md-sys-color-surface-container);
     }
 
     .button-group-item.active {
-      background-color: var(--md-sys-color-primary) !important;
-      color: var(--md-sys-color-on-primary) !important;
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+
+    .button-group-item:disabled {
+      opacity: 0.38;
+      cursor: not-allowed;
     }
 
     .button-group-item mat-icon {
@@ -65,13 +78,14 @@ export interface ButtonGroupItem {
     /* Mobile responsive */
     @media (max-width: 768px) {
       .button-group-container {
-        gap: 8px;
-        padding: 6px;
+        gap: 4px;
+        padding: 4px;
       }
       
       .button-group-item {
-        padding: 10px 16px !important;
+        padding: 10px 16px;
         min-height: 40px;
+        gap: 8px;
       }
     }
   `]

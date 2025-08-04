@@ -55,6 +55,10 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
 
             <!-- Wall navigation (when viewing a wall) -->
             <div *ngIf="currentWall()" class="wall-nav">
+                <img 
+                  [src]="currentWall()?.logoUrl || 'assets/images/beaver-logo.png'" 
+                  [alt]="currentWall()?.name + ' Logo' || 'Wall Logo'" 
+                  class="wall-logo-icon">
               <div class="wall-info">
                 <h1 class="wall-title" [style.color]="currentWall()?.theme?.titleColor">
                   {{ currentWall()?.name }}
@@ -259,6 +263,14 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
       gap: var(--md-sys-spacing-md);
       flex: 1;
       min-width: 0;
+      gap: 0.5em;
+    }
+
+    .wall-logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--md-sys-shape-corner-small);
+      object-fit: cover;
     }
 
     .back-button {
@@ -276,8 +288,8 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
     .wall-title {
       margin: 0;
       font-family: var(--md-sys-typescale-title-large-font-family);
-      font-size: var(--md-sys-typescale-title-large-font-size);
-      font-weight: var(--md-sys-typescale-title-large-font-weight);
+      font-size: 1.5rem;
+      font-weight: 600;
       line-height: var(--md-sys-typescale-title-large-line-height);
       letter-spacing: var(--md-sys-typescale-title-large-letter-spacing);
       white-space: nowrap;
@@ -299,9 +311,6 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
     }
 
     @media (max-width: 768px) {
-      .wall-title {
-        font-size: var(--md-sys-typescale-title-medium-font-size);
-      }
       
       .wall-breadcrumb {
         display: none;
@@ -544,6 +553,11 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
       }
 
       .logo-icon {
+        width: 32px;
+        height: 32px;
+      }
+
+      .wall-logo-icon {
         width: 32px;
         height: 32px;
       }

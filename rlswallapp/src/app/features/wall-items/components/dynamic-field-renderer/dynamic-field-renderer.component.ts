@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormControl } from '@angular/forms';
-import { MatFormField, MatLabel, MatError } from '../../../../shared/components/material-stubs';
+import { ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
+import { MatFormField, MatInput, MatLabel, MatError } from '../../../../shared/components/material-stubs';
 import { SelectComponent } from '../../../../shared/components/select/select.component';
 import { MatCheckbox } from '../../../../shared/components/material-stubs';
 import { MatChipListbox, MatChipOption } from '../../../../shared/components/material-stubs';
@@ -11,6 +11,8 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
 import { FieldDefinition } from '../../../../shared/models/wall.model';
 import { LocationPickerComponent } from '../../../maps/components/location-picker/location-picker.component';
 import { FormFieldComponent } from '../../../../shared/components/form-field/form-field.component';
+import { MaterialTextInputComponent } from '../../../../shared/components/material-text-input/material-text-input.component';
+import { MaterialSelectComponent, SelectOption } from '../../../../shared/components/material-select/material-select.component';
 
 @Component({
   selector: 'app-dynamic-field-renderer',
@@ -18,7 +20,7 @@ import { FormFieldComponent } from '../../../../shared/components/form-field/for
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatFormField, MatLabel, MatError,
+    MatFormField, MatInput, MatLabel, MatError,
     SelectComponent,
     MatCheckbox,
     MatChipListbox, MatChipOption,
@@ -26,16 +28,22 @@ import { FormFieldComponent } from '../../../../shared/components/form-field/for
     MaterialIconComponent,
     ThemedButtonComponent,
     LocationPickerComponent,
-    FormFieldComponent
+    FormFieldComponent,
+    MaterialTextInputComponent,
+    MaterialSelectComponent
   ],
   templateUrl: './dynamic-field-renderer.component.html',
   styleUrls: ['./dynamic-field-renderer.component.css']
 })
 export class DynamicFieldRendererComponent implements OnInit {
   @Input() field!: FieldDefinition;
-  @Input() formControl!: FormControl;
+  @Input() formGroup!: FormGroup;
   @Input() readonly = false;
   @Input() value: any;
+
+  get formControl(): FormControl {
+    return this.formGroup?.get(this.field.id) as FormControl;
+  }
 
   // For multiselect fields
   selectedOptions: string[] = [];
@@ -102,6 +110,19 @@ export class DynamicFieldRendererComponent implements OnInit {
     }
   }
 
+  getTextInputType(): 'text' | 'email' | 'url' | 'password' | 'number' | 'textarea' {
+    switch (this.field.type) {
+      case 'email':
+        return 'email';
+      case 'url':
+        return 'url';
+      case 'number':
+        return 'number';
+      default:
+        return 'text';
+    }
+  }
+
   getDisplayValue(): string {
     if (!this.value) return '';
     
@@ -137,7 +158,7 @@ export class DynamicFieldRendererComponent implements OnInit {
       this.selectedOptions = this.selectedOptions.filter(o => o !== option);
     }
     
-    this.formControl.setValue([...this.selectedOptions]);
+    this.formControl?.setValue([...this.selectedOptions]);
   }
 
   isOptionSelected(option: string): boolean {
@@ -149,15 +170,17 @@ export class DynamicFieldRendererComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       if (this.field.fileConfig?.multiple) {
-        this.formControl.setValue(Array.from(input.files));
+        this.formControl?.setValue(Array.from(input.files));
       } else {
-        this.formControl.setValue(input.files[0]);
+        this.formControl?.setValue(input.files[0]);
       }
     }
   }
 
   // Validation helper
   getErrorMessage(): string {
+    if (!this.formControl) return 'Invalid field';
+    
     if (this.formControl.hasError('required')) {
       return `${this.field.name} is required`;
     }
@@ -235,18 +258,29 @@ export class DynamicFieldRendererComponent implements OnInit {
   addCustomOption(option: string) {
     if (option && option.trim() && !this.selectedOptions.includes(option.trim())) {
       this.selectedOptions.push(option.trim());
-      this.formControl.setValue([...this.selectedOptions]);
+      this.formControl?.setValue([...this.selectedOptions]);
     }
   }
 
   // Location handlers
   onLocationSelected(result: any) {
     if (result && result.coordinates) {
-      this.formControl.setValue(result.coordinates);
+      this.formControl?.setValue(result.coordinates);
     }
   }
 
   onLocationCleared() {
-    this.formControl.setValue(null);
+    this.formControl?.setValue(null);
+  }
+
+  // Helper method to get select options for multiselect and other select-based fields
+  getSelectOptions(): SelectOption[] {
+    if (this.field.multiselectConfig?.options) {
+      return this.field.multiselectConfig.options.map(option => ({
+        value: option,
+        label: option
+      }));
+    }
+    return [];
   }
 }

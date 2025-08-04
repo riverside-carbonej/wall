@@ -146,10 +146,9 @@ export class WallService {
         return user.email!;
       }),
       switchMap(userEmail => {
-        const wallDoc = doc(this.firestore, this.collectionName, id);
-        
         return new Observable<Wall | null>(subscriber => {
           const unsubscribe = runInInjectionContext(this.injector, () => {
+            const wallDoc = doc(this.firestore, this.collectionName, id);
             return onSnapshot(wallDoc, 
               (docSnap) => {
                 if (docSnap.exists()) {
@@ -603,15 +602,17 @@ export class WallService {
    * Update wall permissions
    */
   updateWallPermissions(wallId: string, permissions: Partial<any>): Observable<void> {
-    const wallDoc = doc(this.firestore, this.collectionName, wallId);
-    const updateData = {
-      'permissions.editors': permissions['editors'],
-      'permissions.department': permissions['department'],
-      'permissions.allowDepartmentEdit': permissions['allowDepartmentEdit'],
-      updatedAt: serverTimestamp()
-    };
-    
-    return from(updateDoc(wallDoc, updateData));
+    return runInInjectionContext(this.injector, () => {
+      const wallDoc = doc(this.firestore, this.collectionName, wallId);
+      const updateData = {
+        'permissions.editors': permissions['editors'],
+        'permissions.department': permissions['department'],
+        'permissions.allowDepartmentEdit': permissions['allowDepartmentEdit'],
+        updatedAt: serverTimestamp()
+      };
+      
+      return from(updateDoc(wallDoc, updateData));
+    });
   }
 
   /**

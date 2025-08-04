@@ -55,6 +55,10 @@ export interface WallObjectType {
     secondaryField?: string; // Field ID for card subtitles
     imageField?: string; // Field ID for card images
   };
+  defaultImage?: {
+    url: string;
+    altText?: string;
+  };
   isActive: boolean;
   sortOrder: number;
   createdAt: Date;

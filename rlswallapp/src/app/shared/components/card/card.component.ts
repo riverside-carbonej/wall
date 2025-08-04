@@ -149,6 +149,11 @@ export interface CardMenuItem extends ActionMenuItem {}
       position: relative;
       overflow: hidden;
       font-family: 'Google Sans', 'Roboto', sans-serif;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
     }
     
     /* Card Variants */
@@ -366,12 +371,21 @@ export interface CardMenuItem extends ActionMenuItem {}
     .card-actions {
       padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3) var(--md-sys-spacing-3);
       gap: var(--md-sys-spacing-2);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: hidden;
+      box-sizing: border-box;
     }
     
     .card-actions app-themed-button {
-      min-height: 48px;
-      padding: 12px 24px;
-      font-size: 16px;
+      min-height: 40px;
+      padding: 8px 16px;
+      font-size: 14px;
+      flex-shrink: 0;
+      max-width: 100%;
+      box-sizing: border-box;
     }
     
     /* Mobile Responsive */
