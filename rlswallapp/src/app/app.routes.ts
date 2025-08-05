@@ -53,7 +53,7 @@ export const routes: Routes = [
   },
   { 
     path: 'walls/:id/permissions', 
-    loadComponent: () => import('./features/walls/components/users-permissions/users-permissions.component').then(m => m.UsersPermissionsComponent),
+    loadComponent: () => import('./features/walls/components/users-permissions/users-permissions-v2.component').then(m => m.UsersPermissionsV2Component),
     canActivate: [AuthGuard, wallContextGuard]
   },
   
