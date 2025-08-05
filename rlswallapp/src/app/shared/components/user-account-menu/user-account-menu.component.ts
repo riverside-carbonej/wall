@@ -20,27 +20,28 @@ import { MaterialIconComponent } from '../material-icon/material-icon.component'
         [attr.aria-label]="'User account menu for ' + ((currentUser$ | async)?.displayName || (currentUser$ | async)?.email || 'User')"
         #avatarButton>
         
-        <!-- User Photo -->
-        <img 
-          *ngIf="(currentUser$ | async)?.photoURL" 
-          [src]="(currentUser$ | async)?.photoURL!" 
-          [alt]="(currentUser$ | async)?.displayName || 'User Avatar'"
-          class="avatar-image"
-          (error)="onImageError($event)">
-        
-        <!-- Fallback Initials -->
-        <div 
-          *ngIf="(currentUser$ | async) && !(currentUser$ | async)?.photoURL" 
-          class="avatar-initials">
-          {{ getInitials((currentUser$ | async)?.displayName || (currentUser$ | async)?.email || '') }}
-        </div>
-        
-        <!-- Generic User Icon -->
-        <div 
-          *ngIf="!(currentUser$ | async)" 
-          class="avatar-generic">
-          <mat-icon [icon]="'account_circle'"></mat-icon>
-        </div>
+        @if (currentUser$ | async; as user) {
+          <!-- User Photo -->
+          @if (user.photoURL && !imageLoadFailed) {
+            <img 
+              [src]="user.photoURL" 
+              [alt]="user.displayName || 'User Avatar'"
+              class="avatar-image"
+              (load)="onImageLoad()"
+              (error)="onImageError($event)"
+              referrerpolicy="no-referrer">
+          } @else {
+            <!-- Fallback Initials -->
+            <div class="avatar-initials">
+              {{ getInitials(user.displayName || user.email || '') }}
+            </div>
+          }
+        } @else {
+          <!-- Generic User Icon -->
+          <div class="avatar-generic">
+            <mat-icon [icon]="'account_circle'"></mat-icon>
+          </div>
+        }
 
         <!-- Dropdown Arrow -->
         <mat-icon 
@@ -369,6 +370,7 @@ export class UserAccountMenuComponent implements OnInit, OnDestroy {
   
   currentUser$: Observable<AppUser | null>;
   isMenuOpen = false;
+  imageLoadFailed = false;
 
   constructor(
     private authService: AuthService,
@@ -384,6 +386,21 @@ export class UserAccountMenuComponent implements OnInit, OnDestroy {
     
     // Close menu on escape key
     document.addEventListener('keydown', this.onDocumentKeydown.bind(this));
+    
+    // Debug: Log current user state
+    this.currentUser$.subscribe(user => {
+      console.log('UserAccountMenuComponent - Current user:', user);
+      // Reset image load failed flag when user changes
+      this.imageLoadFailed = false;
+      if (user) {
+        console.log('User details:', {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL
+        });
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -435,7 +452,14 @@ export class UserAccountMenuComponent implements OnInit, OnDestroy {
     }
   }
 
+  onImageLoad(): void {
+    console.log('User avatar image loaded successfully');
+    this.imageLoadFailed = false;
+  }
+
   onImageError(event: any): void {
+    console.log('User avatar image failed to load:', event);
+    this.imageLoadFailed = true;
     // Hide the broken image and let the initials show instead
     event.target.style.display = 'none';
   }
