@@ -109,8 +109,7 @@ interface WallUser {
                   <td class="access-cell">
                     <app-material-select
                       [formControl]="getAccessLevelControl(user)"
-                      [options]="getAccessLevelOptions(user)"
-                      [disabled]="user.accessLevel === 'owner'">
+                      [options]="getAccessLevelOptions(user)">
                     </app-material-select>
                   </td>
                   <td class="actions-cell">
@@ -860,7 +859,12 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
   
   getAccessLevelControl(user: WallUser): FormControl {
     if (!this.accessLevelControls.has(user.uid)) {
-      const control = new FormControl(user.accessLevel);
+      const isDisabled = user.accessLevel === 'owner';
+      const control = new FormControl({
+        value: user.accessLevel,
+        disabled: isDisabled
+      });
+      
       // Listen to value changes
       control.valueChanges.subscribe(newValue => {
         if (newValue) {

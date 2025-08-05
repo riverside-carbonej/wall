@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, forwardRef, HostListener, ElementRef, signal, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormControl, ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MaterialIconComponent } from '../material-icon/material-icon.component';
 
 export interface SelectOption {
@@ -14,6 +14,13 @@ export interface SelectOption {
   selector: 'app-material-select',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MaterialIconComponent],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => MaterialSelectComponent),
+      multi: true
+    }
+  ],
   template: `
     <div class="form-field">
       <label class="field-label">
@@ -31,12 +38,12 @@ export interface SelectOption {
            (keydown.space)="toggle()"
            tabindex="0">
         <div class="select-value">
-          @if (formControl?.value) {
+          @if (value) {
             <div class="selected-content">
               @if (getSelectedOption()?.icon) {
                 <mat-icon class="selected-icon" [icon]="getSelectedOption()!.icon!"></mat-icon>
               }
-              <span>{{ getSelectedOption()?.label || formControl?.value }}</span>
+              <span>{{ getSelectedOption()?.label || value }}</span>
             </div>
           } @else {
             <span class="placeholder">{{ placeholder || 'Choose an option' }}</span>
@@ -53,7 +60,7 @@ export interface SelectOption {
                #selectPanel>
             @for (option of options; track option.value) {
               <div class="select-option" 
-                   [class.selected]="formControl?.value === option.value"
+                   [class.selected]="value === option.value"
                    [class.disabled]="option.disabled"
                    (click)="selectOption(option)">
                 @if (option.icon) {
@@ -246,7 +253,7 @@ export interface SelectOption {
     }
   `]
 })
-export class MaterialSelectComponent implements AfterViewInit {
+export class MaterialSelectComponent implements AfterViewInit, ControlValueAccessor {
   @Input() label = '';
   @Input() placeholder = '';
   @Input() required = false;
@@ -259,11 +266,33 @@ export class MaterialSelectComponent implements AfterViewInit {
   @ViewChild('selectPanel') selectPanel?: ElementRef;
 
   isOpen = signal<boolean>(false);
+  value: any = null;
+
+  // ControlValueAccessor implementation
+  private onChange = (value: any) => {};
+  private onTouched = () => {};
 
   constructor(private elementRef: ElementRef) {}
 
   ngAfterViewInit() {
     // Position dropdown after view initialization
+  }
+
+  // ControlValueAccessor methods
+  writeValue(value: any): void {
+    this.value = value;
+  }
+
+  registerOnChange(fn: (value: any) => void): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
   }
 
   @HostListener('document:click', ['$event'])
@@ -324,14 +353,21 @@ export class MaterialSelectComponent implements AfterViewInit {
   }
 
   selectOption(option: SelectOption) {
-    if (!option.disabled && this.formControl) {
-      this.formControl.setValue(option.value);
-      this.formControl.markAsTouched();
+    if (!option.disabled) {
+      this.value = option.value;
+      this.onChange(option.value);
+      this.onTouched();
       this.isOpen.set(false);
+      
+      // Also update formControl if provided (for backward compatibility)
+      if (this.formControl) {
+        this.formControl.setValue(option.value);
+        this.formControl.markAsTouched();
+      }
     }
   }
 
   getSelectedOption(): SelectOption | undefined {
-    return this.options.find(option => option.value === this.formControl?.value);
+    return this.options.find(option => option.value === this.value);
   }
 }

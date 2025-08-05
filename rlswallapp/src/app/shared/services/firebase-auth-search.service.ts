@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, from } from 'rxjs';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { catchError } from 'rxjs/operators';
@@ -22,8 +22,9 @@ export interface GetUsersByUidsResponse {
   providedIn: 'root'
 })
 export class FirebaseAuthSearchService {
+  private functions = inject(Functions);
 
-  constructor(private functions: Functions) {}
+  constructor() {}
 
   /**
    * Search Firebase Auth users using a Cloud Function
