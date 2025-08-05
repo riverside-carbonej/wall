@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormControl, FormGroup } from '@angular/forms';
 import { MatFormField, MatInput, MatLabel, MatError } from '../../../../shared/components/material-stubs';
@@ -8,8 +8,9 @@ import { MatChipListbox, MatChipOption } from '../../../../shared/components/mat
 import { MatDatepicker, MatDatepickerToggle } from '../../../../shared/components/material-stubs';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
-import { FieldDefinition } from '../../../../shared/models/wall.model';
+import { FieldDefinition, Wall, WallObjectType } from '../../../../shared/models/wall.model';
 import { LocationPickerComponent } from '../../../maps/components/location-picker/location-picker.component';
+import { WallItemService } from '../../services/wall-item.service';
 import { FormFieldComponent } from '../../../../shared/components/form-field/form-field.component';
 import { MaterialTextInputComponent } from '../../../../shared/components/material-text-input/material-text-input.component';
 import { MaterialSelectComponent, SelectOption } from '../../../../shared/components/material-select/material-select.component';
@@ -43,6 +44,9 @@ export class DynamicFieldRendererComponent implements OnInit {
   @Input() formGroup!: FormGroup;
   @Input() readonly = false;
   @Input() value: any;
+  @Input() wall: Wall | null = null; // Add wall context for relationship fields
+
+  private wallItemService = inject(WallItemService);
 
   get formControl(): FormControl {
     return this.formGroup?.get(this.field.id) as FormControl;
@@ -464,25 +468,51 @@ export class DynamicFieldRendererComponent implements OnInit {
     }, 200);
   }
 
-  // TODO: This would need to be injected from parent component with actual relationship data
-  // For now, load empty relationships - actual items should come from database
   private loadRelationshipItems() {
-    if (!this.field.relationshipConfig) return;
+    if (!this.field.relationshipConfig || !this.wall) return;
     
-    // In a real implementation, this would fetch actual items from the database
-    // For now, initialize with empty array - only show items that actually exist
-    this.allRelationshipItems = [];
-    
-    // TODO: Replace with actual service call to fetch relationship items
-    // Example: this.wallItemService.getItemsByObjectType(targetType).subscribe(items => {
-    //   this.allRelationshipItems = items.map(item => ({
-    //     id: item.id,
-    //     name: item.fieldData[primaryField] || 'Untitled',
-    //     subtitle: item.fieldData[secondaryField] || ''
-    //   }));
-    //   this.updateFilteredRelationships();
-    // });
-    
-    this.updateFilteredRelationships();
+    const targetObjectTypeId = this.field.relationshipConfig.targetObjectTypeId;
+    if (!targetObjectTypeId) return;
+
+    // Find the target object type definition to get display field names
+    const targetObjectType = this.wall.objectTypes?.find(ot => ot.id === targetObjectTypeId);
+    if (!targetObjectType) return;
+
+    // Get items of the target object type from the same wall
+    this.wallItemService.getWallItemsByObjectType(this.wall.id!, targetObjectTypeId).subscribe(items => {
+      this.allRelationshipItems = items.map(item => {
+        // Use the primary display field or fall back to first text field
+        const primaryField = targetObjectType.displaySettings?.primaryField;
+        const secondaryField = targetObjectType.displaySettings?.secondaryField;
+        
+        let name = 'Untitled';
+        let subtitle = '';
+
+        if (primaryField && item.fieldData[primaryField]) {
+          name = String(item.fieldData[primaryField]);
+        } else {
+          // Find first non-empty text field
+          const firstTextField = Object.keys(item.fieldData).find(key => 
+            typeof item.fieldData[key] === 'string' && 
+            String(item.fieldData[key]).trim()
+          );
+          if (firstTextField) {
+            name = String(item.fieldData[firstTextField]);
+          }
+        }
+
+        if (secondaryField && item.fieldData[secondaryField]) {
+          subtitle = String(item.fieldData[secondaryField]);
+        }
+
+        return {
+          id: item.id!,
+          name: name,
+          subtitle: subtitle
+        };
+      });
+      
+      this.updateFilteredRelationships();
+    });
   }
 }

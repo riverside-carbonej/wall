@@ -175,7 +175,8 @@ export type PageMode = 'create' | 'view' | 'edit';
                       <app-dynamic-field-renderer
                         [field]="field"
                         [formGroup]="itemForm"
-                        [readonly]="mode === 'view'">
+                        [readonly]="mode === 'view'"
+                        [wall]="wall">
                       </app-dynamic-field-renderer>
                     </div>
                   }

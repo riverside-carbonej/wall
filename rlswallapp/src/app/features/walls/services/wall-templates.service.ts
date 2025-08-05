@@ -22,6 +22,86 @@ export class WallTemplatesService {
     this.initializeTemplates();
   }
 
+  /**
+   * Get default military branches data for Veterans Registry
+   */
+  getDefaultMilitaryBranches(): Array<{ name: string; description: string }> {
+    return [
+      {
+        name: 'U.S. Army',
+        description: 'The land service branch of the United States Armed Forces'
+      },
+      {
+        name: 'U.S. Navy',
+        description: 'The naval warfare service branch of the United States Armed Forces'
+      },
+      {
+        name: 'U.S. Air Force',
+        description: 'The air service branch of the United States Armed Forces'
+      },
+      {
+        name: 'U.S. Marine Corps',
+        description: 'A branch of the United States Armed Forces responsible for conducting expeditionary and amphibious operations'
+      },
+      {
+        name: 'U.S. Coast Guard',
+        description: 'The maritime security, search and rescue, and law enforcement service branch'
+      },
+      {
+        name: 'U.S. Space Force',
+        description: 'The space service branch of the United States Armed Forces'
+      }
+    ];
+  }
+
+  /**
+   * Get default military deployments data for Veterans Registry (1900-2025)
+   */
+  getDefaultMilitaryDeployments(): Array<{ title: string; description: string; startYear: number; endYear?: number; location: string }> {
+    return [
+      // World War I
+      { title: 'World War I', description: 'The Great War (1914-1918)', startYear: 1917, endYear: 1918, location: 'Europe' },
+      
+      // World War II
+      { title: 'World War II - European Theater', description: 'Operations in Europe and North Africa', startYear: 1941, endYear: 1945, location: 'Europe' },
+      { title: 'World War II - Pacific Theater', description: 'Operations in the Pacific Ocean', startYear: 1941, endYear: 1945, location: 'Pacific' },
+      
+      // Korean War
+      { title: 'Korean War', description: 'United Nations forces in Korea', startYear: 1950, endYear: 1953, location: 'Korea' },
+      
+      // Vietnam War
+      { title: 'Vietnam War', description: 'Military involvement in Vietnam', startYear: 1955, endYear: 1975, location: 'Vietnam' },
+      
+      // Cold War Operations
+      { title: 'Cold War Operations', description: 'Various operations during the Cold War period', startYear: 1947, endYear: 1991, location: 'Worldwide' },
+      
+      // Gulf War
+      { title: 'Gulf War (Operation Desert Storm)', description: 'Liberation of Kuwait', startYear: 1991, endYear: 1991, location: 'Kuwait/Iraq' },
+      
+      // Peacekeeping Operations  
+      { title: 'Bosnia-Herzegovina Operations', description: 'NATO peacekeeping operations', startYear: 1995, endYear: 2004, location: 'Bosnia-Herzegovina' },
+      { title: 'Kosovo Operations', description: 'NATO intervention in Kosovo', startYear: 1999, endYear: 1999, location: 'Kosovo' },
+      
+      // War on Terror
+      { title: 'Operation Enduring Freedom', description: 'Operations in Afghanistan', startYear: 2001, endYear: 2021, location: 'Afghanistan' },
+      { title: 'Operation Iraqi Freedom', description: 'Iraq War operations', startYear: 2003, endYear: 2011, location: 'Iraq' },
+      { title: 'Operation New Dawn', description: 'Iraq stability operations', startYear: 2010, endYear: 2011, location: 'Iraq' },
+      
+      // Recent Operations
+      { title: 'Operation Inherent Resolve', description: 'Counter-ISIS operations', startYear: 2014, location: 'Iraq/Syria' },
+      { title: 'Horn of Africa Operations', description: 'Counter-terrorism operations', startYear: 2002, location: 'Horn of Africa' },
+      { title: 'Philippines Operations', description: 'Counter-terrorism support', startYear: 2002, location: 'Philippines' },
+      
+      // Humanitarian Operations
+      { title: 'Haiti Relief Operations', description: 'Humanitarian assistance operations', startYear: 2010, endYear: 2010, location: 'Haiti' },
+      { title: 'Japan Disaster Relief', description: 'Operation Tomodachi - tsunami relief', startYear: 2011, endYear: 2011, location: 'Japan' },
+      
+      // Training and Support
+      { title: 'NATO Training Missions', description: 'Various NATO training and support missions', startYear: 1949, location: 'Europe' },
+      { title: 'Pacific Partnership', description: 'Annual humanitarian assistance mission', startYear: 2006, location: 'Pacific Region' }
+    ];
+  }
+
   private initializeTemplates(): void {
     // Veterans Registry Template
     this.templates.set('veterans', {
@@ -114,6 +194,35 @@ export class WallTemplatesService {
 
   getAllTemplates(): WallTemplate[] {
     return Array.from(this.templates.values());
+  }
+
+  /**
+   * Create default branch and deployment items for Veterans Registry
+   */
+  createDefaultVeteranRegistryItems(wallId: string): {
+    branches: Array<{ objectTypeId: string; fieldData: any }>;
+    deployments: Array<{ objectTypeId: string; fieldData: any }>;
+  } {
+    const branches = this.getDefaultMilitaryBranches().map(branch => ({
+      objectTypeId: 'branch',
+      fieldData: {
+        name: branch.name,
+        description: branch.description
+      }
+    }));
+
+    const deployments = this.getDefaultMilitaryDeployments().map(deployment => ({
+      objectTypeId: 'deployment',
+      fieldData: {
+        title: deployment.title,
+        description: deployment.description,
+        startDate: new Date(deployment.startYear, 0, 1),
+        endDate: deployment.endYear ? new Date(deployment.endYear, 11, 31) : undefined,
+        location: deployment.location
+      }
+    }));
+
+    return { branches, deployments };
   }
 
   // Veterans Object Types

@@ -14,6 +14,7 @@ import { WallItemService } from './wall-item.service';
 import { ObjectTypeService } from './object-type.service';
 import { RelationshipService, RelationshipGraph } from './relationship.service';
 import { ImageService } from './image.service';
+import { WallTemplatesService } from './wall-templates.service';
 
 export interface CompleteWallData {
   wall: Wall;
@@ -43,7 +44,8 @@ export class WallDataService {
     private wallItemService: WallItemService,
     private objectTypeService: ObjectTypeService,
     private relationshipService: RelationshipService,
-    private imageService: ImageService
+    private imageService: ImageService,
+    private wallTemplatesService: WallTemplatesService
   ) {}
 
   /**
@@ -124,10 +126,10 @@ export class WallDataService {
           relationshipDefinitions: sampleRelationshipDefinitions
         });
 
-        // Create sample data if requested
+        // Create sample data if requested, or default data for veteran template
         let sampleDataObs: Observable<any>;
-        if (options.createSampleData) {
-          sampleDataObs = this.createSampleWallData(wallId, objectTypes);
+        if (options.createSampleData || template === 'veteran') {
+          sampleDataObs = this.createSampleWallData(wallId, objectTypes, template);
         } else {
           sampleDataObs = of(null);
         }
@@ -443,14 +445,52 @@ export class WallDataService {
   }
 
   /**
-   * Create sample wall data for demonstration
+   * Create sample wall data for demonstration, or default data for templates
    */
-  private createSampleWallData(wallId: string, objectTypes: WallObjectType[]): Observable<any> {
+  private createSampleWallData(wallId: string, objectTypes: WallObjectType[], template?: string): Observable<any> {
     if (objectTypes.length === 0) {
       return of(null);
     }
 
     const sampleItems: Omit<WallItem, 'id'>[] = [];
+
+    // Special handling for veteran template - create default branches and deployments
+    if (template === 'veteran') {
+      const defaultItems = this.wallTemplatesService.createDefaultVeteranRegistryItems(wallId);
+      
+      // Add default branches
+      defaultItems.branches.forEach(branch => {
+        sampleItems.push({
+          wallId,
+          objectTypeId: branch.objectTypeId,
+          fieldData: branch.fieldData,
+          images: [],
+          primaryImageIndex: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          createdBy: 'template-generator',
+          updatedBy: 'template-generator'
+        });
+      });
+
+      // Add default deployments
+      defaultItems.deployments.forEach(deployment => {
+        sampleItems.push({
+          wallId,
+          objectTypeId: deployment.objectTypeId,
+          fieldData: deployment.fieldData,
+          images: [],
+          primaryImageIndex: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          createdBy: 'template-generator',
+          updatedBy: 'template-generator'
+        });
+      });
+
+      // Create the default objects and return
+      return this.wallItemService.bulkCreateWallItems(sampleItems);
+    }
 
     // Create 1-2 sample items per object type
     objectTypes.forEach((objectType, index) => {
