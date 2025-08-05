@@ -124,25 +124,28 @@ export class ThemedButtonComponent {
       styles.padding = '8px 16px';
     }
 
+    // Get color variables based on color input
+    const colorPrefix = this.getColorPrefix();
+    
     // Base variant styling
     if (variant === 'basic') {
       if (isSelected) {
         // Selected state
-        styles.backgroundColor = 'color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent)';
-        styles.color = 'var(--md-sys-color-primary)';
+        styles.backgroundColor = `color-mix(in srgb, var(${colorPrefix}) 30%, transparent)`;
+        styles.color = `var(${colorPrefix})`;
         styles.fontWeight = '500';
       } else {
         // Normal state
         styles.backgroundColor = 'transparent';
-        styles.color = 'white';
+        styles.color = `var(${colorPrefix})`;
       }
     } else if (variant === 'raised' || variant === 'flat') {
-      styles.backgroundColor = 'var(--md-sys-color-primary)';
-      styles.color = 'var(--md-sys-color-on-primary)';
+      styles.backgroundColor = `var(${colorPrefix})`;
+      styles.color = `var(${this.getOnColorPrefix()})`;
     } else if (variant === 'stroked') {
       styles.backgroundColor = 'transparent';
-      styles.color = 'var(--md-sys-color-primary)';
-      styles.border = '1px solid var(--md-sys-color-outline)';
+      styles.color = `var(${colorPrefix})`;
+      styles.border = `1px solid var(${colorPrefix})`;
     } else if (variant === 'icon') {
       styles.backgroundColor = 'transparent';
       styles.color = 'var(--md-sys-color-on-surface)';
@@ -156,9 +159,39 @@ export class ThemedButtonComponent {
     return styles;
   });
 
+  // Helper methods for color management
+  getColorPrefix(): string {
+    const color = this.color();
+    switch (color) {
+      case 'primary':
+        return '--md-sys-color-primary';
+      case 'accent':
+        return '--md-sys-color-secondary';
+      case 'warn':
+        return '--md-sys-color-error';
+      default:
+        return '--md-sys-color-primary';
+    }
+  }
+
+  getOnColorPrefix(): string {
+    const color = this.color();
+    switch (color) {
+      case 'primary':
+        return '--md-sys-color-on-primary';
+      case 'accent':
+        return '--md-sys-color-on-secondary';
+      case 'warn':
+        return '--md-sys-color-on-error';
+      default:
+        return '--md-sys-color-on-primary';
+    }
+  }
+
   iconStyles = computed(() => {
     const isSelected = this.selected();
     const variant = this.variant();
+    const colorPrefix = this.getColorPrefix();
     
     let styles: any = {
       fontSize: '20px',
@@ -169,9 +202,9 @@ export class ThemedButtonComponent {
 
     if (variant === 'basic') {
       if (isSelected) {
-        styles.color = 'var(--md-sys-color-primary)';
+        styles.color = `var(${colorPrefix})`;
       } else {
-        styles.color = 'white';
+        styles.color = `var(${colorPrefix})`;
       }
     } else {
       styles.color = 'inherit';
@@ -183,14 +216,15 @@ export class ThemedButtonComponent {
   textStyles = computed(() => {
     const isSelected = this.selected();
     const variant = this.variant();
+    const colorPrefix = this.getColorPrefix();
     
     let styles: any = {};
 
     if (variant === 'basic') {
       if (isSelected) {
-        styles.color = 'var(--md-sys-color-primary)';
+        styles.color = `var(${colorPrefix})`;
       } else {
-        styles.color = 'white';
+        styles.color = `var(${colorPrefix})`;
       }
     } else {
       styles.color = 'inherit';

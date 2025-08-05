@@ -205,7 +205,6 @@ import { MaterialIconComponent } from '../material-icon/material-icon.component'
       transform: translateY(-8px) scale(0.95);
       transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
       overflow: hidden;
-      backdrop-filter: blur(8px);
     }
 
     .account-dropdown.open {

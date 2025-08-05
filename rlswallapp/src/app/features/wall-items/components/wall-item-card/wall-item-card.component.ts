@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WallItem, WallObjectType, WallItemImage } from '../../../../shared/models/wall.model';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { ThemeService } from '../../../../shared/services/theme.service';
 
 @Component({
   selector: 'app-wall-item-card',
@@ -298,6 +299,8 @@ export class WallItemCardComponent {
   @Output() viewClick = new EventEmitter<WallItem>();
   @Output() editClick = new EventEmitter<WallItem>();
 
+  private themeService = inject(ThemeService);
+
   get primaryImage(): WallItemImage | null {
     // First check for item images
     if (this.item.images && this.item.images.length > 0) {
@@ -326,16 +329,47 @@ export class WallItemCardComponent {
   }
 
   get backgroundColor(): string {
-    // Use preset color or generate from title
+    // Use preset color if available
     if (this.preset?.color) return this.preset.color;
     
-    // Generate color from title
+    // Get current theme to derive colors from wall theme
+    const currentTheme = this.themeService.getCurrentThemeSync();
+    
+    // If we're in a wall context, use wall-themed colors
+    if (currentTheme.isWallTheme && currentTheme.wallTheme) {
+      const wallTheme = currentTheme.wallTheme;
+      
+      // Generate colors based on wall theme colors
+      const baseColors = [
+        wallTheme.primaryColor,
+        wallTheme.secondaryColor, 
+        wallTheme.tertiaryColor || wallTheme.primaryColor,
+        wallTheme.successColor || '#10b981',
+        wallTheme.warningColor || '#f59e0b'
+      ];
+      
+      // Create lighter tints of these colors for backgrounds
+      const colors = baseColors.map(color => this.hexToRgbaBackground(color, 0.15));
+      
+      const hash = this.title.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
+      return colors[hash % colors.length];
+    }
+    
+    // Fallback to default pastel colors if not in wall context
     const colors = [
       '#E3F2FD', '#F3E5F5', '#E8F5E9', '#FFF3E0',
       '#E0F2F1', '#FCE4EC', '#F1F8E9', '#FFF8E1'
     ];
     const hash = this.title.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
     return colors[hash % colors.length];
+  }
+
+  private hexToRgbaBackground(hex: string, alpha: number): string {
+    // Convert hex to rgba with transparency for background use
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
   onClick(event: Event) {

@@ -31,7 +31,7 @@ export class AuthService {
   private authStateReadySubject = new BehaviorSubject<boolean>(false);
   public authStateReady$ = this.authStateReadySubject.asObservable();
 
-  constructor(private auth: Auth, private injector: Injector, private router: Router) {
+  constructor(private auth: Auth, private firestore: Firestore, private injector: Injector, private router: Router) {
     // Listen for auth state changes within injection context
     runInInjectionContext(this.injector, () => {
       onAuthStateChanged(this.auth, (user) => {
@@ -107,8 +107,7 @@ export class AuthService {
             updatedAt: serverTimestamp()
           };
 
-          const firestore = inject(Firestore);
-          await setDoc(doc(firestore, 'users', credential.user.uid), userDoc);
+          await setDoc(doc(this.firestore, 'users', credential.user.uid), userDoc);
 
           return {
             uid: credential.user.uid,
@@ -146,8 +145,7 @@ export class AuthService {
             updatedAt: serverTimestamp()
           };
 
-          const firestore = inject(Firestore);
-          await setDoc(doc(firestore, 'users', credential.user.uid), userDoc, { merge: true });
+          await setDoc(doc(this.firestore, 'users', credential.user.uid), userDoc, { merge: true });
 
           return {
             uid: credential.user.uid,
