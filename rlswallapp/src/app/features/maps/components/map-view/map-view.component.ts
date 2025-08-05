@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { SelectComponent } from '../../../../shared/components/select/select.component';
-import { FormFieldComponent } from '../../../../shared/components/input-field/input-field.component';
 import { TooltipDirective } from '../../../../shared/components/tooltip/tooltip.component';
 import { ProgressSpinnerComponent } from '../../../../shared/components/progress-spinner/progress-spinner.component';
 import { MatFormField, MatLabel, MatSelect, MatOption } from '../../../../shared/components/material-stubs';
@@ -36,7 +35,6 @@ export interface MapItemClickEvent {
     ThemedButtonComponent,
     MaterialIconComponent,
     SelectComponent,
-    FormFieldComponent,
     TooltipDirective,
     ProgressSpinnerComponent,
     LoadingStateComponent,

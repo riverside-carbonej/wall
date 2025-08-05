@@ -2814,29 +2814,36 @@ export class WallFormComponent implements OnInit {
             const templateType = template === 'veterans' ? 'veteran' : template as 'veteran' | 'alumni' | 'general';
             
             // Use WallDataService for template creation with automatic default data population
+            console.log('About to call createCompleteWall...');
             this.wallDataService.createCompleteWall(wallData, { 
               template: templateType,
               createSampleData: true // Always create sample data for templates
             }).subscribe({
               next: (result) => {
-                console.log('Wall created successfully:', result);
-                console.log('Wall object:', result.wall);
-                console.log('Wall ID:', result.wall?.id);
+                console.log('✅ OBSERVABLE COMPLETED - Wall created successfully:', result);
+                console.log('Wall ID:', result.wallId);
                 this.isSaving = false;
                 
-                // Check if wall and id exist
-                if (result.wall && result.wall.id) {
+                // Get wallId from the simplified result
+                let wallId = result.wallId;
+                
+                if (wallId) {
+                  console.log('Navigating to wall with ID:', wallId);
                   // Navigate to the newly created wall
-                  this.router.navigate(['/walls', result.wall.id]);
+                  this.router.navigate(['/walls', wallId]);
                 } else {
-                  console.error('Wall or Wall ID is missing from result:', result);
+                  console.error('Wall ID is missing from result:', result);
+                  console.error('Result structure:', JSON.stringify(result, null, 2));
                   alert('Wall was created but navigation failed. Please check the walls list.');
                 }
               },
               error: (error: any) => {
                 this.isSaving = false;
-                console.error('Error saving wall with template:', error);
+                console.error('❌ OBSERVABLE ERROR - Error saving wall with template:', error);
                 alert('Failed to save wall. Please try again.');
+              },
+              complete: () => {
+                console.log('🔄 OBSERVABLE COMPLETE (this should not be called separately from next)');
               }
             });
           } else {
