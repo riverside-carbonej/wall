@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, forwardRef, HostListener, ElementRef, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, forwardRef, HostListener, ElementRef, signal, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MaterialIconComponent } from '../material-icon/material-icon.component';
@@ -48,7 +48,9 @@ export interface SelectOption {
           </svg>
         </div>
         @if (isOpen()) {
-          <div class="select-panel" (click)="$event.stopPropagation()">
+          <div class="select-panel" 
+               (click)="$event.stopPropagation()" 
+               #selectPanel>
             @for (option of options; track option.value) {
               <div class="select-option" 
                    [class.selected]="formControl?.value === option.value"
@@ -176,18 +178,15 @@ export interface SelectOption {
     }
 
     .select-panel {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      z-index: 1000;
+      position: fixed;
+      z-index: 10001;
       background: var(--md-sys-color-surface-container-high);
       border: 1px solid var(--md-sys-color-outline-variant);
       border-radius: var(--md-sys-shape-corner-extra-small);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       max-height: 250px;
       overflow-y: auto;
-      margin-top: 4px;
+      min-width: 200px;
     }
 
     .select-option {
@@ -247,7 +246,7 @@ export interface SelectOption {
     }
   `]
 })
-export class MaterialSelectComponent {
+export class MaterialSelectComponent implements AfterViewInit {
   @Input() label = '';
   @Input() placeholder = '';
   @Input() required = false;
@@ -257,9 +256,15 @@ export class MaterialSelectComponent {
   @Input() options: SelectOption[] = [];
   @Input() formControl?: FormControl;
 
+  @ViewChild('selectPanel') selectPanel?: ElementRef;
+
   isOpen = signal<boolean>(false);
 
   constructor(private elementRef: ElementRef) {}
+
+  ngAfterViewInit() {
+    // Position dropdown after view initialization
+  }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event) {
@@ -269,9 +274,52 @@ export class MaterialSelectComponent {
     }
   }
 
+  @HostListener('window:scroll', ['$event'])
+  @HostListener('document:scroll', ['$event'])
+  onScroll(event: Event) {
+    if (this.isOpen()) {
+      this.isOpen.set(false);
+    }
+  }
+
   toggle() {
     if (!this.disabled) {
       this.isOpen.set(!this.isOpen());
+      if (this.isOpen()) {
+        setTimeout(() => this.positionDropdown(), 0);
+      }
+    }
+  }
+
+  private positionDropdown() {
+    if (!this.selectPanel) return;
+
+    const selectContainer = this.elementRef.nativeElement.querySelector('.select-container');
+    const panel = this.selectPanel.nativeElement;
+    
+    if (selectContainer && panel) {
+      const rect = selectContainer.getBoundingClientRect();
+      const panelHeight = panel.offsetHeight || 250; // Fallback to max height
+      const viewportHeight = window.innerHeight;
+      
+      // Position below the select by default
+      let top = rect.bottom + 4;
+      let left = rect.left;
+      
+      // If there's not enough space below, position above
+      if (top + panelHeight > viewportHeight && rect.top > panelHeight) {
+        top = rect.top - panelHeight - 4;
+      }
+      
+      // Ensure dropdown doesn't go off screen horizontally
+      const panelWidth = Math.max(rect.width, 200);
+      if (left + panelWidth > window.innerWidth) {
+        left = window.innerWidth - panelWidth - 8;
+      }
+      
+      panel.style.top = `${top}px`;
+      panel.style.left = `${left}px`;
+      panel.style.width = `${panelWidth}px`;
     }
   }
 
