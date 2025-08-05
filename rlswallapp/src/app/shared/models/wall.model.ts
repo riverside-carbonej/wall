@@ -127,6 +127,8 @@ export interface WallTheme {
 export interface WallPermissions {
   owner: string;           // User ID of wall creator
   editors: string[];       // Array of user IDs with edit access
+  managers?: string[];     // Array of user IDs with management access (can manage permissions)
+  viewers?: string[];      // Array of user IDs with view-only access
   department?: string;     // Department name for department-wide access
   allowDepartmentEdit: boolean; // Enable/disable department editing
 }
@@ -257,6 +259,7 @@ export class WallPermissionHelper {
     return (
       wall.permissions.owner === user.uid ||
       wall.permissions.editors.includes(user.uid) ||
+      (wall.permissions.managers && wall.permissions.managers.includes(user.uid)) ||
       (wall.permissions.allowDepartmentEdit && 
        user.department && 
        wall.permissions.department === user.department) ||
@@ -265,18 +268,45 @@ export class WallPermissionHelper {
   }
   
   static canViewWall(wall: Wall, user?: UserProfile): boolean {
-    // Draft walls - only editors can view
+    // Debug logging for wall access
+    console.log('🔍 WallPermissionHelper.canViewWall debug:', {
+      wallId: wall.id,
+      wallName: wall.name,
+      deletedAt: wall.deletedAt,
+      deletedAtType: typeof wall.deletedAt,
+      isDeleted: !!wall.deletedAt,
+      user: user ? { uid: user.uid, email: user.email } : null
+    });
+    
+    // Soft deleted walls cannot be viewed by anyone (check for truthy deletedAt)
+    if (wall.deletedAt && wall.deletedAt !== null) {
+      console.log('❌ Wall is soft deleted, denying access');
+      return false;
+    }
+    
+    // Draft walls - only editors, managers, and viewers can view
     if (!wall.visibility.isPublished) {
-      return user ? this.canEditWall(wall, user) : false;
+      if (!user) {
+        console.log('❌ Draft wall requires authentication');
+        return false;
+      }
+      const canEdit = this.canEditWall(wall, user);
+      const canView = wall.permissions.viewers?.includes(user.uid) ?? false;
+      const result = canEdit || canView;
+      console.log('🔍 Draft wall access result:', { canEdit, canView, result });
+      return result;
     }
     
     // Published public walls - anyone can view
     if (!wall.visibility.requiresLogin) {
+      console.log('✅ Public wall, allowing access');
       return true;
     }
     
     // Published login-required walls - authenticated users only
-    return !!user;
+    const result = !!user;
+    console.log('🔍 Login-required wall access result:', result);
+    return result;
   }
   
   static getWallStatusText(wall: Wall): string {

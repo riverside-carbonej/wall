@@ -18,15 +18,18 @@
       ]
     }
   ],
-  "apphosting": {
-    "backendId": "my-web-app",
-    "rootDir": "/",
+  "hosting": {
+    "public": "rlswallapp/dist/rlswallapp",
     "ignore": [
-      "node_modules",
-      ".git",
-      "firebase-debug.log",
-      "firebase-debug.*.log",
-      "functions"
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
     ]
   }
 }

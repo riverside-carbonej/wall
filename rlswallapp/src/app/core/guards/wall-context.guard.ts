@@ -7,6 +7,8 @@ import { WallService } from '../../features/walls/services/wall.service';
 import { WallItemService } from '../../features/wall-items/services/wall-item.service';
 import { NavigationService } from '../../shared/services/navigation.service';
 import { ThemeService } from '../../shared/services/theme.service';
+import { AuthService } from '../services/auth.service';
+import { WallPermissionHelper } from '../../shared/models/wall.model';
 
 /**
  * Wall Context Guard - Pre-loads wall data and sets navigation context BEFORE route activates
@@ -19,38 +21,54 @@ export const wallContextGuard: CanActivateFn = (
   const wallItemService = inject(WallItemService);
   const navigationService = inject(NavigationService);
   const themeService = inject(ThemeService);
+  const authService = inject(AuthService);
   const router = inject(Router);
 
   const wallId = route.paramMap.get('id') || route.paramMap.get('wallId');
   
-  console.log('Wall Context Guard - Wall ID:', wallId);
-  
   if (!wallId) {
-    console.log('No wall ID found, redirecting to /walls');
     router.navigate(['/walls']);
     return of(false);
   }
 
   // Pre-load wall data and set navigation context before allowing navigation
-  return wallService.getWallById(wallId).pipe(
-    tap(wall => console.log('Wall loaded:', wall ? 'Success' : 'Not found')),
-    switchMap(wall => {
+  return combineLatest([
+    wallService.getWallById(wallId),
+    authService.currentUser$
+  ]).pipe(
+    switchMap(([wall, user]) => {
       if (!wall) {
-        console.log('Wall not found, redirecting to /walls');
-        router.navigate(['/walls']);
+          router.navigate(['/walls']);
         return of(false);
       }
+
+      if (!user) {
+          router.navigate(['/login']);
+        return of(false);
+      }
+
+      // Convert to UserProfile for permission checking
+      const userProfile = {
+        uid: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || '',
+        photoURL: user.photoURL || undefined,
+        department: undefined, // TODO: Add department to auth service
+        role: 'user' as const, // TODO: Add role management
+        createdAt: new Date(),
+        lastLoginAt: new Date()
+      };
+
+      // Check permissions
+      const canEdit = WallPermissionHelper.canEditWall(wall, userProfile);
+      const canAdmin = wall.permissions.owner === user.uid || 
+                       (wall.permissions.managers && wall.permissions.managers.includes(user.uid));
+
 
       // Get wall items count - but don't fail if this errors
       return wallItemService.getWallItems(wallId).pipe(
         map(items => {
           const itemCount = items?.length || 0;
-          console.log('Wall items loaded:', itemCount);
-          
-          // TODO: Replace with proper permission checking
-          const canEdit = true;
-          const canAdmin = true;
-          
           // Update navigation context BEFORE component loads
           navigationService.updateWallContext(wall, canEdit, canAdmin, itemCount);
 
@@ -59,16 +77,10 @@ export const wallContextGuard: CanActivateFn = (
             themeService.applyWallTheme(wall.theme);
           }
 
-          console.log('Wall context guard - allowing navigation');
           // Allow navigation to proceed - context is now set
           return true;
         }),
         catchError(itemError => {
-          console.warn('Error loading wall items, but allowing navigation:', itemError);
-          // Still allow navigation even if items fail to load
-          const canEdit = true;
-          const canAdmin = true;
-          
           // Update navigation context with 0 items
           navigationService.updateWallContext(wall, canEdit, canAdmin, 0);
 
@@ -82,7 +94,6 @@ export const wallContextGuard: CanActivateFn = (
       );
     }),
     catchError(error => {
-      console.error('Error in wall context guard:', error);
       router.navigate(['/walls']);
       return of(false);
     })

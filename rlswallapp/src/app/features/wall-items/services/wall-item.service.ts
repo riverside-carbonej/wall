@@ -30,6 +30,7 @@ export class WallItemService {
 
   getWallItems(wallId: string): Observable<WallItem[]> {
     return runInInjectionContext(this.injector, () => {
+      console.log('🔍 Getting wall items for wallId:', wallId);
       const wallItemsCollection = collection(this.firestore, this.collectionName);
       const q = query(
         wallItemsCollection,
@@ -38,16 +39,22 @@ export class WallItemService {
       );
       
       return from(getDocs(q)).pipe(
-        map(snapshot => 
-          snapshot.docs.map(doc => ({
+        map(snapshot => {
+          console.log('✅ Wall items query successful, found', snapshot.docs.length, 'items');
+          return snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
             createdAt: this.timestampToDate(doc.data()['createdAt']),
             updatedAt: this.timestampToDate(doc.data()['updatedAt'])
-          } as WallItem))
-        ),
+          } as WallItem));
+        }),
         catchError(error => {
-          console.error('Error getting wall items:', error);
+          console.error('❌ Error getting wall items for wallId:', wallId, 'Error:', error);
+          console.error('❌ Error details:', {
+            code: error.code,
+            message: error.message,
+            wallId: wallId
+          });
           return of([]);
         })
       );

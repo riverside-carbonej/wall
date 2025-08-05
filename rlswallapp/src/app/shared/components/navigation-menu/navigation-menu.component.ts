@@ -1,17 +1,20 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectionStrategy, signal, computed, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DividerComponent } from '../divider/divider.component';
 import { Subject, takeUntil } from 'rxjs';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 import { NavigationService } from '../../services/navigation.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { SideButtonComponent } from '../side-button/side-button.component';
 import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navigation.model';
 
 @Component({
   selector: 'app-navigation-menu',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     DividerComponent,
@@ -25,7 +28,7 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
 
         <!-- Navigation Items -->
         <div class="menu-items">
-          @for (item of activeMenuItems; track trackMenuItem($index, item)) {
+          @for (item of activeMenuItems(); track trackMenuItem($index, item)) {
             <app-side-button
               [title]="item.title"
               [icon]="item.icon"
@@ -38,48 +41,48 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
 
 
         <!-- Admin Section -->
-        @if (currentContext?.canAdmin) {
+        @if (hasAdminPermissions()) {
           <div class="admin-section">
             <mat-divider></mat-divider>
             
             <div class="section-header">
               <h3>Administration</h3>
             </div>
-            
-            <app-side-button
-              title="Back to Walls"
-              icon="arrow_back"
-              [selected]="false"
-              (buttonClick)="navigateToWalls()">
-            </app-side-button>
-            
-            <app-side-button
-              title="Wall Item Presets"
-              icon="category"
-              [selected]="isAdminPathSelectedWithCD('/presets')"
-              (buttonClick)="navigateToAdmin('/presets')">
-            </app-side-button>
-            
-            <app-side-button
-              title="Wall Settings"
-              icon="settings"
-              [selected]="isAdminPathSelectedWithCD('/edit')"
-              (buttonClick)="navigateToAdmin('/edit')">
-            </app-side-button>
-            
-            <app-side-button
-              title="Users & Permissions"
-              icon="people"
-              [selected]="isAdminPathSelectedWithCD('/permissions')"
-              (buttonClick)="navigateToAdmin('/permissions')">
-            </app-side-button>
+              <!-- Wall-specific admin buttons -->
+              <app-side-button
+                title="Back to Walls"
+                icon="arrow_back"
+                [selected]="false"
+                (buttonClick)="navigateToWalls()">
+              </app-side-button>
+              
+              <app-side-button
+                title="Wall Item Presets"
+                icon="category"
+                [selected]="isAdminPathSelectedWithCD('/presets')"
+                (buttonClick)="navigateToAdmin('/presets')">
+              </app-side-button>
+              
+              <app-side-button
+                title="Wall Settings"
+                icon="settings"
+                [selected]="isAdminPathSelectedWithCD('/edit')"
+                (buttonClick)="navigateToAdmin('/edit')">
+              </app-side-button>
+              
+              <app-side-button
+                title="Users & Permissions"
+                icon="people"
+                [selected]="isAdminPathSelectedWithCD('/permissions')"
+                (buttonClick)="navigateToAdmin('/permissions')">
+              </app-side-button>
           </div>
         }
 
       </div>
       
       <!-- Scroll indicator overlay -->
-      <div class="scroll-indicator" *ngIf="showScrollIndicator" [class.visible]="showScrollIndicator">
+      <div class="scroll-indicator" *ngIf="showScrollIndicator()" [class.visible]="showScrollIndicator()">
         <span class="material-icons">keyboard_arrow_down</span>
       </div>
     </div>
@@ -293,47 +296,58 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
 export class NavigationMenuComponent implements OnInit, OnDestroy, AfterViewInit {
   private destroy$ = new Subject<void>();
   private resizeListener?: () => void;
+  private cdr = inject(ChangeDetectorRef);
   
   @ViewChild('menuContent') menuContent!: ElementRef<HTMLDivElement>;
   
-  isMenuOpen = false;
-  currentContext: WallNavigationContext | null = null;
-  activeMenuItems: WallMenuItem[] = [];
-  currentUrl = '';
-  showScrollIndicator = false;
+  // Convert to signals for reactive state management
+  private navigationService = inject(NavigationService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  
+  // Signal-based state
+  protected readonly isMenuOpen = toSignal(this.navigationService.isMenuOpen$, { initialValue: false });
+  protected readonly currentContext = toSignal(this.navigationService.currentContext$, { initialValue: null });
+  protected readonly currentUrl = signal('');
+  protected readonly showScrollIndicator = signal(false);
+  
+  // Computed properties for reactive updates
+  protected readonly activeMenuItems = computed(() => {
+    // Trigger recomputation when context changes
+    this.currentContext();
+    return this.navigationService.getActiveMenuItems();
+  });
+  
+  protected readonly hasAdminPermissions = computed(() => {
+    const context = this.currentContext();
+    return context?.canAdmin ?? false;
+  });
 
-  constructor(
-    public navigationService: NavigationService,
-    private router: Router
-  ) {}
+  constructor() {}
 
   ngOnInit() {
-    // Subscribe to menu state
-    this.navigationService.isMenuOpen$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(isOpen => {
-      this.isMenuOpen = isOpen;
-    });
-
-    // Subscribe to navigation context
-    this.navigationService.currentContext$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(context => {
-      this.currentContext = context;
-      this.updateActiveMenuItems();
-    });
-
-    // Subscribe to router events to trigger change detection for selected state
+    // Subscribe to router events to update current URL
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd),
       takeUntil(this.destroy$)
     ).subscribe((event: NavigationEnd) => {
-      this.currentUrl = event.url;
+      this.currentUrl.set(event.url);
+      // Mark for check since we're using OnPush
+      this.cdr.markForCheck();
     });
 
     // Initial load
-    this.currentUrl = this.router.url;
-    this.updateActiveMenuItems();
+    this.currentUrl.set(this.router.url);
+    
+    // Set up effect to update scroll indicator when menu items change
+    // Note: In OnPush, we need to manually trigger change detection for DOM operations
+    this.navigationService.currentContext$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      // Check scroll indicator after context changes
+      setTimeout(() => this.checkScrollIndicator(), 0);
+      this.cdr.markForCheck();
+    });
   }
 
   ngAfterViewInit() {
@@ -355,11 +369,7 @@ export class NavigationMenuComponent implements OnInit, OnDestroy, AfterViewInit
     }
   }
 
-  private updateActiveMenuItems() {
-    this.activeMenuItems = this.navigationService.getActiveMenuItems();
-    // Check scroll indicator after menu items change
-    setTimeout(() => this.checkScrollIndicator(), 0);
-  }
+  // Remove updateActiveMenuItems - now handled by computed signal
 
 
   handleMenuItemClick(item: WallMenuItem) {
@@ -368,22 +378,24 @@ export class NavigationMenuComponent implements OnInit, OnDestroy, AfterViewInit
 
 
   isAdminPathSelected(path: string): boolean {
-    if (!this.currentContext) return false;
+    const context = this.currentContext();
+    if (!context) return false;
     
     return this.navigationService.isMenuItemSelected({
       title: '',
       icon: '',
-      path: `/walls/${this.currentContext.wallId}${path}`,
+      path: `/walls/${context.wallId}${path}`,
       condition: () => true
     });
   }
 
   navigateToAdmin(path: string) {
-    if (this.currentContext) {
+    const context = this.currentContext();
+    if (context) {
       this.navigationService.navigateToMenuItem({
         title: '',
         icon: '',
-        path: `/walls/${this.currentContext.wallId}${path}`,
+        path: `/walls/${context.wallId}${path}`,
         condition: () => true
       });
     }
@@ -398,21 +410,39 @@ export class NavigationMenuComponent implements OnInit, OnDestroy, AfterViewInit
     });
   }
 
+  navigateToRecycleBin() {
+    this.navigationService.navigateToMenuItem({
+      title: 'Recycle Bin',
+      icon: 'delete',
+      path: '/walls/recycle',
+      condition: () => true
+    });
+  }
+
+  navigateToCreateWall() {
+    this.navigationService.navigateToMenuItem({
+      title: 'Create New Wall',
+      icon: 'add',
+      path: '/walls/create',
+      condition: () => true
+    });
+  }
+
   getItemBadge(item: WallMenuItem): string | undefined {
     // Could be extended to show counts, notifications, etc.
     return undefined;
   }
 
-  // Check if menu item is selected (triggers change detection when currentUrl changes)
+  // Check if menu item is selected using signal-based state
   isItemSelected(item: WallMenuItem): boolean {
-    // Access currentUrl to ensure change detection triggers when route changes
-    return !!this.currentUrl && this.navigationService.isMenuItemSelected(item);
+    // Access signal to ensure reactivity when route changes
+    return !!this.currentUrl() && this.navigationService.isMenuItemSelected(item);
   }
 
 
-  // Admin path selection with change detection
+  // Admin path selection with signal-based change detection
   isAdminPathSelectedWithCD(path: string): boolean {
-    return !!this.currentUrl && this.isAdminPathSelected(path);
+    return !!this.currentUrl() && this.isAdminPathSelected(path);
   }
 
   // TrackBy functions for performance
@@ -431,7 +461,8 @@ export class NavigationMenuComponent implements OnInit, OnDestroy, AfterViewInit
       const hasOverflow = element.scrollHeight > element.clientHeight;
       
       // Show indicator if there's overflow content (so users know they can scroll)
-      this.showScrollIndicator = hasOverflow;
+      this.showScrollIndicator.set(hasOverflow);
+      this.cdr.markForCheck();
     }
   }
 

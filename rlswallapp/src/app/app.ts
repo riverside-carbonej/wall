@@ -735,6 +735,8 @@ export class App implements OnInit {
           wallMatch[1] && 
           wallMatch[1].length > 0 && 
           !excludedRoutes.includes(wallMatch[1]);
+          
+        // DO NOT clear context here - let the wall context guard handle it
         
         if (isWallRoute) {
           const wallId = wallMatch[1];
@@ -748,6 +750,8 @@ export class App implements OnInit {
           this.themeService.clearWallTheme();
           // Stop inactivity monitoring when leaving wall
           this.inactivityService.stopMonitoring();
+          // Clear navigation context when leaving wall
+          this.navigationService.clearWallContext();
           return of({ wall: null, wallId: null, currentUrl: event.url });
         }
       })
@@ -759,8 +763,7 @@ export class App implements OnInit {
         // Apply wall theme (automatically clears previous theme first)
         const wallTheme = wall.theme || this.themeService.generateDefaultWallTheme();
         this.themeService.applyWallTheme(wallTheme);
-        // Update navigation context
-        this.navigationService.updateWallContext(wall, true, true); // TODO: Get real permissions
+        // Navigation context is now set by wall-context.guard.ts with proper permissions
         
         // Start inactivity monitoring for this wall
         const timeoutMinutes = wall.settings?.inactivityTimeout || 5;
@@ -770,13 +773,11 @@ export class App implements OnInit {
         console.warn(`Wall not found or not accessible: ${wallId}`);
         alert('Wall not found. Returning to walls list.');
         this.currentWall.set(null);
-        this.navigationService.clearWallContext();
         this.inactivityService.stopMonitoring();
         this.themeService.clearWallTheme();
         // Redirect to walls list
         this.router.navigate(['/walls']);
       } else {
-        this.navigationService.clearWallContext();
         // Stop inactivity monitoring when no wall
         this.inactivityService.stopMonitoring();
       }

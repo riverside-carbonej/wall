@@ -18,13 +18,14 @@ import { switchMap, filter, debounceTime, distinctUntilChanged } from 'rxjs/oper
 import { WallService } from '../../services/wall.service';
 import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wall.model';
 import { WallUserEntity } from '../../../../shared/models/user.model';
+import { NavigationService } from '../../../../shared/services/navigation.service';
 
 interface WallUser {
   uid: string;
   email: string;
   displayName: string;
   photoURL?: string;
-  accessLevel: 'editor' | 'viewer';
+  accessLevel: 'viewer' | 'editor' | 'manager';
 }
 
 @Component({
@@ -208,9 +209,17 @@ interface WallUser {
                           [(ngModel)]="user.accessLevel" 
                           [ngModelOptions]="{standalone: true}"
                           (change)="onAccessLevelChange(user, $any($event.target).value)">
-                    <option value="editor">Editor</option>
                     <option value="viewer">Viewer</option>
+                    <option value="editor">Editor</option>
+                    <option value="manager">Manager</option>
                   </select>
+                  <button *ngIf="isOwner && user.uid !== currentUserUid" 
+                          type="button" 
+                          class="transfer-ownership-btn"
+                          (click)="transferOwnership(user)"
+                          title="Transfer ownership to this user">
+                    <mat-icon>crown</mat-icon>
+                  </button>
                 </div>
                 <div class="table-cell actions-cell">
                   <button type="button"
@@ -493,12 +502,13 @@ interface WallUser {
       left: 0;
       right: 0;
       z-index: 1000;
-      background: var(--md-sys-color-surface-container);
-      border: 1px solid var(--md-sys-color-outline-variant);
+      background: var(--md-sys-color-surface);
+      border: 2px solid var(--md-sys-color-outline);
       border-radius: 16px;
-      box-shadow: var(--md-sys-elevation-2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
       max-height: 300px;
       overflow-y: auto;
+      margin-top: 4px;
     }
 
     .user-option {
@@ -869,6 +879,33 @@ interface WallUser {
         height: 28px;
       }
     }
+
+    /* Transfer Ownership Button */
+    .transfer-ownership-btn {
+      background: var(--md-sys-color-tertiary-container);
+      border: 1px solid var(--md-sys-color-tertiary);
+      color: var(--md-sys-color-on-tertiary-container);
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: 8px;
+    }
+
+    .transfer-ownership-btn:hover {
+      background-color: var(--md-sys-color-tertiary);
+      color: var(--md-sys-color-on-tertiary);
+    }
+
+    .transfer-ownership-btn mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
   `]
 })
 export class UsersPermissionsComponent implements OnInit, OnDestroy {
@@ -878,6 +915,8 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   permissionsForm!: FormGroup;
   ownerProfile: WallUser | null = null;
   saving = false;
+  isOwner = false;
+  currentUserUid: string | null = null;
   filteredUsers: WallUser[] = [];
   currentUsers: WallUser[] = [];
   newUserEmail: string = '';
@@ -894,13 +933,22 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     private confirmationDialog: ConfirmationDialogService,
     private authService: AuthService,
     private userService: UserService,
-    private firebaseAuthSearchService: FirebaseAuthSearchService
+    private firebaseAuthSearchService: FirebaseAuthSearchService,
+    private navigationService: NavigationService
   ) {
     this.initializeForm();
     this.currentUserEmail = this.authService.currentUser?.email || null;
   }
 
   ngOnInit() {
+    // Get current user info
+    this.authService.currentUser$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(user => {
+      this.currentUserEmail = user?.email || null;
+      this.currentUserUid = user?.uid || null;
+    });
+
     // Load initial users (this will likely be empty since users are in Firebase Auth, not Firestore)
     this.userService.getAllUsers().pipe(
       takeUntil(this.destroy$)
@@ -919,6 +967,7 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     ) as Observable<Wall>;
 
     this.wall$.subscribe(wall => {
+      this.isOwner = wall.permissions.owner === this.currentUserUid;
       this.loadWallPermissions(wall);
       this.loadOwnerProfile(wall.permissions.owner);
     });
@@ -940,26 +989,79 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     this.currentUsers = [];
     
     // Load current editors from wall permissions
-    wall.permissions.editors.forEach(email => {
-      const userEntity = this.allUsers.find(u => u.email === email);
+    wall.permissions.editors.forEach(uid => {
+      const userEntity = this.allUsers.find(u => u.id === uid);
       if (userEntity) {
         this.currentUsers.push({
           uid: userEntity.id,
           email: userEntity.email,
           displayName: userEntity.displayName || `${userEntity.firstName} ${userEntity.lastName}`,
           photoURL: userEntity.profilePicture,
-          accessLevel: 'editor' // Default to editor for existing permissions
+          accessLevel: 'editor'
         });
       } else {
         // Create a basic profile for users not in our database
-        this.currentUsers.push({
-          uid: email,
-          email: email,
-          displayName: this.extractDisplayName(email),
-          accessLevel: 'editor'
+        // Try to get user info from Firebase Auth or create fallback
+        this.getUserDisplayInfo(uid).then(userInfo => {
+          this.currentUsers.push({
+            uid: uid,
+            email: userInfo.email,
+            displayName: userInfo.displayName,
+            accessLevel: 'editor'
+          });
         });
       }
     });
+    
+    // Load current managers from wall permissions
+    if (wall.permissions.managers) {
+      wall.permissions.managers.forEach(uid => {
+        const userEntity = this.allUsers.find(u => u.id === uid);
+        if (userEntity) {
+          this.currentUsers.push({
+            uid: userEntity.id,
+            email: userEntity.email,
+            displayName: userEntity.displayName || `${userEntity.firstName} ${userEntity.lastName}`,
+            photoURL: userEntity.profilePicture,
+            accessLevel: 'manager'
+          });
+        } else {
+          this.getUserDisplayInfo(uid).then(userInfo => {
+            this.currentUsers.push({
+              uid: uid,
+              email: userInfo.email,
+              displayName: userInfo.displayName,
+              accessLevel: 'manager'
+            });
+          });
+        }
+      });
+    }
+
+    // Load current viewers from wall permissions
+    if (wall.permissions.viewers) {
+      wall.permissions.viewers.forEach(uid => {
+        const userEntity = this.allUsers.find(u => u.id === uid);
+        if (userEntity) {
+          this.currentUsers.push({
+            uid: userEntity.id,
+            email: userEntity.email,
+            displayName: userEntity.displayName || `${userEntity.firstName} ${userEntity.lastName}`,
+            photoURL: userEntity.profilePicture,
+            accessLevel: 'viewer'
+          });
+        } else {
+          this.getUserDisplayInfo(uid).then(userInfo => {
+            this.currentUsers.push({
+              uid: uid,
+              email: userInfo.email,
+              displayName: userInfo.displayName,
+              accessLevel: 'viewer'
+            });
+          });
+        }
+      });
+    }
   }
 
   private loadOwnerProfile(ownerId: string) {
@@ -1003,6 +1105,29 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
       .split('.')
       .map(part => part.charAt(0).toUpperCase() + part.slice(1))
       .join(' ');
+  }
+
+  private async getUserDisplayInfo(uid: string): Promise<{email: string, displayName: string}> {
+    try {
+      // Try to get user info from Firebase Auth via search
+      const searchResult = await this.firebaseAuthSearchService.searchUsers(uid).toPromise();
+      if (searchResult && searchResult.length > 0) {
+        const user = searchResult[0];
+        return {
+          email: user.email || `uid:${uid}`,
+          displayName: user.displayName || this.extractDisplayName(user.email || uid)
+        };
+      }
+    } catch (error) {
+      console.warn('Could not fetch user info for UID:', uid, error);
+    }
+
+    // Fallback: if UID looks like email, use it; otherwise create fallback
+    const isEmail = uid.includes('@');
+    return {
+      email: isEmail ? uid : `uid:${uid}`,
+      displayName: isEmail ? this.extractDisplayName(uid) : `User ${uid.substring(0, 8)}...`
+    };
   }
 
   // Handle new user input with filtering
@@ -1157,10 +1282,6 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Handle access level change
-  onAccessLevelChange(user: WallUser, newLevel: 'editor' | 'viewer'): void {
-    user.accessLevel = newLevel;
-  }
 
   // Get total users count
   getTotalUsersCount(): number {
@@ -1180,6 +1301,26 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   // Track by function for ngFor
   trackByEmail(index: number, user: any): string {
     return user.email;
+  }
+
+  // Handle access level changes
+  onAccessLevelChange(user: WallUser, newLevel: string) {
+    if (newLevel === 'viewer' || newLevel === 'editor' || newLevel === 'manager') {
+      user.accessLevel = newLevel as 'viewer' | 'editor' | 'manager';
+    }
+  }
+
+  // Transfer ownership to another user
+  transferOwnership(user: WallUser) {
+    const confirmTransfer = confirm(
+      `Are you sure you want to transfer ownership of this wall to ${user.displayName || user.email}? ` +
+      `This action cannot be undone and you will become a manager.`
+    );
+    
+    if (confirmTransfer) {
+      // Implementation will be added in the wall service
+      alert('Transfer ownership functionality will be implemented in the next update');
+    }
   }
 
   getPageActions(): PageAction[] {
@@ -1204,27 +1345,64 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     
     const wallId = this.route.snapshot.paramMap.get('id')!;
     
-    // Only include editors in the permissions (viewers will be handled differently in the future)
+    // Separate by access level
     const editors = this.currentUsers
       .filter(user => user.accessLevel === 'editor')
-      .map(user => user.email);
+      .map(user => user.uid);
+      
+    const managers = this.currentUsers
+      .filter(user => user.accessLevel === 'manager')
+      .map(user => user.uid);
+      
+    const viewers = this.currentUsers
+      .filter(user => user.accessLevel === 'viewer')
+      .map(user => user.uid);
     
     const updatedPermissions: Partial<WallPermissions> = {
       editors: editors,
-      allowDepartmentEdit: false,
-      department: undefined
+      managers: managers,
+      viewers: viewers,
+      allowDepartmentEdit: false
     };
 
     this.wallService.updateWallPermissions(wallId, updatedPermissions).subscribe({
       next: () => {
         this.saving = false;
         alert('Permissions updated successfully');
+        
+        // Refresh navigation context to update sidebar permissions
+        this.refreshNavigationContext(wallId);
       },
       error: (error) => {
         this.saving = false;
         console.error('Error updating permissions:', error);
         alert('Failed to update permissions');
       }
+    });
+  }
+
+  private refreshNavigationContext(wallId: string): void {
+    // Re-fetch the wall and update navigation context with fresh permissions
+    this.wallService.getWallById(wallId).subscribe(wall => {
+      if (!wall) return;
+
+      // Get current user
+      this.authService.currentUser$.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(user => {
+        if (!user) return;
+
+        // Calculate fresh permissions
+        const canEdit = wall.permissions.owner === user.uid ||
+                       wall.permissions.editors.includes(user.uid) ||
+                       (wall.permissions.managers && wall.permissions.managers.includes(user.uid));
+        
+        const canAdmin = wall.permissions.owner === user.uid ||
+                        (wall.permissions.managers && wall.permissions.managers.includes(user.uid));
+
+        // Update navigation context
+        this.navigationService.updateWallContext(wall, canEdit, canAdmin, 0);
+      });
     });
   }
 }

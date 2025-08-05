@@ -47,7 +47,8 @@
       "Bash(export MSYS_NO_PATHCONV=1)",
       "Bash(cmd.exe /c \"firebase deploy --only functions\")",
       "Bash(npm run:*)",
-      "Bash(cmd.exe:*)"
+      "Bash(cmd.exe:*)",
+      "Bash(export:*)"
     ],
     "deny": []
   }

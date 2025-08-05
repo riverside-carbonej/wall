@@ -9,9 +9,10 @@ import { WallItemService } from '../../../wall-items/services/wall-item.service'
 import { ImageUploadService } from '../../../wall-items/services/image-upload.service';
 import { ItemImageGalleryComponent } from '../../../wall-items/components/item-image-gallery/item-image-gallery.component';
 import { MapViewComponent } from '../../../maps/components/map-view/map-view.component';
-import { Wall, WallItem, WallViewMode, FieldDefinition, WallItemImage } from '../../../../shared/models/wall.model';
+import { Wall, WallItem, WallViewMode, FieldDefinition, WallItemImage, WallPermissionHelper, UserProfile } from '../../../../shared/models/wall.model';
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 import { UserActivityService } from '../../../../shared/services/user-activity.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-wall-viewer',
@@ -27,7 +28,7 @@ import { UserActivityService } from '../../../../shared/services/user-activity.s
           </div>
           <div class="header-actions">
             <button 
-              *ngIf="wall.fields && wall.fields.length > 0"
+              *ngIf="wall.fields && wall.fields.length > 0 && canEditWall(wall)"
               (click)="showAddItemForm()" 
               class="btn-primary touch-target interactive focusable add-item-button"
               [style.background-color]="wall.theme.primaryColor"
@@ -731,6 +732,8 @@ export class WallViewerComponent implements OnInit {
   isLoading = true;
   wallId!: string;
   showMapView = false;
+  currentUser: any = null;
+  debugMode = true; // Set to false in production
 
   constructor(
     private route: ActivatedRoute,
@@ -740,7 +743,8 @@ export class WallViewerComponent implements OnInit {
     private imageUploadService: ImageUploadService,
     private confirmationDialog: ConfirmationDialogService,
     private fb: FormBuilder,
-    private userActivityService: UserActivityService
+    private userActivityService: UserActivityService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -750,23 +754,50 @@ export class WallViewerComponent implements OnInit {
       return;
     }
 
+    // Get current user for permission checking
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      if (this.debugMode) {
+        console.log('Current user in wall viewer:', user);
+      }
+    });
+
     this.wall$ = this.wallService.getWallById(this.wallId);
     this.wallItems$ = this.wallItemService.getWallItems(this.wallId);
 
     this.wall$.subscribe({
       next: (wall) => {
         if (wall) {
+          // Debug: Check wall deletion status
+          console.log('🔍 Wall loaded - debug info:', {
+            wallId: wall.id,
+            wallName: wall.name,
+            deletedAt: wall.deletedAt,
+            deletedAtType: typeof wall.deletedAt,
+            isDeleted: !!wall.deletedAt
+          });
+          
+          // Check if wall is soft deleted (check for truthy deletedAt that's not null)
+          if (wall.deletedAt && wall.deletedAt !== null) {
+            console.log('❌ Wall has been deleted, redirecting to walls list');
+            this.router.navigate(['/walls']);
+            return;
+          }
+          
+          console.log('✅ Wall is accessible, proceeding to load');
+          
           // Track wall visit
           this.userActivityService.trackWallVisit(wall.id!, wall.name);
           
           this.initializeAddItemForm(wall.fields || []);
           this.isLoading = false;
         } else {
+          console.log('❌ No wall data returned, redirecting to walls list');
           this.router.navigate(['/walls']);
         }
       },
       error: (error) => {
-        console.error('Error loading wall:', error);
+        console.error('❌ Error loading wall:', error);
         this.router.navigate(['/walls']);
       }
     });
@@ -1039,5 +1070,39 @@ export class WallViewerComponent implements OnInit {
     // For now, just switch back to list view and scroll to the item
     this.showMapView = false;
     // You could implement scrolling to the specific item here
+  }
+
+  /**
+   * Check if current user can edit the wall
+   */
+  canEditWall(wall: Wall): boolean {
+    if (!this.currentUser || !wall) {
+      console.log('❌ Permission check failed: No user or wall', { user: this.currentUser, wall: !!wall });
+      return false;
+    }
+
+    const userProfile: UserProfile = {
+      uid: this.currentUser.uid,
+      email: this.currentUser.email,
+      displayName: this.currentUser.displayName || this.currentUser.email,
+      photoURL: this.currentUser.photoURL,
+      role: this.currentUser.role || 'user',
+      department: this.currentUser.department,
+      createdAt: this.currentUser.createdAt || new Date(),
+      lastLoginAt: this.currentUser.lastLoginAt || new Date()
+    };
+
+    console.log('🔍 Permission check details:', {
+      userUID: userProfile.uid,
+      wallOwner: wall.permissions.owner,
+      editors: wall.permissions.editors,
+      managers: wall.permissions.managers,
+      userProfile
+    });
+
+    const canEdit = WallPermissionHelper.canEditWall(wall, userProfile);
+    console.log('🎯 Can edit result:', canEdit);
+    
+    return canEdit;
   }
 }

@@ -72,6 +72,29 @@ export class WallPermissionsService {
   }
 
   /**
+   * Check if current user can admin a wall (owner or manager)
+   */
+  canAdminWall(wall: Wall): Observable<boolean> {
+    return this.authService.currentUser$.pipe(
+      map(user => {
+        if (!user) return false;
+        
+        // Check if user is owner
+        if (user.uid === wall.permissions.owner) {
+          return true;
+        }
+        
+        // Check if user is a manager
+        if (wall.permissions.managers && wall.permissions.managers.includes(user.uid)) {
+          return true;
+        }
+        
+        return false;
+      })
+    );
+  }
+
+  /**
    * Get wall status for UI display
    */
   getWallStatus(wall: Wall): { text: string; icon: string; color: string } {
@@ -93,6 +116,8 @@ export class WallPermissionsService {
     return {
       owner: ownerId,
       editors: [],
+      managers: [],
+      viewers: [],
       department: department,
       allowDepartmentEdit: false
     };

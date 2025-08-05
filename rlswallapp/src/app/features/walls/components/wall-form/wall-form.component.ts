@@ -11,6 +11,7 @@ import { PageLayoutComponent, PageAction } from '../../../../shared/components/p
 import { MaterialSwitchComponent } from '../../../../shared/components/material-switch/material-switch.component';
 import { Observable } from 'rxjs';
 import { WallTemplatesService } from '../../services/wall-templates.service';
+import { NavigationService } from '../../../../shared/services/navigation.service';
 
 @Component({
   selector: 'app-wall-form',
@@ -2472,7 +2473,8 @@ export class WallFormComponent implements OnInit {
     private route: ActivatedRoute,
     private wallPermissions: WallPermissionsService,
     private authService: AuthService,
-    private wallTemplatesService: WallTemplatesService
+    private wallTemplatesService: WallTemplatesService,
+    private navigationService: NavigationService
   ) {
     this.initializeForm();
   }
@@ -2484,6 +2486,11 @@ export class WallFormComponent implements OnInit {
 
     this.wallId = this.route.snapshot.paramMap.get('id') || undefined;
     this.isEditMode = !!this.wallId;
+    
+    // Only clear wall context when creating a NEW wall, not when editing
+    if (!this.isEditMode) {
+      this.navigationService.clearWallContext();
+    }
 
     if (this.isEditMode && this.wallId) {
       this.loadWall(this.wallId);

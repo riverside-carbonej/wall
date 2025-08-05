@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { NlpService } from './nlp.service';
 import { WallMenuItem, WallNavigationContext, AddMode, WallObjectTypeNav } from '../models/navigation.model';
 import { Wall, WallObjectType } from '../models/wall.model';
@@ -21,7 +22,17 @@ export class NavigationService {
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private nlpService: NlpService
-  ) {}
+  ) {
+    // Listen to router events to update add mode when navigating within wall context
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      // Only update add mode if we have a wall context
+      if (this.currentContext) {
+        this.updateAddMode();
+      }
+    });
+  }
 
   get isMenuOpen(): boolean {
     return this._isMenuOpen.value;

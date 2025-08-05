@@ -11,6 +11,7 @@ import { Wall } from '../../../../shared/models/wall.model';
 import { ButtonGroupComponent, ButtonGroupItem } from '../../../../shared/components/button-group/button-group.component';
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
+import { NavigationService } from '../../../../shared/services/navigation.service';
 
 @Component({
   selector: 'app-recycle-bin',
@@ -264,10 +265,12 @@ export class RecycleBinComponent implements OnInit {
 
   pageActions: PageAction[] = [];
 
+
   constructor(
     private wallService: WallService, 
     private router: Router,
-    private confirmationDialog: ConfirmationDialogService
+    private confirmationDialog: ConfirmationDialogService,
+    private navigationService: NavigationService
   ) {
     this.filteredWalls$ = combineLatest([
       this.walls$,
@@ -290,6 +293,9 @@ export class RecycleBinComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Clear wall context when entering the recycle bin
+    this.navigationService.clearWallContext();
+    
     this.loadDeletedWalls();
   }
 

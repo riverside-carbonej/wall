@@ -20,6 +20,16 @@ service cloud.firestore {
       return request.auth.uid in wallData.permissions.editors;
     }
     
+    function isWallViewer(wallData) {
+      return 'viewers' in wallData.permissions && 
+             request.auth.uid in wallData.permissions.viewers;
+    }
+    
+    function isWallManager(wallData) {
+      return 'managers' in wallData.permissions && 
+             request.auth.uid in wallData.permissions.managers;
+    }
+    
     function hasDepartmentAccess(wallData) {
       return wallData.permissions.allowDepartmentEdit && 
              request.auth.token.department != null &&
@@ -29,16 +39,19 @@ service cloud.firestore {
     function canEditWall(wallData) {
       return isWallOwner(wallData) || 
              isWallEditor(wallData) || 
+             isWallManager(wallData) ||
              hasDepartmentAccess(wallData);
     }
     
     function canViewWall(wallData) {
-      // Draft walls - only editors can view
-      return (!wallData.visibility.isPublished && canEditWall(wallData)) ||
+      // Soft deleted walls cannot be viewed by anyone
+      return (!('deletedAt' in wallData) || wallData.deletedAt == null) &&
+             // Draft walls - only editors, managers, and viewers can view
+             ((!wallData.visibility.isPublished && (canEditWall(wallData) || isWallViewer(wallData))) ||
              // Published public walls - anyone can view
              (wallData.visibility.isPublished && !wallData.visibility.requiresLogin) ||
              // Published login-required walls - authenticated users only
-             (wallData.visibility.isPublished && wallData.visibility.requiresLogin && isAuthenticated());
+             (wallData.visibility.isPublished && wallData.visibility.requiresLogin && isAuthenticated()));
     }
     
     // Walls collection

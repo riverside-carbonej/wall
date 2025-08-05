@@ -130,6 +130,20 @@ export class WallService {
               limit(50)
             ),
             
+            // Query for walls where user is a manager
+            query(
+              wallsCollection,
+              where('permissions.managers', 'array-contains', user.uid),
+              limit(50)
+            ),
+            
+            // Query for walls where user is a viewer
+            query(
+              wallsCollection,
+              where('permissions.viewers', 'array-contains', user.uid),
+              limit(50)
+            ),
+            
             // Query for public walls
             query(
               wallsCollection,
@@ -750,12 +764,26 @@ export class WallService {
   updateWallPermissions(wallId: string, permissions: Partial<any>): Observable<void> {
     return runInInjectionContext(this.injector, () => {
       const wallDoc = doc(this.firestore, this.collectionName, wallId);
-      const updateData = {
-        'permissions.editors': permissions['editors'],
-        'permissions.department': permissions['department'],
-        'permissions.allowDepartmentEdit': permissions['allowDepartmentEdit'],
+      const updateData: any = {
         updatedAt: serverTimestamp()
       };
+      
+      // Only add fields that are not undefined
+      if (permissions['editors'] !== undefined) {
+        updateData['permissions.editors'] = permissions['editors'];
+      }
+      if (permissions['managers'] !== undefined) {
+        updateData['permissions.managers'] = permissions['managers'];
+      }
+      if (permissions['viewers'] !== undefined) {
+        updateData['permissions.viewers'] = permissions['viewers'];
+      }
+      if (permissions['department'] !== undefined) {
+        updateData['permissions.department'] = permissions['department'];
+      }
+      if (permissions['allowDepartmentEdit'] !== undefined) {
+        updateData['permissions.allowDepartmentEdit'] = permissions['allowDepartmentEdit'];
+      }
       
       return from(updateDoc(wallDoc, updateData));
     });

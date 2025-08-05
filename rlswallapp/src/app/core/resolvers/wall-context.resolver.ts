@@ -8,7 +8,7 @@ import { WallItemService } from '../../features/wall-items/services/wall-item.se
 import { NavigationService } from '../../shared/services/navigation.service';
 import { ThemeService } from '../../shared/services/theme.service';
 import { AuthService } from '../services/auth.service';
-import { Wall } from '../../shared/models/wall.model';
+import { Wall, UserProfile } from '../../shared/models/wall.model';
 
 export interface WallContextData {
   wall: Wall;
@@ -44,12 +44,42 @@ export const wallContextResolver: ResolveFn<WallContextData> = (
 
       // Get wall items count  
       return wallItemService.getWallItems(wallId).pipe(
-        map((items) => {
+        switchMap((items) => {
           const itemCount = items?.length || 0;
           
-          // TODO: Replace with proper permission checking
-          const canEdit = true; // authService.canEditWall(wall, user)
-          const canAdmin = true; // authService.canAdminWall(wall, user)
+          // Get current user and check real permissions
+          return authService.currentUser$.pipe(
+            map(user => {
+              if (!user || !wall) {
+                return { itemCount, canEdit: false, canAdmin: false };
+              }
+
+              // Create a UserProfile for permission checking
+              const userProfile = {
+                uid: user.uid,
+                email: user.email || '',
+                displayName: user.displayName || '',
+                photoURL: user.photoURL || undefined,
+                department: undefined, // TODO: Get from user profile
+                role: 'user' as 'user' | 'admin' | 'teacher', // TODO: Get from user profile
+                createdAt: new Date(),
+                lastLoginAt: new Date()
+              };
+
+              // Use the actual permission helper
+              const canEdit = wall.permissions.owner === user.uid ||
+                             wall.permissions.editors.includes(user.uid) ||
+                             (wall.permissions.managers && wall.permissions.managers.includes(user.uid));
+              
+              // Admin permissions: owner, managers, or system admin
+              const canAdmin = wall.permissions.owner === user.uid ||
+                              (wall.permissions.managers && wall.permissions.managers.includes(user.uid));
+
+              return { itemCount, canEdit, canAdmin };
+            })
+          );
+        }),
+        map(({ itemCount, canEdit, canAdmin }) => {
           
           // Check if any object types have location fields
           const hasLocationEnabledTypes = (wall.objectTypes || []).some(ot => 
@@ -60,13 +90,13 @@ export const wallContextResolver: ResolveFn<WallContextData> = (
           const contextData: WallContextData = {
             wall,
             itemCount,
-            canEdit,
-            canAdmin,
+            canEdit: canEdit || false,
+            canAdmin: canAdmin || false,
             hasLocationEnabledTypes
           };
 
           // Update navigation context before component loads
-          navigationService.updateWallContext(wall, canEdit, canAdmin, itemCount);
+          navigationService.updateWallContext(wall, canEdit || false, canAdmin || false, itemCount);
 
           // Apply wall theme before component loads to prevent theme flashing
           if (wall.theme) {

@@ -13,6 +13,7 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
 import { UserActivityService } from '../../../../shared/services/user-activity.service';
 import { WallPermissionsService } from '../../../../core/services/wall-permissions.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { NavigationService } from '../../../../shared/services/navigation.service';
 
 @Component({
   selector: 'app-wall-list',
@@ -853,7 +854,8 @@ export class WallListComponent implements OnInit {
     private confirmationDialog: ConfirmationDialogService,
     private userActivityService: UserActivityService,
     private wallPermissionsService: WallPermissionsService,
-    private authService: AuthService
+    private authService: AuthService,
+    private navigationService: NavigationService
   ) {
     this.filteredWalls$ = combineLatest([
       this.walls$,
@@ -876,6 +878,9 @@ export class WallListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Clear wall context when entering the main walls list
+    this.navigationService.clearWallContext();
+    
     this.loadWalls();
     
     // Close menu when clicking outside
