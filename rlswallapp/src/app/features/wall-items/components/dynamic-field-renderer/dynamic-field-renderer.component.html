@@ -3,28 +3,25 @@
   @if (readonly) {
     <div class="readonly-field">
       <div class="field-label">
-        @if (getFieldIcon()) {
-          <mat-icon class="field-icon">{{ getFieldIcon() }}</mat-icon>
-        }
         {{ field.name }}
         @if (field.required) {
           <span class="required-indicator">*</span>
         }
       </div>
       
-      <div class="field-value" [class.empty]="!value">
+      <div class="field-value" [class.empty]="!formControl?.value">
         {{ getDisplayValue() || 'No value' }}
       </div>
       
       <!-- Special display for color fields -->
-      @if (isColor() && value) {
+      @if (isColor() && formControl?.value) {
         <div class="color-preview">
-          <div class="color-swatch" [style.background-color]="value"></div>
+          <div class="color-swatch" [style.background-color]="formControl?.value"></div>
         </div>
       }
       
       <!-- Special display for file fields -->
-      @if (isFile() && value) {
+      @if (isFile() && formControl?.value) {
         <div class="file-info">
           <mat-icon>attachment</mat-icon>
           <span>{{ getFileDisplayName() }}</span>
@@ -34,8 +31,8 @@
   }
 
   <!-- Edit Mode - Form Fields -->
-  @if (!readonly) {
-    <div class="edit-field">
+  @if (!readonly && formGroup) {
+    <div class="edit-field" [formGroup]="formGroup">
       
       <!-- Text Input Fields (text, email, url) -->
       @if (isTextInput()) {
@@ -388,19 +385,19 @@
           <!-- Read-only Location Display -->
           @if (readonly) {
             <div class="location-display">
-              @if (value && value.address) {
+              @if (formControl?.value && formControl?.value.address) {
                 <div class="address-primary">
                   <mat-icon>location_on</mat-icon>
-                  <span>{{ value.address }}</span>
+                  <span>{{ formControl?.value.address }}</span>
                 </div>
               }
-              @if (value && value.lat && value.lng && !value.address) {
+              @if (formControl?.value && formControl?.value.lat && formControl?.value.lng && !formControl?.value.address) {
                 <div class="coordinates-fallback">
                   <mat-icon>place</mat-icon>
-                  <span>{{ value.lat.toFixed(4) }}, {{ value.lng.toFixed(4) }}</span>
+                  <span>{{ formControl?.value.lat.toFixed(4) }}, {{ formControl?.value.lng.toFixed(4) }}</span>
                 </div>
               }
-              @if (!value || (!value.lat && !value.lng && !value.address)) {
+              @if (!formControl?.value || (!formControl?.value.lat && !formControl?.value.lng && !formControl?.value.address)) {
                 <div class="no-location">
                   <mat-icon>location_off</mat-icon>
                   <span>No location set</span>
@@ -413,7 +410,7 @@
           @if (!readonly) {
             <div class="location-edit">
               <app-location-picker
-                [initialCoordinates]="value"
+                [initialCoordinates]="formControl?.value"
                 [height]="'250px'"
                 [showCoordinateInputs]="false"
                 [showAddressSearch]="true"

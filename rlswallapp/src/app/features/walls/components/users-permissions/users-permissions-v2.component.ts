@@ -20,6 +20,7 @@ import { FirebaseAuthSearchService } from '../../../../shared/services/firebase-
 import { FirestoreUserService } from '../../../../shared/services/firestore-user.service';
 import { WallService } from '../../services/wall.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { FormStateService } from '../../../../shared/services/form-state.service';
 
 // RxJS
 import { Observable } from 'rxjs';
@@ -264,6 +265,7 @@ interface WallUser {
     
     .people-table tbody tr:not(.add-user-row) {
       border-bottom: 1px solid var(--md-sys-color-outline-variant);
+      background: var(--md-sys-color-surface-container-low);
     }
     
     .people-table tbody tr:not(.add-user-row):hover {
@@ -507,6 +509,10 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
   
   // Form controls map for access levels
   private accessLevelControls = new Map<string, FormControl>();
+  
+  // Change detection
+  private initialPermissions: any = null;
+  hasChanges = signal(false);
 
   // Computed values
   pageActions = computed<PageAction[]>(() => {
@@ -516,7 +522,8 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
       label: 'Save Changes',
       icon: 'save',
       action: () => this.saveChanges(),
-      primary: true
+      primary: true,
+      disabled: !this.hasChanges()
     }];
   });
 
@@ -528,7 +535,8 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
     private firebaseAuthSearch: FirebaseAuthSearchService,
     private firestoreUserService: FirestoreUserService,
     private confirmationDialog: ConfirmationDialogService,
-    private notification: NotificationService
+    private notification: NotificationService,
+    private formStateService: FormStateService
   ) {}
 
   ngOnInit() {
@@ -638,6 +646,9 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
     });
     
     this.wallUsers.set(users);
+    
+    // Capture initial permissions state for change detection
+    this.captureInitialPermissions(wall);
     
     // Load actual user data from Firebase Auth
     this.loadUserProfiles(users);
@@ -808,6 +819,9 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
     this.searchQuery = '';
     this.selectedUser = null;
     this.searchResults.set([]);
+    
+    // Check for changes after adding user
+    this.checkForChanges();
   }
 
   async removeUser(user: WallUser) {
@@ -821,6 +835,9 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
     if (confirmed) {
       this.wallUsers.update(users => users.filter(u => u.uid !== user.uid));
       this.notification.success('User removed');
+      
+      // Check for changes after removing user
+      this.checkForChanges();
     }
   }
 
@@ -884,6 +901,9 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
     } else {
       user.accessLevel = newLevel as any;
     }
+    
+    // Check for changes after access level modification
+    this.checkForChanges();
   }
 
   private async transferOwnership(user: WallUser) {
@@ -910,6 +930,46 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
     return this.wallUsers().filter(u => u.accessLevel === level).length;
   }
 
+  private captureInitialPermissions(wall: Wall) {
+    this.initialPermissions = {
+      owner: wall.permissions.owner,
+      managers: [...(wall.permissions.managers || [])],
+      editors: [...(wall.permissions.editors || [])],
+      viewers: [...(wall.permissions.viewers || [])]
+    };
+    
+    // Initially no changes
+    this.hasChanges.set(false);
+  }
+
+  private checkForChanges() {
+    if (!this.initialPermissions) {
+      this.hasChanges.set(false);
+      return;
+    }
+
+    const currentPermissions = {
+      owner: this.wallUsers().find(u => u.accessLevel === 'owner')?.uid || '',
+      managers: this.wallUsers().filter(u => u.accessLevel === 'manager').map(u => u.uid),
+      editors: this.wallUsers().filter(u => u.accessLevel === 'editor').map(u => u.uid),
+      viewers: this.wallUsers().filter(u => u.accessLevel === 'viewer').map(u => u.uid)
+    };
+
+    const hasChanges = (
+      currentPermissions.owner !== this.initialPermissions.owner ||
+      !this.arraysEqual(currentPermissions.managers, this.initialPermissions.managers) ||
+      !this.arraysEqual(currentPermissions.editors, this.initialPermissions.editors) ||
+      !this.arraysEqual(currentPermissions.viewers, this.initialPermissions.viewers)
+    );
+
+    this.hasChanges.set(hasChanges);
+  }
+
+  private arraysEqual(arr1: string[], arr2: string[]): boolean {
+    if (arr1.length !== arr2.length) return false;
+    return arr1.sort().join(',') === arr2.sort().join(',');
+  }
+
   async saveChanges() {
     this.loading.set(true);
     
@@ -924,6 +984,15 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
       
       // Update wall permissions
       await this.wallService.updateWallPermissions(this.wallId, permissions);
+      
+      // Update initial permissions to reflect the saved state
+      this.initialPermissions = {
+        owner: permissions.owner,
+        managers: [...permissions.managers],
+        editors: [...permissions.editors],
+        viewers: [...permissions.viewers]
+      };
+      this.hasChanges.set(false);
       
       this.notification.success('Permissions updated successfully');
     } catch (error) {

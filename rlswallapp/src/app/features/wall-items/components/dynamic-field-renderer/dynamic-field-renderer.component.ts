@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormControl, FormGroup } from '@angular/forms';
 import { MatFormField, MatInput, MatLabel, MatError } from '../../../../shared/components/material-stubs';
@@ -39,7 +39,7 @@ import { MaterialSwitchComponent } from '../../../../shared/components/material-
   templateUrl: './dynamic-field-renderer.component.html',
   styleUrls: ['./dynamic-field-renderer.component.css']
 })
-export class DynamicFieldRendererComponent implements OnInit {
+export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   @Input() field!: FieldDefinition;
   @Input() formGroup!: FormGroup;
   @Input() readonly = false;
@@ -63,17 +63,42 @@ export class DynamicFieldRendererComponent implements OnInit {
   allRelationshipItems: Array<{id: string; name: string; subtitle?: string}> = [];
   
   ngOnInit() {
-    if (this.field.type === 'multiselect' && this.value) {
-      this.selectedOptions = Array.isArray(this.value) ? this.value : [];
+    this.initializeFieldData();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Re-initialize field data when inputs change (like readonly mode or formGroup)
+    if (changes['formGroup'] || changes['readonly'] || changes['value']) {
+      // Use setTimeout to ensure the form control is properly initialized
+      setTimeout(() => {
+        this.initializeFieldData();
+      }, 0);
+    }
+  }
+
+  private initializeFieldData() {
+    // Ensure we have a valid form control before proceeding
+    if (!this.formControl || !this.field) {
+      return;
+    }
+    
+    // Get initial value from form control or input property
+    const initialValue = this.formControl.value !== null && this.formControl.value !== undefined 
+      ? this.formControl.value 
+      : this.value;
+    
+    
+    if (this.field.type === 'multiselect' && initialValue) {
+      this.selectedOptions = Array.isArray(initialValue) ? initialValue : [];
     }
     
     if (this.field.type === 'relationship') {
       this.loadRelationshipItems();
       
       // Initialize selected relationships from current value
-      if (this.value) {
+      if (initialValue) {
         // Handle both single and multiple relationship values
-        const relationshipIds = Array.isArray(this.value) ? this.value : [this.value];
+        const relationshipIds = Array.isArray(initialValue) ? initialValue : [initialValue];
         
         // TODO: In real implementation, this would fetch the actual relationship objects
         // For now, create placeholder objects
@@ -164,28 +189,30 @@ export class DynamicFieldRendererComponent implements OnInit {
   }
 
   getDisplayValue(): string {
-    if (!this.value) return '';
+    // Get value from form control instead of input property
+    const value = this.formControl?.value || this.value;
+    if (!value) return '';
     
     if (this.field.type === 'date') {
-      return new Date(this.value).toLocaleDateString();
+      return new Date(value).toLocaleDateString();
     }
     
     if (this.field.type === 'daterange') {
-      if (this.value && this.value.start && this.value.end) {
-        const startDate = new Date(this.value.start).toLocaleDateString();
-        const endDate = new Date(this.value.end).toLocaleDateString();
+      if (value && value.start && value.end) {
+        const startDate = new Date(value.start).toLocaleDateString();
+        const endDate = new Date(value.end).toLocaleDateString();
         return `${startDate} - ${endDate}`;
       }
-      if (this.value && this.value.start) {
-        return `From ${new Date(this.value.start).toLocaleDateString()}`;
+      if (value && value.start) {
+        return `From ${new Date(value.start).toLocaleDateString()}`;
       }
       return '';
     }
     
     if (this.field.type === 'numberrange') {
-      if (this.value && typeof this.value === 'object') {
-        const min = this.value.min !== undefined ? this.value.min : '';
-        const max = this.value.max !== undefined ? this.value.max : '';
+      if (value && typeof value === 'object') {
+        const min = value.min !== undefined ? value.min : '';
+        const max = value.max !== undefined ? value.max : '';
         if (min && max) {
           return `${min} - ${max}`;
         }
@@ -200,21 +227,21 @@ export class DynamicFieldRendererComponent implements OnInit {
     }
     
     if (this.field.type === 'boolean') {
-      return this.value ? 'Yes' : 'No';
+      return value ? 'Yes' : 'No';
     }
     
     if (this.field.type === 'multiselect') {
-      return Array.isArray(this.value) ? this.value.join(', ') : '';
+      return Array.isArray(value) ? value.join(', ') : '';
     }
     
     if (this.field.type === 'location') {
-      if (this.value && this.value.lat && this.value.lng) {
-        return `${this.value.lat.toFixed(6)}, ${this.value.lng.toFixed(6)}`;
+      if (value && value.lat && value.lng) {
+        return `${value.lat.toFixed(6)}, ${value.lng.toFixed(6)}`;
       }
       return '';
     }
     
-    return this.value.toString();
+    return value.toString();
   }
 
   // Multiselect handlers
@@ -286,39 +313,37 @@ export class DynamicFieldRendererComponent implements OnInit {
         return 'email';
       case 'url':
         return 'link';
-      case 'number':
-        return 'numbers';
-      case 'date':
-        return 'event';
       case 'location':
         return 'place';
       case 'color':
         return 'palette';
       case 'file':
         return 'attach_file';
+      case 'date':
+        return 'event';
+      case 'daterange':
+        return 'date_range';
       case 'relationship':
         return 'link';
       case 'multiselect':
         return 'checklist';
       case 'boolean':
         return 'check_box';
-      case 'longtext':
-      case 'richtext':
-        return 'notes';
       default:
         return '';
     }
   }
 
   getFileDisplayName(): string {
-    if (!this.value) return '';
+    const value = this.formControl?.value || this.value;
+    if (!value) return '';
     
-    if (this.value instanceof File) {
-      return this.value.name;
+    if (value instanceof File) {
+      return value.name;
     }
     
-    if (Array.isArray(this.value)) {
-      return `${this.value.length} file(s) selected`;
+    if (Array.isArray(value)) {
+      return `${value.length} file(s) selected`;
     }
     
     return 'File selected';

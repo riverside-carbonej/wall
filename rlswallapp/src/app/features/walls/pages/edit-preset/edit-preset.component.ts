@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subject, takeUntil, switchMap, filter, map } from 'rxjs';
+import { FormStateService } from '../../../../shared/services/form-state.service';
 
 import { WallService } from '../../services/wall.service';
 import { Wall, WallObjectType } from '../../../../shared/models/wall.model';
@@ -26,11 +27,7 @@ import { PageLayoutComponent } from '../../../../shared/components/page-layout/p
           (backClick)="goBack()">
           
           <app-object-type-builder
-            [config]="{
-              mode: 'edit',
-              wallId: wall.id,
-              initialData: objectType
-            }"
+            [config]="getBuilderConfig(wall, objectType)"
             (save)="onObjectTypeSaved($event)"
             (cancel)="onBuilderCancelled()">
           </app-object-type-builder>
@@ -55,7 +52,8 @@ export class EditPresetComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private wallService: WallService
+    private wallService: WallService,
+    private formStateService: FormStateService
   ) {}
 
   ngOnInit() {
@@ -103,7 +101,9 @@ export class EditPresetComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: () => {
         console.log('Object type updated successfully');
-        this.goBack();
+        // Stay on the page after successful save (edit mode behavior)
+        // Update initial data to reflect the saved state
+        this.formStateService.updateInitialData('object-type-form', objectType);
       },
       error: (error) => {
         console.error('Error updating object type:', error);
@@ -119,5 +119,24 @@ export class EditPresetComponent implements OnInit, OnDestroy {
   capitalizeFirstLetter(str: string): string {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  getBuilderConfig(wall: Wall, objectType: WallObjectType): ObjectTypeBuilderConfig {
+    const baseConfig: ObjectTypeBuilderConfig = {
+      mode: 'edit',
+      wallId: wall.id,
+      initialData: objectType
+    };
+
+    // Check if this is a veterans wall by looking for veterans-specific object types or wall name
+    const isVeteransWall = wall.name.toLowerCase().includes('veterans') || 
+                          wall.name.toLowerCase().includes('wall of honor') ||
+                          wall.objectTypes?.some(ot => ['veteran', 'deployment', 'branch'].includes(ot.id));
+
+    if (isVeteransWall) {
+      baseConfig.allowedFieldTypes = ['text', 'date', 'color', 'location'];
+    }
+
+    return baseConfig;
   }
 }

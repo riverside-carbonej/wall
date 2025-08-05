@@ -1017,7 +1017,7 @@ export class MatOption {
          (optionSelected)="onCustomOptionSelected($event)"
          tabindex="0">
       <div class="mat-select-value">
-        @if (selectedValue()) {
+        @if (selectedValue() !== null && selectedValue() !== undefined) {
           <div class="selected-content">
             @if (showIcon()) {
               <mat-icon class="selected-icon" [icon]="selectedValue()"></mat-icon>
@@ -1149,7 +1149,7 @@ export class MatSelect implements ControlValueAccessor {
   onCustomOptionSelected(event: Event) {
     console.log('Custom option selected event:', event);
     const customEvent = event as CustomEvent;
-    if (customEvent.detail) {
+    if (customEvent.detail !== undefined && customEvent.detail !== null) {
       this.selectOption(customEvent.detail);
     }
   }
@@ -1170,6 +1170,14 @@ export class MatSelect implements ControlValueAccessor {
     const displayFn = this.displayValueFunction();
     if (displayFn) {
       return displayFn(value);
+    }
+    
+    // Special case: if value is empty string, find the corresponding option text
+    if (value === '') {
+      const optionElements = this.elementRef.nativeElement.querySelectorAll('mat-option[value=""]');
+      if (optionElements.length > 0) {
+        return optionElements[0].textContent?.trim() || '';
+      }
     }
     
     // Default display logic

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -10,6 +10,7 @@ import { WallItemService } from '../../services/wall-item.service';
 import { ImageUploadService, PendingImage } from '../../../../shared/services/image-upload.service';
 import { Wall, WallObjectType, WallItem, WallItemImage } from '../../../../shared/models/wall.model';
 import { PresetItemBasePageComponent } from '../../components/preset-item-base-page/preset-item-base-page.component';
+import { FormStateService, FormState } from '../../../../shared/services/form-state.service';
 
 @Component({
   selector: 'app-preset-item-add',
@@ -29,6 +30,7 @@ import { PresetItemBasePageComponent } from '../../components/preset-item-base-p
       [attemptedSubmit]="attemptedSubmit"
       [images]="getAllImages()"
       [primaryImageIndex]="primaryImageIndex"
+      [canSave]="(formState$ | async)?.canSave ?? false"
       (backClick)="goBack()"
       (addImage)="addImage()"
       (changeImage)="changeImage($event)"
@@ -59,13 +61,19 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
   pendingImages: PendingImage[] = [];
   primaryImageIndex = 0;
 
+  // Form state management
+  formState$!: Observable<FormState>;
+  private initialFormData: any = {};
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
     private wallService: WallService,
     private wallItemService: WallItemService,
-    private imageUploadService: ImageUploadService
+    private imageUploadService: ImageUploadService,
+    private formStateService: FormStateService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -110,6 +118,7 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    this.formStateService.unregisterForm('preset-item-add-form');
   }
 
   private initializeForm(preset: WallObjectType) {
@@ -121,6 +130,15 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
     });
 
     this.itemForm = this.fb.group(formControls);
+    
+    // Set initial form data (empty for create mode)
+    this.initialFormData = this.itemForm.value;
+    
+    // Register form with FormStateService
+    this.formState$ = this.formStateService.registerForm('preset-item-add-form', {
+      form: this.itemForm,
+      initialData: this.initialFormData
+    });
   }
 
   goBack() {
@@ -245,10 +263,12 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
   async onSave() {
     this.attemptedSubmit = true;
     
-    if (this.itemForm.invalid) {
+    const formState = this.formStateService.getFormState('preset-item-add-form');
+    if (!formState?.canSave) {
       return;
     }
 
+    this.formStateService.setSavingState('preset-item-add-form', true);
     this.isSaving = true;
     
     try {
@@ -305,10 +325,12 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
       }
 
       console.log('Item created successfully:', createdItemId);
+      this.formStateService.setSavingState('preset-item-add-form', false);
       this.router.navigate(['/walls', wallId, 'preset', presetId, 'items', createdItemId]);
       
     } catch (error) {
       console.error('Error creating item:', error);
+      this.formStateService.setSavingState('preset-item-add-form', false);
       this.isSaving = false;
       // TODO: Show error message to user
     }

@@ -44,12 +44,13 @@ import { CardComponent, CardAction, CardMenuItem } from '../../../../shared/comp
             }
           </div>
           <div class="toolbar-actions">
-            <button mat-raised-button 
-                    color="primary" 
-                    (click)="navigateToAdd()">
-              <mat-icon>add</mat-icon>
-              Add Item
-            </button>
+            <app-themed-button
+              [variant]="'raised'"
+              [color]="'primary'"
+              [icon]="'add'"
+              [label]="'Add Item'"
+              (buttonClick)="navigateToAdd()">
+            </app-themed-button>
           </div>
         </div>
       }

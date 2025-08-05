@@ -75,7 +75,7 @@ export interface FieldConfigurationOptions {
 
                         <app-form-field class="half-width" label="Field Type">
                           <mat-select formControlName="type" (selectionChange)="onTypeChange($event.value)">
-                            @for (type of supportedFieldTypes; track type.value) {
+                            @for (type of filteredSupportedFieldTypes; track type.value) {
                               <mat-option [value]="type.value">
                                 <mat-icon>{{type.icon}}</mat-icon>
                                 {{type.label}}

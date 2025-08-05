@@ -11,6 +11,7 @@ import { Wall, WallItem, WallObjectType, WallItemImage } from '../../../../share
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { FormStateService, FormState } from '../../../../shared/services/form-state.service';
 
 @Component({
   selector: 'app-preset-item-edit',
@@ -78,13 +79,18 @@ export class PresetItemEditComponent implements OnInit, OnDestroy {
   itemForm!: FormGroup;
   isLoading = true;
   isSaving = false;
+  
+  // Form state management
+  formState$!: Observable<FormState>;
+  private initialFormData: any = {};
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
     private wallService: WallService,
-    private wallItemService: WallItemService
+    private wallItemService: WallItemService,
+    private formStateService: FormStateService
   ) {}
 
   ngOnInit() {
@@ -131,6 +137,7 @@ export class PresetItemEditComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    this.formStateService.unregisterForm('preset-item-edit-form');
   }
 
   private initializeForm(preset: WallObjectType, item: WallItem) {
@@ -143,6 +150,15 @@ export class PresetItemEditComponent implements OnInit, OnDestroy {
     });
 
     this.itemForm = this.fb.group(formControls);
+    
+    // Store initial form data
+    this.initialFormData = this.itemForm.value;
+    
+    // Register form with FormStateService
+    this.formState$ = this.formStateService.registerForm('preset-item-edit-form', {
+      form: this.itemForm,
+      initialData: this.initialFormData
+    });
   }
 
   goBack() {
@@ -153,20 +169,52 @@ export class PresetItemEditComponent implements OnInit, OnDestroy {
   }
 
   getPageActions(): PageAction[] {
+    const formState = this.formStateService.getFormState('preset-item-edit-form');
     return [
       {
         label: 'Save Changes',
         icon: 'save',
         variant: 'raised',
         color: 'primary',
+        disabled: !formState?.canSave,
         action: () => this.saveChanges()
       }
     ];
   }
 
   saveChanges() {
-    // TODO: Implement save functionality
-    console.log('Save changes functionality will be implemented');
+    const formState = this.formStateService.getFormState('preset-item-edit-form');
+    if (!formState?.canSave) {
+      return;
+    }
+
+    this.formStateService.setSavingState('preset-item-edit-form', true);
+    this.isSaving = true;
+    
+    const itemId = this.route.snapshot.paramMap.get('itemId')!;
+    
+    const updateData: Partial<WallItem> = {
+      fieldData: this.itemForm.value,
+      updatedAt: new Date()
+    };
+
+    this.wallItemService.updateWallItem(itemId, updateData).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.formStateService.setSavingState('preset-item-edit-form', false);
+        this.formStateService.updateInitialData('preset-item-edit-form', this.itemForm.value);
+        this.isSaving = false;
+        console.log('Item updated successfully');
+        // Stay on the page after successful save (edit mode behavior)
+      },
+      error: (error) => {
+        console.error('Error updating item:', error);
+        this.formStateService.setSavingState('preset-item-edit-form', false);
+        this.isSaving = false;
+        // TODO: Show error message to user
+      }
+    });
   }
 
   getItemTitle(preset: WallObjectType, item: WallItem): string {

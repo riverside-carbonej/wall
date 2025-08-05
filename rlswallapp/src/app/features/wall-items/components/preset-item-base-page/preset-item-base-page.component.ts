@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Observable, Subject, takeUntil } from 'rxjs';
@@ -11,6 +11,7 @@ import { MaterialIconComponent } from '../../../../shared/components/material-ic
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 import { WallItemImageComponent } from '../../../../shared/components/wall-item-image/wall-item-image.component';
 import { ImageGalleryComponent } from '../../../../shared/components/image-gallery/image-gallery.component';
+import { ThemeService } from '../../../../shared/services/theme.service';
 
 export type PageMode = 'create' | 'view' | 'edit';
 
@@ -54,18 +55,22 @@ export type PageMode = 'create' | 'view' | 'edit';
               <div class="image-gallery-container">
                 @if (images.length === 0) {
                   <div class="empty-image-state">
-                    <div class="empty-image-placeholder">
-                      <mat-icon [icon]="'add_photo_alternate'"></mat-icon>
-                      <p>No images added</p>
-                      @if (mode !== 'view') {
+                    <app-wall-item-image
+                      [images]="[]"
+                      [preset]="preset"
+                      [objectFit]="'cover'"
+                      [fallbackColor]="getPresetColor()">
+                    </app-wall-item-image>
+                    @if (mode !== 'view') {
+                      <div class="add-image-overlay">
                         <app-themed-button 
                           variant="raised"
                           [icon]="'add'"
                           label="Add Image"
                           (buttonClick)="onAddImage()">
                         </app-themed-button>
-                      }
-                    </div>
+                      </div>
+                    }
                   </div>
                 } @else {
                   <div class="primary-image-container">
@@ -75,7 +80,7 @@ export type PageMode = 'create' | 'view' | 'edit';
                         [primaryImageIndex]="primaryImageIndex"
                         [preset]="preset"
                         [objectFit]="'cover'"
-                        [fallbackColor]="preset?.color">
+                        [fallbackColor]="getPresetColor()">
                       </app-wall-item-image>
                       @if (mode !== 'view') {
                         <div class="image-overlay">
@@ -169,18 +174,20 @@ export type PageMode = 'create' | 'view' | 'edit';
                   </h2>
                 </div>
                 
-                <form [formGroup]="itemForm" class="item-form">
-                  @for (field of preset.fields; track field.id) {
-                    <div class="form-field">
-                      <app-dynamic-field-renderer
-                        [field]="field"
-                        [formGroup]="itemForm"
-                        [readonly]="mode === 'view'"
-                        [wall]="wall">
-                      </app-dynamic-field-renderer>
-                    </div>
-                  }
-                </form>
+                @if (itemForm && preset && preset.fields) {
+                  <form [formGroup]="itemForm" class="item-form" [class.view-mode]="mode === 'view'">
+                    @for (field of preset.fields; track field.id) {
+                      <div class="form-field">
+                        <app-dynamic-field-renderer
+                          [field]="field"
+                          [formGroup]="itemForm"
+                          [readonly]="mode === 'view'"
+                          [wall]="wall">
+                        </app-dynamic-field-renderer>
+                      </div>
+                    }
+                  </form>
+                }
 
                 <!-- Form Actions (only shown in edit/create modes) -->
                 @if (mode !== 'view') {
@@ -202,7 +209,7 @@ export type PageMode = 'create' | 'view' | 'edit';
                         variant="raised"
                         [icon]="isSaving ? 'hourglass_empty' : 'save'"
                         [label]="getSaveButtonText()"
-                        [disabled]="itemForm.invalid || isSaving"
+                        [disabled]="!canSave || isSaving"
                         (buttonClick)="onSave()">
                       </app-themed-button>
                     </div>
@@ -236,9 +243,10 @@ export type PageMode = 'create' | 'view' | 'edit';
     /* Main Layout - Responsive Grid */
     .item-layout {
       display: grid;
-      grid-template-columns: 400px 1fr;
+      grid-template-columns: minmax(300px, 1fr) 2fr;
       gap: 2rem;
-      max-width: 1400px;
+      max-width: 1600px;
+      width: 100%;
       margin: 0 auto;
       padding: 24px;
       min-height: calc(100vh - 200px);
@@ -261,34 +269,25 @@ export type PageMode = 'create' | 'view' | 'edit';
 
     /* Empty Image State */
     .empty-image-state {
+      position: relative;
       height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .empty-image-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      text-align: center;
-      color: var(--md-sys-color-on-surface-variant);
-      padding: 40px;
+    .empty-image-state app-wall-item-image {
+      width: 100%;
+      height: 100%;
+      min-height: 400px;
     }
 
-    .empty-image-placeholder mat-icon {
-      font-size: 64px;
-      width: 64px;
-      height: 64px;
-      opacity: 0.6;
-      color: var(--md-sys-color-primary);
-    }
-
-    .empty-image-placeholder p {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 500;
+    .add-image-overlay {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
     }
 
     /* Primary Image Container */
@@ -302,7 +301,8 @@ export type PageMode = 'create' | 'view' | 'edit';
     .primary-image {
       position: relative;
       width: 100%;
-      height: 400px;
+      height: min(500px, 40vh);
+      max-height: min(600px, 80vh);
       border-radius: 20px;
       overflow: hidden;
       box-shadow: var(--md-sys-elevation-2);
@@ -340,14 +340,16 @@ export type PageMode = 'create' | 'view' | 'edit';
 
     .image-actions {
       display: flex;
+      flex-wrap: wrap;
       gap: 12px;
+      justify-content: center;
     }
 
     .overlay-button {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 12px 20px;
+      padding: 8px 16px;
       background: var(--md-sys-color-surface);
       color: var(--md-sys-color-on-surface);
       border: 1px solid var(--md-sys-color-outline);
@@ -356,6 +358,10 @@ export type PageMode = 'create' | 'view' | 'edit';
       cursor: pointer;
       transition: all 0.2s ease;
       box-shadow: var(--md-sys-elevation-2);
+      font-size: 0.875rem;
+      white-space: nowrap;
+      min-width: 0;
+      flex-shrink: 0;
     }
 
     .overlay-button:hover {
@@ -532,26 +538,47 @@ export type PageMode = 'create' | 'view' | 'edit';
 
     /* Item Form Styles */
     .item-form {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Reduce spacing for view mode */
+    .item-form.view-mode {
+      gap: 0px;
+    }
+
+    /* Remove margins from form fields in view mode */
+    .item-form.view-mode .form-field {
+      margin-bottom: 0 !important;
+    }
+
+    /* Reduce spacing in dynamic field renderer for view mode */
+    .item-form.view-mode .form-field app-dynamic-field-renderer {
+      margin-bottom: 0 !important;
+    }
+
+    .item-form.view-mode app-dynamic-field-renderer .dynamic-field-renderer {
+      margin-bottom: 0 !important;
+    }
+
+    /* Compact readonly fields in view mode */
+    .item-form.view-mode .readonly-field {
+      padding: 4px 12px;
+      margin-bottom: 0 !important;
+    }
+
+    .item-form.view-mode .readonly-field .field-label {
+      margin-bottom: 2px;
+      font-size: 11px;
+      text-align: left;
+      justify-content: flex-start;
     }
 
     .form-field {
       display: flex;
       flex-direction: column;
-    }
-
-    .form-field:has(app-dynamic-field-renderer[readonly="true"]) {
-      grid-column: 1 / -1;
-    }
-
-    /* Single column for certain field types */
-    .form-field:has(textarea),
-    .form-field:has([type="url"]),
-    .form-field:has(.location-field),
-    .form-field:has(.multiselect-field) {
-      grid-column: 1 / -1;
+      width: 100%;
     }
 
     /* Form Actions */
@@ -591,14 +618,23 @@ export type PageMode = 'create' | 'view' | 'edit';
     }
 
     /* Responsive Design */
+    @media (max-width: 1400px) {
+      .item-layout {
+        max-width: 1400px;
+        gap: 2rem;
+      }
+    }
+
     @media (max-width: 1200px) {
       .item-layout {
-        grid-template-columns: 350px 1fr;
+        grid-template-columns: minmax(280px, 400px) 1fr;
         gap: 1.5rem;
+        max-width: 1200px;
       }
 
       .primary-image {
-        height: 350px;
+        height: min(400px, 35vh);
+        max-height: min(500px, 70vh);
       }
     }
 
@@ -618,7 +654,8 @@ export type PageMode = 'create' | 'view' | 'edit';
       }
 
       .primary-image {
-        height: 300px;
+        height: min(350px, 40vh);
+        max-height: 500px;
       }
 
       .item-form {
@@ -648,7 +685,8 @@ export type PageMode = 'create' | 'view' | 'edit';
       }
 
       .primary-image {
-        height: 250px;
+        height: min(300px, 35vh);
+        max-height: 400px;
       }
 
       .thumbnails-grid {
@@ -706,9 +744,12 @@ export class PresetItemBasePageComponent {
   @Input() attemptedSubmit = false;
   @Input() images: WallItemImage[] = [];
   @Input() primaryImageIndex = 0;
+  @Input() canSave = true;
 
   // Gallery state
   showGallery = false;
+  
+  private themeService = inject(ThemeService);
 
   @Output() backClick = new EventEmitter<void>();
   @Output() addImage = new EventEmitter<void>();
@@ -788,6 +829,23 @@ export class PresetItemBasePageComponent {
   getCapitalizedPresetName(): string {
     if (!this.preset?.name) return '';
     return this.preset.name.charAt(0).toUpperCase() + this.preset.name.slice(1);
+  }
+
+  getPresetColor(): string {
+    // Use preset color if available
+    if (this.preset?.color) return this.preset.color;
+    
+    // Get current theme to derive colors from wall theme
+    const currentTheme = this.themeService.getCurrentThemeSync();
+    
+    // If we're in a wall context, use wall-themed colors
+    if (currentTheme.isWallTheme && currentTheme.wallTheme) {
+      const wallTheme = currentTheme.wallTheme;
+      return wallTheme.primaryColor || '#6750A4';
+    }
+    
+    // Fallback to Material primary color
+    return '#6750A4';
   }
 
   getPageActions(): PageAction[] {

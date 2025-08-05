@@ -351,20 +351,9 @@ export class WallTemplatesService {
       {
         id: 'description',
         name: 'Description',
-        type: 'longtext',
+        type: 'text',
         required: false,
         placeholder: 'Description of the service branch'
-      },
-      {
-        id: 'pictureURL',
-        name: 'Branch Logo',
-        type: 'file',
-        required: false,
-        fileConfig: {
-          allowedTypes: ['image/*'],
-          maxSize: 5,
-          multiple: false
-        }
       }
     ];
 
@@ -426,7 +415,6 @@ export class WallTemplatesService {
         displaySettings: {
           primaryField: 'name',
           secondaryField: 'description',
-          imageField: 'pictureURL',
           showOnMap: false,
           cardLayout: 'compact'
         },

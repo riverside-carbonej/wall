@@ -7,6 +7,7 @@ import { WallService } from '../../services/wall.service';
 import { Wall, WallObjectType } from '../../../../shared/models/wall.model';
 import { ObjectTypeBuilderComponent, ObjectTypeBuilderConfig } from '../../../object-types/components/object-type-builder/object-type-builder.component';
 import { PageLayoutComponent } from '../../../../shared/components/page-layout/page-layout.component';
+import { FormStateService } from '../../../../shared/services/form-state.service';
 
 @Component({
   selector: 'app-add-preset',
@@ -25,10 +26,7 @@ import { PageLayoutComponent } from '../../../../shared/components/page-layout/p
         (backClick)="goBack()">
         
         <app-object-type-builder
-          [config]="{
-            mode: 'create',
-            wallId: wall.id
-          }"
+          [config]="getBuilderConfig(wall)"
           (save)="onObjectTypeSaved($event)"
           (cancel)="onBuilderCancelled()">
         </app-object-type-builder>
@@ -51,7 +49,8 @@ export class AddPresetComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private wallService: WallService
+    private wallService: WallService,
+    private formStateService: FormStateService
   ) {}
 
   ngOnInit() {
@@ -82,9 +81,14 @@ export class AddPresetComponent implements OnInit, OnDestroy {
       }),
       takeUntil(this.destroy$)
     ).subscribe({
-      next: () => {
+      next: (savedObjectType) => {
         console.log('Object type saved successfully');
-        this.goBack();
+        // Navigate to the created preset's edit page instead of going back
+        this.wall$.pipe(takeUntil(this.destroy$)).subscribe(wall => {
+          if (wall) {
+            this.router.navigate(['/walls', wall.id, 'presets', savedObjectType.id, 'edit']);
+          }
+        });
       },
       error: (error) => {
         console.error('Error saving object type:', error);
@@ -95,5 +99,23 @@ export class AddPresetComponent implements OnInit, OnDestroy {
 
   onBuilderCancelled() {
     this.goBack();
+  }
+
+  getBuilderConfig(wall: Wall): ObjectTypeBuilderConfig {
+    const baseConfig: ObjectTypeBuilderConfig = {
+      mode: 'create',
+      wallId: wall.id
+    };
+
+    // Check if this is a veterans wall by looking for veterans-specific object types or wall name
+    const isVeteransWall = wall.name.toLowerCase().includes('veterans') || 
+                          wall.name.toLowerCase().includes('wall of honor') ||
+                          wall.objectTypes?.some(ot => ['veteran', 'deployment', 'branch'].includes(ot.id));
+
+    if (isVeteransWall) {
+      baseConfig.allowedFieldTypes = ['text', 'date', 'color', 'location'];
+    }
+
+    return baseConfig;
   }
 }

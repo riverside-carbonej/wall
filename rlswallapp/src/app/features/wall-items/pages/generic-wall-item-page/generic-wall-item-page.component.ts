@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions } from '../../../../shared/components/material-stubs';
@@ -24,6 +24,7 @@ import { PageLayoutComponent, PageAction } from '../../../../shared/components/p
 
 import { Wall, WallItem, WallObjectType, FieldDefinition, WallItemImage } from '../../../../shared/models/wall.model';
 import { ErrorDialogComponent } from '../../../../shared/components/error-dialog/error-dialog.component';
+import { FormStateService, FormState } from '../../../../shared/services/form-state.service';
 
 @Component({
   selector: 'app-generic-wall-item-page',
@@ -77,13 +78,19 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   // Accordion state
   currentPanelIndex = 0;
   
+  // Form state management
+  formState$!: Observable<FormState>;
+  private initialFormData: any = {};
+  
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private wallService: WallService,
     private wallItemService: WallItemService,
     private imageUploadService: ImageUploadService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private formStateService: FormStateService,
+    private cdr: ChangeDetectorRef
   ) {}
   
   ngOnInit() {
@@ -95,6 +102,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.cleanupImagePreviews();
+    this.formStateService.unregisterForm('generic-wall-item-form');
   }
 
   getPageActions(): PageAction[] {
@@ -117,7 +125,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
           icon: this.isSaving ? 'hourglass_empty' : 'save',
           variant: 'raised',
           color: 'primary',
-          disabled: this.isSaving || this.itemForm?.invalid,
+          disabled: !(this.formStateService.getFormState('generic-wall-item-form')?.canSave ?? false),
           action: () => this.onSaveItem()
         });
       }
@@ -249,6 +257,15 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     
     // Sync existing data to form
     this.syncItemToForm();
+    
+    // Set initial form data for change detection
+    this.initialFormData = this.itemForm.value;
+    
+    // Register form with FormStateService
+    this.formState$ = this.formStateService.registerForm('generic-wall-item-form', {
+      form: this.itemForm,
+      initialData: this.initialFormData
+    });
   }
   
   private getValidatorsForField(field: FieldDefinition): any[] {
@@ -402,13 +419,15 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   }
   
   async onSaveItem() {
-    // Validate form first
-    if (this.itemForm.invalid) {
+    // Check form state
+    const formState = this.formStateService.getFormState('generic-wall-item-form');
+    if (!formState?.canSave) {
       this.markFormGroupTouched(this.itemForm);
       this.showValidationSnackBar();
       return;
     }
     
+    this.formStateService.setSavingState('generic-wall-item-form', true);
     this.isSaving = true;
     
     try {
@@ -438,14 +457,22 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
         await this.uploadImages(savedItemId);
       }
       
-      // Success! Navigate to the saved item (veteran app pattern)
-      this.editing = false; // Exit edit mode
-      this.router.navigate(['/walls', this.wallId, 'items', savedItemId]);
+      // Success! 
+      this.formStateService.setSavingState('generic-wall-item-form', false);
       
-      // Success - no need for notification since we're navigating away
+      if (this.isNewItem) {
+        // For create mode: navigate to the created item page
+        this.editing = false; // Exit edit mode
+        this.router.navigate(['/walls', this.wallId, 'items', savedItemId]);
+      } else {
+        // For edit mode: stay on the same page and update FormStateService with new initial data
+        this.initialFormData = this.itemForm.value;
+        this.formStateService.updateInitialData('generic-wall-item-form', this.initialFormData);
+      }
       
     } catch (error) {
       console.error('Error saving item:', error);
+      this.formStateService.setSavingState('generic-wall-item-form', false);
       this.handleSaveError(error);
     } finally {
       this.isSaving = false;

@@ -24,10 +24,13 @@ import { MaterialIconComponent } from '../../../../shared/components/material-ic
             [subtitle]="getItemSubtitle(item) || ''"
             [metadata]="getMetadata(item)"
             [selected]="isSelected(item)"
-            [selectable]="hasSelection"
+            [selectable]="true"
+            [isSelectionMode]="isSelectionMode"
             (cardClick)="onItemClick(item)"
             (viewClick)="onViewItem(item)"
-            (editClick)="onEditItem(item)">
+            (editClick)="onEditItem(item)"
+            (selectionToggle)="onSelectionToggle(item)"
+            (startSelectionMode)="onStartSelectionMode(item)">
           </app-wall-item-card>
         }
       </div>
@@ -285,10 +288,13 @@ export class WallItemsGridComponent {
   @Input() selectedItems: WallItem[] = [];
   @Input() pageSize: number = 50;
   @Input() pageIndex: number = 0;
+  @Input() isSelectionMode: boolean = false;
   
   @Output() itemClick = new EventEmitter<WallItem>();
   @Output() viewItem = new EventEmitter<WallItem>();
   @Output() editItem = new EventEmitter<WallItem>();
+  @Output() selectionToggle = new EventEmitter<WallItem>();
+  @Output() startSelectionMode = new EventEmitter<WallItem>();
 
   get hasSelection(): boolean {
     return this.selectedItems.length > 0;
@@ -315,6 +321,14 @@ export class WallItemsGridComponent {
 
   onEditItem(item: WallItem): void {
     this.editItem.emit(item);
+  }
+
+  onSelectionToggle(item: WallItem): void {
+    this.selectionToggle.emit(item);
+  }
+
+  onStartSelectionMode(item: WallItem): void {
+    this.startSelectionMode.emit(item);
   }
 
   getPrimaryImage(item: WallItem): WallItemImage | null {

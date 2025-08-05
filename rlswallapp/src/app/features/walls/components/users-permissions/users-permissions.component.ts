@@ -19,6 +19,7 @@ import { WallService } from '../../services/wall.service';
 import { Wall, WallPermissions, UserProfile } from '../../../../shared/models/wall.model';
 import { WallUserEntity } from '../../../../shared/models/user.model';
 import { NavigationService } from '../../../../shared/services/navigation.service';
+import { FormStateService, FormState } from '../../../../shared/services/form-state.service';
 
 interface WallUser {
   uid: string;
@@ -924,6 +925,10 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   allUsers: WallUserEntity[] = [];
   selectedUser: WallUser | null = null;
   showDropdown: boolean = false;
+  
+  // Form state management
+  formState$!: Observable<FormState>;
+  private initialFormData: any = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -934,7 +939,8 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private userService: UserService,
     private firebaseAuthSearchService: FirebaseAuthSearchService,
-    private navigationService: NavigationService
+    private navigationService: NavigationService,
+    private formStateService: FormStateService
   ) {
     this.initializeForm();
     this.currentUserEmail = this.authService.currentUser?.email || null;
@@ -976,11 +982,27 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    this.formStateService.unregisterForm('permissions-form');
   }
 
   private initializeForm() {
     this.permissionsForm = this.fb.group({
       // We don't need form arrays anymore, just keep the form for consistency
+    });
+    
+    // Set initial form data
+    this.initialFormData = { currentUsers: [] };
+    
+    // Register form with FormStateService with custom comparison function
+    this.formState$ = this.formStateService.registerForm('permissions-form', {
+      form: this.permissionsForm,
+      initialData: this.initialFormData,
+      compareFunction: (current: any, initial: any) => {
+        // Custom comparison for user permissions
+        const currentUsersList = this.currentUsers.map(u => ({ uid: u.uid, accessLevel: u.accessLevel }));
+        const initialUsersList = initial.currentUsers || [];
+        return JSON.stringify(currentUsersList) !== JSON.stringify(initialUsersList);
+      }
     });
   }
 
@@ -1012,6 +1034,13 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
         });
       }
     });
+    
+    // Update initial form data after loading permissions
+    setTimeout(() => {
+      const currentUsersData = this.currentUsers.map(u => ({ uid: u.uid, accessLevel: u.accessLevel }));
+      this.initialFormData = { currentUsers: currentUsersData };
+      this.formStateService.updateInitialData('permissions-form', this.initialFormData);
+    }, 100);
     
     // Load current managers from wall permissions
     if (wall.permissions.managers) {
@@ -1241,6 +1270,7 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
       this.newUserEmail = '';
       this.selectedUser = null;
       this.filteredUsers = [];
+      this.triggerFormChange();
       return;
     }
 
@@ -1272,6 +1302,7 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     this.selectedUser = null;
     this.filteredUsers = [];
     this.showDropdown = false;
+    this.triggerFormChange();
   }
 
   // Remove user from table
@@ -1279,6 +1310,7 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
     const index = this.currentUsers.findIndex(u => u.email === user.email);
     if (index > -1) {
       this.currentUsers.splice(index, 1);
+      this.triggerFormChange();
     }
   }
 
@@ -1307,7 +1339,15 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   onAccessLevelChange(user: WallUser, newLevel: string) {
     if (newLevel === 'viewer' || newLevel === 'editor' || newLevel === 'manager') {
       user.accessLevel = newLevel as 'viewer' | 'editor' | 'manager';
+      this.triggerFormChange();
     }
+  }
+  
+  // Trigger form change detection
+  private triggerFormChange(): void {
+    // Touch the form to trigger change detection
+    this.permissionsForm.markAsDirty();
+    this.permissionsForm.updateValueAndValidity();
   }
 
   // Transfer ownership to another user
@@ -1324,13 +1364,14 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   }
 
   getPageActions(): PageAction[] {
+    const formState = this.formStateService.getFormState('permissions-form');
     return [
       {
         label: 'Save Changes',
         icon: 'save',
         variant: 'raised',
         color: 'primary',
-        disabled: !this.permissionsForm?.valid || this.saving,
+        disabled: !formState?.canSave || this.saving,
         action: () => this.savePermissions()
       }
     ];
@@ -1341,6 +1382,12 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
   }
 
   savePermissions() {
+    const formState = this.formStateService.getFormState('permissions-form');
+    if (!formState?.canSave) {
+      return;
+    }
+    
+    this.formStateService.setSavingState('permissions-form', true);
     this.saving = true;
     
     const wallId = this.route.snapshot.paramMap.get('id')!;
@@ -1367,13 +1414,20 @@ export class UsersPermissionsComponent implements OnInit, OnDestroy {
 
     this.wallService.updateWallPermissions(wallId, updatedPermissions).subscribe({
       next: () => {
+        this.formStateService.setSavingState('permissions-form', false);
         this.saving = false;
+        
+        // Update initial data to reflect saved state
+        const currentUsersData = this.currentUsers.map(u => ({ uid: u.uid, accessLevel: u.accessLevel }));
+        this.formStateService.updateInitialData('permissions-form', { currentUsers: currentUsersData });
+        
         alert('Permissions updated successfully');
         
         // Refresh navigation context to update sidebar permissions
         this.refreshNavigationContext(wallId);
       },
       error: (error) => {
+        this.formStateService.setSavingState('permissions-form', false);
         this.saving = false;
         console.error('Error updating permissions:', error);
         alert('Failed to update permissions');

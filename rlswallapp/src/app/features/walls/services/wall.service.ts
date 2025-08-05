@@ -637,6 +637,7 @@ export class WallService {
           return throwError(() => new Error('Wall not found'));
         }
 
+
         // Generate a unique ID for the object type
         const objectTypeId = `ot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const newObjectType: WallObjectType = {
@@ -664,6 +665,11 @@ export class WallService {
       switchMap(wall => {
         if (!wall || !wall.objectTypes) {
           return throwError(() => new Error('Wall or object types not found'));
+        }
+
+        const existingObjectType = wall.objectTypes.find(ot => ot.id === objectTypeId);
+        if (!existingObjectType) {
+          return throwError(() => new Error('Object type not found'));
         }
 
         const updatedObjectTypes = wall.objectTypes.map(ot => 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
@@ -13,6 +13,9 @@ import { MaterialSwitchComponent } from '../../../../shared/components/material-
 import { Observable } from 'rxjs';
 import { WallTemplatesService } from '../../services/wall-templates.service';
 import { NavigationService } from '../../../../shared/services/navigation.service';
+import { FormStateService, FormState } from '../../../../shared/services/form-state.service';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-wall-form',
@@ -2442,11 +2445,16 @@ import { NavigationService } from '../../../../shared/services/navigation.servic
     }
   `]
 })
-export class WallFormComponent implements OnInit {
+export class WallFormComponent implements OnInit, OnDestroy {
   wallForm!: FormGroup;
   isEditMode = false;
   isSaving = false;
   wallId?: string;
+  
+  // Form state management
+  private destroy$ = new Subject<void>();
+  formState$!: Observable<FormState>;
+  private initialFormData: any = null;
   availableThemes = DEFAULT_THEMES;
   selectedTheme: WallTheme = DEFAULT_THEMES[0];
   activeTab = 0;
@@ -2476,7 +2484,9 @@ export class WallFormComponent implements OnInit {
     private wallPermissions: WallPermissionsService,
     private authService: AuthService,
     private wallTemplatesService: WallTemplatesService,
-    private navigationService: NavigationService
+    private navigationService: NavigationService,
+    private formStateService: FormStateService,
+    private cdr: ChangeDetectorRef
   ) {
     this.initializeForm();
   }
@@ -2494,6 +2504,9 @@ export class WallFormComponent implements OnInit {
       this.navigationService.clearWallContext();
     }
 
+    // Initialize form state service
+    this.initializeFormState();
+
     if (this.isEditMode && this.wallId) {
       this.loadWall(this.wallId);
     } else {
@@ -2501,8 +2514,37 @@ export class WallFormComponent implements OnInit {
       const template = this.route.snapshot.queryParamMap.get('template');
       if (template) {
         this.loadTemplate(template);
+      } else {
+        // For new walls without template, set initial data after form is ready
+        setTimeout(() => this.setInitialFormData(), 0);
       }
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.formStateService.unregisterForm('wall-form');
+  }
+
+  private initializeFormState(): void {
+    this.formState$ = this.formStateService.registerForm('wall-form', {
+      form: this.wallForm,
+      initialData: this.initialFormData,
+      excludeFields: ['editors'] // Exclude form arrays that might cause issues
+    });
+
+    // Subscribe to form state for saving state management
+    this.formState$.pipe(takeUntil(this.destroy$)).subscribe(state => {
+      this.isSaving = state.isSaving;
+      // Trigger change detection to update the action buttons
+      this.cdr.detectChanges();
+    });
+  }
+
+  private setInitialFormData(): void {
+    this.initialFormData = this.wallForm.value;
+    this.formStateService.updateInitialData('wall-form', this.initialFormData);
   }
 
   private initializeForm(): void {
@@ -2580,6 +2622,8 @@ export class WallFormComponent implements OnInit {
             requiresLogin: wall.visibility?.requiresLogin ?? true // Default to true (internal) if not set
           });
 
+          // Set initial form data after loading existing wall
+          setTimeout(() => this.setInitialFormData(), 0);
         }
       },
       error: (error) => {
@@ -2724,12 +2768,12 @@ export class WallFormComponent implements OnInit {
 
   onSubmit(): void {
     if (this.wallForm.valid && !this.isSaving) {
-      this.isSaving = true;
+      this.formStateService.setSavingState('wall-form', true);
 
       // Get current user for permissions
       this.authService.currentUser$.subscribe(user => {
         if (!user) {
-          this.isSaving = false;
+          this.formStateService.setSavingState('wall-form', false);
           alert('You must be logged in to save a wall.');
           return;
         }
@@ -2763,12 +2807,13 @@ export class WallFormComponent implements OnInit {
           
           this.wallService.updateWall(this.wallId, updateData).subscribe({
             next: () => {
-              this.isSaving = false;
-              // Stay on the edit page after successful update
+              this.formStateService.setSavingState('wall-form', false);
+              // Update initial data to reflect saved changes - stay on page
+              this.formStateService.updateInitialData('wall-form', this.wallForm.value);
               console.log('Wall updated successfully');
             },
             error: (error: any) => {
-              this.isSaving = false;
+              this.formStateService.setSavingState('wall-form', false);
               console.error('Error saving wall:', error);
               alert('Failed to save wall. Please try again.');
             }
@@ -2822,7 +2867,7 @@ export class WallFormComponent implements OnInit {
               next: (result) => {
                 console.log('✅ OBSERVABLE COMPLETED - Wall created successfully:', result);
                 console.log('Wall ID:', result.wallId);
-                this.isSaving = false;
+                this.formStateService.setSavingState('wall-form', false);
                 
                 // Get wallId from the simplified result
                 let wallId = result.wallId;
@@ -2838,7 +2883,7 @@ export class WallFormComponent implements OnInit {
                 }
               },
               error: (error: any) => {
-                this.isSaving = false;
+                this.formStateService.setSavingState('wall-form', false);
                 console.error('❌ OBSERVABLE ERROR - Error saving wall with template:', error);
                 alert('Failed to save wall. Please try again.');
               },
@@ -2850,12 +2895,12 @@ export class WallFormComponent implements OnInit {
             // Use regular wall creation for blank walls
             this.wallService.createWall(wallData).subscribe({
               next: (result: string) => {
-                this.isSaving = false;
+                this.formStateService.setSavingState('wall-form', false);
                 // Navigate to the newly created wall
                 this.router.navigate(['/walls', result]);
               },
               error: (error: any) => {
-                this.isSaving = false;
+                this.formStateService.setSavingState('wall-form', false);
                 console.error('Error saving wall:', error);
                 alert('Failed to save wall. Please try again.');
               }
@@ -2867,6 +2912,10 @@ export class WallFormComponent implements OnInit {
   }
 
   getPageActions(): PageAction[] {
+    const formState = this.formStateService.getFormState('wall-form');
+    const canSave = formState?.canSave ?? false;
+    const isSaving = formState?.isSaving ?? false;
+    
     return [
       {
         label: 'Cancel',
@@ -2876,11 +2925,11 @@ export class WallFormComponent implements OnInit {
         action: () => this.onCancel()
       },
       {
-        label: this.isSaving ? 'Saving...' : 'Save Wall',
+        label: isSaving ? 'Saving...' : 'Save Wall',
         icon: 'save',
         variant: 'raised',
         color: 'primary',
-        disabled: this.wallForm?.invalid || this.isSaving,
+        disabled: !canSave,
         action: () => this.onSubmit()
       }
     ];

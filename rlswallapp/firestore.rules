@@ -54,11 +54,46 @@ service cloud.firestore {
              (wallData.visibility.isPublished && wallData.visibility.requiresLogin && isAuthenticated()));
     }
     
+    // Validation functions for object types
+    function isValidObjectType(objectType) {
+      return objectType is map &&
+             'name' in objectType &&
+             'fields' in objectType &&
+             'displaySettings' in objectType &&
+             objectType.fields is list &&
+             objectType.fields.size() > 0 &&  // At least one field required
+             isValidDisplaySettings(objectType.displaySettings, objectType.fields);
+    }
+    
+    function isValidDisplaySettings(displaySettings, fields) {
+      return displaySettings is map &&
+             'primaryField' in displaySettings &&
+             displaySettings.primaryField is string &&
+             displaySettings.primaryField.size() > 0 &&  // Primary field required
+             fieldExistsInList(displaySettings.primaryField, fields) &&
+             (!('secondaryField' in displaySettings) || 
+              displaySettings.secondaryField == null ||
+              displaySettings.secondaryField == '' ||
+              fieldExistsInList(displaySettings.secondaryField, fields));
+    }
+    
+    function fieldExistsInList(fieldId, fields) {
+      return fieldId == '' || fields.hasAny([fieldId]) || 
+             fields.hasAny([['id', '==', fieldId]]);
+    }
+    
+    function areValidObjectTypes(objectTypes) {
+      return objectTypes is list && 
+             objectTypes.hasAll([isValidObjectType]);
+    }
+    
     // Walls collection
     match /walls/{wallId} {
       // Authenticated users can create walls
       allow create: if isAuthenticated() && 
-                       request.auth.uid == request.resource.data.permissions.owner;
+                       request.auth.uid == request.resource.data.permissions.owner &&
+                       (!('objectTypes' in request.resource.data) ||
+                        areValidObjectTypes(request.resource.data.objectTypes));
       
       // Allow list operation for authenticated users (filtering happens client-side)
       allow list: if isAuthenticated();
@@ -66,8 +101,11 @@ service cloud.firestore {
       // Read individual walls based on visibility settings
       allow get: if canViewWall(resource.data);
       
-      // Update walls if user can edit
-      allow update: if isAuthenticated() && canEditWall(resource.data);
+      // Update walls if user can edit and object types are valid
+      allow update: if isAuthenticated() && 
+                       canEditWall(resource.data) &&
+                       (!('objectTypes' in request.resource.data) ||
+                        areValidObjectTypes(request.resource.data.objectTypes));
       
       // Delete walls if owner only
       allow delete: if isAuthenticated() && isWallOwner(resource.data);

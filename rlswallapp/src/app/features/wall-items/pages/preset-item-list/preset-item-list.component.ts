@@ -18,6 +18,7 @@ import { ButtonGroupComponent, ButtonGroupItem } from '../../../../shared/compon
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 import { WallItemCardComponent } from '../../components/wall-item-card/wall-item-card.component';
 import { WallItemsGridComponent } from '../../components/wall-items-grid/wall-items-grid.component';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 
 @Component({
   selector: 'app-preset-item-list',
@@ -32,7 +33,8 @@ import { WallItemsGridComponent } from '../../components/wall-items-grid/wall-it
     MatSpinner,
     ButtonGroupComponent,
     WallItemCardComponent,
-    WallItemsGridComponent
+    WallItemsGridComponent,
+    ThemedButtonComponent
   ],
   template: `
     <div class="page-wrapper" *ngIf="wall$ | async as wall">
@@ -40,9 +42,12 @@ import { WallItemsGridComponent } from '../../components/wall-items-grid/wall-it
         
         <!-- Custom Header -->
         <div class="custom-header">
-          <button class="back-button" (click)="goBack()">
-            <mat-icon [icon]="'arrow_back'"></mat-icon>
-          </button>
+          <app-themed-button
+            [variant]="'icon'"
+            [icon]="'arrow_back'"
+            class="back-button"
+            (buttonClick)="goBack()">
+          </app-themed-button>
           
           <div class="header-info">
             <h1 class="page-title">{{ nlpService.getPresetPageTitle(preset.name) }}</h1>
@@ -58,21 +63,23 @@ import { WallItemsGridComponent } from '../../components/wall-items-grid/wall-it
           
           <!-- Pagination in header -->
           <div class="pagination">
-            <button 
-              class="page-button"
+            <app-themed-button
+              [variant]="'icon'"
+              [icon]="'chevron_left'"
               [disabled]="pageIndex === 0"
-              (click)="changePage(pageIndex - 1)">
-              <mat-icon [icon]="'chevron_left'"></mat-icon>
-            </button>
+              class="page-button"
+              (buttonClick)="changePage(pageIndex - 1)">
+            </app-themed-button>
             <span class="page-info">
               {{ getPageStart() }} - {{ getPageEnd() }} of {{ totalItems }}
             </span>
-            <button 
-              class="page-button"
+            <app-themed-button
+              [variant]="'icon'"
+              [icon]="'chevron_right'"
               [disabled]="pageIndex >= getMaxPage()"
-              (click)="changePage(pageIndex + 1)">
-              <mat-icon [icon]="'chevron_right'"></mat-icon>
-            </button>
+              class="page-button"
+              (buttonClick)="changePage(pageIndex + 1)">
+            </app-themed-button>
           </div>
         </div>
           
@@ -85,20 +92,26 @@ import { WallItemsGridComponent } from '../../components/wall-items-grid/wall-it
           <!-- Selection Bar -->
           @if (selection.length > 0) {
             <div class="selection-bar">
-              <button class="icon-button" (click)="clearSelection()">
-                <mat-icon [icon]="'close'"></mat-icon>
-              </button>
+              <app-themed-button
+                [variant]="'icon'"
+                [icon]="'close'"
+                class="icon-button"
+                (buttonClick)="clearSelection()">
+              </app-themed-button>
               <span class="selection-count">{{ selection.length }} selected</span>
-              <button 
+              <app-themed-button
+                [variant]="'basic'"
+                [label]="isAllPageItemsSelected() ? 'Deselect Page' : 'Select Page'"
                 class="text-button"
-                (click)="toggleSelectAll()">
-                {{ isAllPageItemsSelected() ? 'Deselect Page' : 'Select Page' }}
-              </button>
-              <button 
+                (buttonClick)="toggleSelectAll()">
+              </app-themed-button>
+              <app-themed-button
+                [variant]="'icon'"
+                [color]="'warn'"
+                [icon]="'delete'"
                 class="icon-button delete-button"
-                (click)="deleteSelected()">
-                <mat-icon [icon]="'delete'"></mat-icon>
-              </button>
+                (buttonClick)="deleteSelected()">
+              </app-themed-button>
             </div>
           }
 
@@ -124,20 +137,25 @@ import { WallItemsGridComponent } from '../../components/wall-items-grid/wall-it
                 [selectedItems]="selection"
                 [pageSize]="pageSize"
                 [pageIndex]="pageIndex"
+                [isSelectionMode]="isSelectionMode"
                 (itemClick)="onItemClick($event)"
-                (viewItem)="onViewItem($event)"
-                (editItem)="onEditItem($event)">
+                (viewItem)="onItemView($event)"
+                (editItem)="onEditItem($event)"
+                (selectionToggle)="onItemSelectionToggle($event)"
+                (startSelectionMode)="onStartSelectionMode($event)">
               </app-wall-items-grid>
             }
           </div>
           
           <!-- Floating Add Button -->
-          <button 
+          <app-themed-button
+            [variant]="'raised'"
+            [color]="'primary'"
+            [icon]="'add'"
+            [label]="nlpService.getAddButtonText(preset.name)"
             class="floating-add-button"
-            (click)="navigateToAdd()">
-            <mat-icon [icon]="'add'"></mat-icon>
-            <span>{{ nlpService.getAddButtonText(preset.name) }}</span>
-          </button>
+            (buttonClick)="navigateToAdd()">
+          </app-themed-button>
           
       </div>
     </div>
@@ -475,6 +493,7 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
   isLoading = true;
   largeView = true;
   selection: WallItem[] = [];
+  isSelectionMode = false;
   
   // Pagination
   allItems: WallItem[] = [];
@@ -623,6 +642,25 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
 
   // Selection Methods
   onItemClick(item: WallItem) {
+    // This is called from the card's main click - handled by the card component now
+  }
+
+  onItemView(item: WallItem) {
+    // Navigate to item view
+    this.onViewItem(item);
+  }
+
+  onItemSelectionToggle(item: WallItem) {
+    this.toggleSelection(item);
+    
+    // Exit selection mode if no items are selected
+    if (this.selection.length === 0) {
+      this.isSelectionMode = false;
+    }
+  }
+
+  onStartSelectionMode(item: WallItem) {
+    this.isSelectionMode = true;
     this.toggleSelection(item);
   }
 
@@ -648,6 +686,7 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
 
   clearSelection() {
     this.selection = [];
+    this.isSelectionMode = false;
   }
 
   toggleSelectAll() {
@@ -669,12 +708,30 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
     }
   }
 
-  deleteSelected() {
-    this.confirmationDialog.confirmDelete(`${this.selection.length} item${this.selection.length > 1 ? 's' : ''}`).subscribe(confirmed => {
+  async deleteSelected() {
+    this.confirmationDialog.confirmDelete(`${this.selection.length} item${this.selection.length > 1 ? 's' : ''}`).subscribe(async confirmed => {
       if (confirmed) {
-        // TODO: Implement bulk delete
-        console.log('Delete selected items:', this.selection);
-        this.selection = [];
+        try {
+          // Delete all selected items
+          const deletePromises = this.selection.map(item => 
+            this.wallItemService.deleteWallItem(item.id).toPromise()
+          );
+          
+          await Promise.all(deletePromises);
+          
+          console.log(`Successfully deleted ${this.selection.length} item${this.selection.length > 1 ? 's' : ''}`);
+          
+          // Clear selection
+          this.selection = [];
+          this.isSelectionMode = false;
+          
+          // The items$ observable should automatically refresh the list
+          // since it's connected to the Firestore collection
+          
+        } catch (error) {
+          console.error('Error deleting items:', error);
+          // TODO: Show error message to user
+        }
       }
     });
   }

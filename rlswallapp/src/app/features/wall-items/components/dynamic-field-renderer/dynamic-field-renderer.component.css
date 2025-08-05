@@ -3,6 +3,11 @@
   margin-bottom: 16px;
 }
 
+/* Override for view mode parent - compact spacing */
+.view-mode .dynamic-field-renderer {
+  margin-bottom: 0 !important;
+}
+
 /* Common Styles */
 .field-label {
   display: flex;
@@ -52,6 +57,8 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--md-sys-color-on-surface-variant);
+  text-align: left;
+  justify-content: flex-start;
 }
 
 .field-value {

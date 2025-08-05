@@ -1,14 +1,18 @@
-import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { MatCheckbox, MatOption, MatSelect } from '../../../../shared/components/material-stubs';
 import { WallObjectType, FieldDefinition } from '../../../../shared/models/wall.model';
+import { FormStateService, FormState } from '../../../../shared/services/form-state.service';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 export interface ObjectTypeBuilderConfig {
   mode: 'create' | 'edit';
   initialData?: Partial<WallObjectType>;
   wallId: string;
+  allowedFieldTypes?: string[];
 }
 
 @Component({
@@ -145,12 +149,54 @@ export interface ObjectTypeBuilderConfig {
         }
       </div>
 
+      <!-- Display Settings Section -->
+      <div class="form-section" formGroupName="displaySettings">
+        <h2>Display Settings</h2>
+        
+        @if (fieldsArray.length === 0) {
+          <div class="display-settings-disabled">
+            <mat-icon [icon]="'info'"></mat-icon>
+            <p>Add at least one property to configure display settings</p>
+          </div>
+        } @else {
+          <div class="display-settings-grid">
+            <div class="form-field">
+              <label class="field-label">Primary Field *</label>
+              <mat-select formControlName="primaryField" class="material-select">
+                <mat-option value="">Select field to use as title</mat-option>
+                @for (option of availableFieldOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+              <div class="field-hint">This field will be used as the main title for items</div>
+            </div>
+            
+            <div class="form-field">
+              <label class="field-label">Secondary Field</label>
+              <mat-select formControlName="secondaryField" class="material-select">
+                <mat-option value="">None</mat-option>
+                @for (option of availableFieldOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+              <div class="field-hint">Optional - used as subtitle in cards and lists</div>
+            </div>
+          </div>
+        }
+      </div>
+
       <!-- Action Bar -->
       <div class="action-bar" *ngIf="!showFieldEditor">
-        @if (objectTypeForm.invalid) {
+        @if (objectTypeForm.invalid && (formStateService.getFormState('object-type-form')?.hasChanges ?? false)) {
           <div class="form-warning">
             <mat-icon class="warning-icon" [icon]="'warning'"></mat-icon>
-            <span>Please complete all required fields to save the object type</span>
+            <span>
+              @if (fieldsArray.hasError('noFields')) {
+                Add at least one property and select a primary field to save the object type
+              } @else {
+                Please complete all required fields to save the object type
+              }
+            </span>
           </div>
         }
         
@@ -164,7 +210,7 @@ export interface ObjectTypeBuilderConfig {
           <button 
             class="themed-button raised-button"
             type="button"
-            [disabled]="objectTypeForm.invalid"
+            [disabled]="!(formStateService.getFormState('object-type-form')?.canSave ?? false)"
             (click)="onSave()">
             Save Object Type
           </button>
@@ -959,9 +1005,39 @@ export interface ObjectTypeBuilderConfig {
       background-color: color-mix(in srgb, var(--md-sys-color-error) 8%, transparent);
       color: var(--md-sys-color-error);
     }
+
+    /* Display Settings Styles */
+    .display-settings-disabled {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: var(--md-sys-color-surface-variant);
+      border-radius: 12px;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .display-settings-disabled mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    .display-settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .display-settings-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+    }
   `]
 })
-export class ObjectTypeBuilderComponent implements OnInit {
+export class ObjectTypeBuilderComponent implements OnInit, OnDestroy {
   @Input() config!: ObjectTypeBuilderConfig;
   @Output() save = new EventEmitter<WallObjectType>();
   @Output() cancel = new EventEmitter<void>();
@@ -970,6 +1046,11 @@ export class ObjectTypeBuilderComponent implements OnInit {
   fieldForm!: FormGroup;
   showFieldEditor = false;
   editingFieldIndex = -1;
+  
+  // Form state management
+  private destroy$ = new Subject<void>();
+  formState$!: Observable<FormState>;
+  private initialFormData: any = null;
 
   iconOptions = [
     { value: 'person', label: 'Person' },
@@ -984,7 +1065,7 @@ export class ObjectTypeBuilderComponent implements OnInit {
   ];
 
 
-  fieldTypeOptions = [
+  private allFieldTypeOptions = [
     { value: 'text', label: 'Text', icon: 'text_fields' },
     { value: 'textarea', label: 'Long Text', icon: 'notes' },
     { value: 'number', label: 'Number', icon: 'numbers' },
@@ -995,7 +1076,20 @@ export class ObjectTypeBuilderComponent implements OnInit {
     { value: 'location', label: 'Map Location', icon: 'place' }
   ];
 
-  constructor(private fb: FormBuilder, private cdr: ChangeDetectorRef) {}
+  get fieldTypeOptions() {
+    if (this.config?.allowedFieldTypes && this.config.allowedFieldTypes.length > 0) {
+      return this.allFieldTypeOptions.filter(option => 
+        this.config!.allowedFieldTypes!.includes(option.value)
+      );
+    }
+    return this.allFieldTypeOptions;
+  }
+
+  constructor(
+    private fb: FormBuilder, 
+    private cdr: ChangeDetectorRef,
+    public formStateService: FormStateService
+  ) {}
 
   // Display value functions for selects
   getIconDisplayValue = (value: string): string => {
@@ -1004,27 +1098,80 @@ export class ObjectTypeBuilderComponent implements OnInit {
   };
 
   getFieldTypeDisplayValue = (value: string): string => {
-    const option = this.fieldTypeOptions.find(opt => opt.value === value);
+    const option = this.allFieldTypeOptions.find(opt => opt.value === value);
     return option?.label || 'Select type';
   };
 
   ngOnInit(): void {
     this.initializeForms();
+    this.initializeFormState();
     if (this.config.initialData) {
       this.loadInitialData();
+    } else {
+      // For new object types, set initial data after forms are ready
+      setTimeout(() => this.setInitialFormData(), 0);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.formStateService.unregisterForm('object-type-form');
+  }
+
+  private initializeFormState(): void {
+    this.formState$ = this.formStateService.registerForm('object-type-form', {
+      form: this.objectTypeForm,
+      initialData: this.initialFormData,
+      excludeFields: ['fields'] // Exclude form arrays that might cause issues
+    });
+
+    // Subscribe to form state for UI updates
+    this.formState$.pipe(takeUntil(this.destroy$)).subscribe(state => {
+      this.cdr.detectChanges();
+    });
+  }
+
+  private setInitialFormData(): void {
+    this.initialFormData = this.objectTypeForm.value;
+    this.formStateService.updateInitialData('object-type-form', this.initialFormData);
   }
 
   get fieldsArray(): FormArray {
     return this.objectTypeForm.get('fields') as FormArray;
   }
 
+  get displaySettingsGroup(): FormGroup {
+    return this.objectTypeForm.get('displaySettings') as FormGroup;
+  }
+
+  get availableFieldOptions(): Array<{value: string, label: string}> {
+    return this.fieldsArray.controls.map((field, index) => ({
+      value: field.get('id')?.value || `field_${index}`,
+      label: field.get('name')?.value || `Field ${index + 1}`
+    }));
+  }
+
+  // Custom validator to ensure at least one field exists
+  private atLeastOneFieldValidator(control: AbstractControl) {
+    const formArray = control as FormArray;
+    return formArray.length > 0 ? null : { noFields: true };
+  }
+
   private initializeForms(): void {
+    const fieldsArray = this.fb.array([], this.atLeastOneFieldValidator);
+    
     this.objectTypeForm = this.fb.group({
       name: ['', Validators.required],
       description: [''],
       icon: ['category'],
-      fields: this.fb.array([])
+      fields: fieldsArray,
+      displaySettings: this.fb.group({
+        primaryField: ['', Validators.required],
+        secondaryField: [''], // Empty string represents "None"
+        cardLayout: ['detailed'],
+        showOnMap: [false]
+      })
     });
 
     this.fieldForm = this.fb.group({
@@ -1049,6 +1196,19 @@ export class ObjectTypeBuilderComponent implements OnInit {
         this.fieldsArray.push(this.createFieldFormGroup(field));
       });
     }
+
+    // Load display settings if they exist
+    if (data.displaySettings) {
+      this.displaySettingsGroup.patchValue({
+        primaryField: data.displaySettings.primaryField || '',
+        secondaryField: data.displaySettings.secondaryField || '',
+        cardLayout: data.displaySettings.cardLayout || 'detailed',
+        showOnMap: data.displaySettings.showOnMap || false
+      });
+    }
+
+    // Set initial form data after loading
+    setTimeout(() => this.setInitialFormData(), 0);
   }
 
   private createFieldFormGroup(field: FieldDefinition): FormGroup {
@@ -1146,12 +1306,12 @@ export class ObjectTypeBuilderComponent implements OnInit {
   }
 
   getFieldIcon(type: string): string {
-    const option = this.fieldTypeOptions.find(opt => opt.value === type);
+    const option = this.allFieldTypeOptions.find(opt => opt.value === type);
     return option?.icon || 'text_fields';
   }
 
   getFieldTypeLabel(type: string): string {
-    const option = this.fieldTypeOptions.find(opt => opt.value === type);
+    const option = this.allFieldTypeOptions.find(opt => opt.value === type);
     return option?.label || 'Text';
   }
 
@@ -1160,16 +1320,32 @@ export class ObjectTypeBuilderComponent implements OnInit {
   }
 
   onSave(): void {
-    if (this.objectTypeForm.invalid) return;
+    const formState = this.formStateService.getFormState('object-type-form');
+    if (!formState?.canSave) return;
+
+    this.formStateService.setSavingState('object-type-form', true);
+
+    const formValue = this.objectTypeForm.value;
+    
+    // Clean up display settings - convert empty secondary field to null
+    const displaySettings = {
+      ...formValue.displaySettings,
+      secondaryField: formValue.displaySettings.secondaryField || null
+    };
 
     const objectType: WallObjectType = {
       id: this.config.initialData?.id || this.generateObjectTypeId(),
-      ...this.objectTypeForm.value,
+      ...formValue,
+      displaySettings,
       createdAt: this.config.initialData?.createdAt || new Date(),
       updatedAt: new Date()
     };
 
     this.save.emit(objectType);
+    
+    // Note: The parent component should handle success/error and reset saving state
+    // For edit mode, parent should call formStateService.updateInitialData() to reset changes
+    // For create mode, parent should navigate away or handle accordingly
   }
 
   onCancel(): void {

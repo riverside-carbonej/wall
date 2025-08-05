@@ -65,10 +65,33 @@ import { MaterialIconComponent } from '../material-icon/material-icon.component'
     }
 
     .image-placeholder mat-icon {
-      font-size: 48px;
-      width: 48px;
-      height: 48px;
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
       opacity: 0.6;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Larger icon for bigger containers (like item pages) */
+    @container (min-width: 350px) and (min-height: 300px) {
+      .image-placeholder mat-icon {
+        font-size: 120px;
+        width: 120px;
+        height: 120px;
+      }
+    }
+
+    /* Fallback for browsers without container queries */
+    @media (min-width: 768px) {
+      .wall-item-image {
+        container-type: size;
+      }
+      
+      .wall-item-image .image-placeholder mat-icon {
+        font-size: max(64px, min(120px, 12vw));
+        width: max(64px, min(120px, 12vw));
+        height: max(64px, min(120px, 12vw));
+      }
     }
 
     .preset-name {

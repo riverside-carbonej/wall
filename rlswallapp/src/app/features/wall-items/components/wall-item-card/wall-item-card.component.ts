@@ -3,32 +3,36 @@ import { CommonModule } from '@angular/common';
 import { WallItem, WallObjectType, WallItemImage } from '../../../../shared/models/wall.model';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { ThemeService } from '../../../../shared/services/theme.service';
+import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 
 @Component({
   selector: 'app-wall-item-card',
   standalone: true,
-  imports: [CommonModule, MaterialIconComponent],
+  imports: [CommonModule, MaterialIconComponent, ThemedButtonComponent],
   template: `
     <div class="item-card" 
          [class.selected]="selected"
          [class.has-image]="hasImage"
-         (click)="onClick($event)">
+         [class.selection-mode]="isSelectionMode"
+         (click)="onClick($event)"
+         (contextmenu)="onLongPress($event)"
+         (touchstart)="onTouchStart($event)"
+         (touchend)="onTouchEnd($event)">
       
       <!-- Background Image -->
       @if (hasImage) {
         <div class="card-background" [style.background-image]="'url(' + primaryImage!.url + ')'"></div>
       } @else {
-        <div class="card-background" [style.background-color]="backgroundColor"></div>
+        <div class="card-background" [style.background-color]="getPresetColor()">
+          <div class="background-placeholder">
+            <mat-icon [icon]="preset?.icon || 'inventory_2'"></mat-icon>
+          </div>
+        </div>
       }
       
       <!-- Content Overlay -->
       <div class="card-content">
-        <!-- Icon when no image -->
-        @if (!hasImage) {
-          <div class="card-icon">
-            <mat-icon [icon]="preset?.icon || 'inventory_2'"></mat-icon>
-          </div>
-        }
+        <!-- Icon removed - now shown as background placeholder -->
         
         <!-- Card Info -->
         <div class="card-info">
@@ -50,19 +54,31 @@ import { ThemeService } from '../../../../shared/services/theme.service';
         
         <!-- Actions -->
         <div class="card-actions">
-          <button class="action-button" (click)="onView($event)" title="View">
-            <mat-icon [icon]="'visibility'"></mat-icon>
-          </button>
-          <button class="action-button" (click)="onEdit($event)" title="Edit">
-            <mat-icon [icon]="'edit'"></mat-icon>
-          </button>
+          <app-themed-button
+            [variant]="'raised'"
+            [color]="'primary'"
+            [icon]="'visibility'"
+            class="action-button"
+            [attr.title]="'View'"
+            (buttonClick)="onView()">
+          </app-themed-button>
+          <app-themed-button
+            [variant]="'raised'"
+            [color]="'primary'"
+            [icon]="'edit'"
+            class="action-button"
+            [attr.title]="'Edit'"
+            (buttonClick)="onEdit()">
+          </app-themed-button>
         </div>
       </div>
       
       <!-- Selection Indicator -->
       @if (selectable) {
-        <div class="selection-indicator">
-          <mat-icon [icon]="selected ? 'check_circle' : 'radio_button_unchecked'"></mat-icon>
+        <div class="selection-indicator" 
+             [class.active]="selected"
+             (click)="onSelectionClick($event)">
+          <mat-icon [icon]="selected ? 'check_circle' : (isSelectionMode ? 'radio_button_unchecked' : 'check_circle_outline')"></mat-icon>
         </div>
       }
     </div>
@@ -114,6 +130,26 @@ import { ThemeService } from '../../../../shared/services/theme.service';
       transform: scale(1.05);
     }
 
+    .background-placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .background-placeholder mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: rgba(255, 255, 255, 0.6);
+      opacity: 0.8;
+    }
+
     /* Content Overlay */
     .card-content {
       position: relative;
@@ -138,21 +174,7 @@ import { ThemeService } from '../../../../shared/services/theme.service';
       );
     }
 
-    /* Icon for cards without images */
-    .card-icon {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      opacity: 0.2;
-    }
-
-    .card-icon mat-icon {
-      font-size: 64px;
-      width: 64px;
-      height: 64px;
-      color: var(--md-sys-color-on-surface-variant);
-    }
+    /* Background placeholder styling handled above */
 
     /* Card Info */
     .card-info {
@@ -222,30 +244,7 @@ import { ThemeService } from '../../../../shared/services/theme.service';
     }
 
     .action-button {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(255, 255, 255, 0.9);
-      color: var(--md-sys-color-on-surface);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: var(--md-sys-elevation-2);
-    }
-
-    .action-button:hover {
-      background: white;
-      transform: scale(1.1);
-      box-shadow: var(--md-sys-elevation-3);
-    }
-
-    .action-button mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
+      /* Let ThemedButtonComponent handle all styling */
     }
 
     /* Selection Indicator */
@@ -253,14 +252,40 @@ import { ThemeService } from '../../../../shared/services/theme.service';
       position: absolute;
       top: 12px;
       left: 12px;
-      width: 24px;
-      height: 24px;
+      width: 32px;
+      height: 32px;
       background: rgba(255, 255, 255, 0.9);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      opacity: 0;
       box-shadow: var(--md-sys-elevation-2);
+    }
+
+    .item-card:hover .selection-indicator {
+      opacity: 1;
+    }
+
+    .selection-indicator:hover {
+      background: white;
+      transform: scale(1.1);
+      box-shadow: var(--md-sys-elevation-3);
+    }
+
+    .selection-indicator.active {
+      opacity: 1;
+    }
+
+    .item-card.selection-mode .selection-indicator {
+      opacity: 0;
+    }
+
+    .item-card.selection-mode:hover .selection-indicator,
+    .item-card.selection-mode .selection-indicator.active {
+      opacity: 1;
     }
 
     .selection-indicator mat-icon {
@@ -268,6 +293,14 @@ import { ThemeService } from '../../../../shared/services/theme.service';
       width: 20px;
       height: 20px;
       color: var(--md-sys-color-primary);
+    }
+
+    .item-card.selection-mode {
+      cursor: pointer;
+    }
+
+    .item-card.selection-mode .card-actions {
+      display: none;
     }
 
     /* Responsive */
@@ -294,10 +327,13 @@ export class WallItemCardComponent {
   @Input() metadata: Array<{key: string; value: string; icon?: string}> = [];
   @Input() selected = false;
   @Input() selectable = false;
+  @Input() isSelectionMode = false;
 
   @Output() cardClick = new EventEmitter<WallItem>();
   @Output() viewClick = new EventEmitter<WallItem>();
   @Output() editClick = new EventEmitter<WallItem>();
+  @Output() selectionToggle = new EventEmitter<WallItem>();
+  @Output() startSelectionMode = new EventEmitter<WallItem>();
 
   private themeService = inject(ThemeService);
 
@@ -326,6 +362,23 @@ export class WallItemCardComponent {
 
   get hasImage(): boolean {
     return !!this.primaryImage;
+  }
+
+  getPresetColor(): string {
+    // Use preset color if available
+    if (this.preset?.color) return this.preset.color;
+    
+    // Get current theme to derive colors from wall theme
+    const currentTheme = this.themeService.getCurrentThemeSync();
+    
+    // If we're in a wall context, use wall-themed colors
+    if (currentTheme.isWallTheme && currentTheme.wallTheme) {
+      const wallTheme = currentTheme.wallTheme;
+      return wallTheme.primaryColor || '#6750A4';
+    }
+    
+    // Fallback to Material primary color
+    return '#6750A4';
   }
 
   get backgroundColor(): string {
@@ -372,20 +425,66 @@ export class WallItemCardComponent {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
+  private longPressTimer?: ReturnType<typeof setTimeout>;
+  private longPressDelay = 500; // 500ms for long press
+
   onClick(event: Event) {
-    if (!this.selectable) {
-      event.stopPropagation();
+    event.stopPropagation();
+    
+    if (this.isSelectionMode) {
+      // In selection mode, clicking anywhere on card toggles selection
+      this.selectionToggle.emit(this.item);
+    } else {
+      // Normal mode - navigate to item view
+      this.viewClick.emit(this.item);
     }
-    this.cardClick.emit(this.item);
   }
 
-  onView(event: Event) {
+  onSelectionClick(event: Event) {
     event.stopPropagation();
+    
+    if (this.isSelectionMode) {
+      // Already in selection mode, toggle this item
+      this.selectionToggle.emit(this.item);
+    } else {
+      // Start selection mode
+      this.startSelectionMode.emit(this.item);
+    }
+  }
+
+  onLongPress(event: Event) {
+    event.preventDefault();
+    if (!this.isSelectionMode) {
+      this.startSelectionMode.emit(this.item);
+    }
+  }
+
+  onTouchStart(event: TouchEvent) {
+    if (!this.isSelectionMode) {
+      this.longPressTimer = setTimeout(() => {
+        this.startSelectionMode.emit(this.item);
+      }, this.longPressDelay);
+    }
+  }
+
+  onTouchEnd(event: TouchEvent) {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = undefined;
+    }
+  }
+
+  onView(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.viewClick.emit(this.item);
   }
 
-  onEdit(event: Event) {
-    event.stopPropagation();
+  onEdit(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.editClick.emit(this.item);
   }
 }

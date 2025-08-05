@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -10,6 +10,7 @@ import { WallItemService } from '../../services/wall-item.service';
 import { ImageUploadService, PendingImage } from '../../../../shared/services/image-upload.service';
 import { Wall, WallObjectType, WallItem, WallItemImage } from '../../../../shared/models/wall.model';
 import { PresetItemBasePageComponent, PageMode } from '../../components/preset-item-base-page/preset-item-base-page.component';
+import { FormStateService, FormState } from '../../../../shared/services/form-state.service';
 
 @Component({
   selector: 'app-preset-item-page',
@@ -30,6 +31,7 @@ import { PresetItemBasePageComponent, PageMode } from '../../components/preset-i
       [attemptedSubmit]="attemptedSubmit"
       [images]="getAllImages()"
       [primaryImageIndex]="primaryImageIndex"
+      [canSave]="currentMode === 'edit' ? ((formState$ | async)?.canSave ?? false) : true"
       (backClick)="goBack()"
       (addImage)="addImage()"
       (changeImage)="changeImage($event)"
@@ -42,7 +44,7 @@ import { PresetItemBasePageComponent, PageMode } from '../../components/preset-i
   `,
   styles: []
 })
-export class PresetItemPageComponent implements OnInit, OnDestroy {
+export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private destroy$ = new Subject<void>();
   
   wall$!: Observable<Wall | null>;
@@ -64,16 +66,25 @@ export class PresetItemPageComponent implements OnInit, OnDestroy {
   pendingImages: PendingImage[] = [];
   primaryImageIndex = 0;
 
+  // Form state management
+  formState$!: Observable<FormState>;
+  private initialFormData: any = {};
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
     private wallService: WallService,
     private wallItemService: WallItemService,
-    private imageUploadService: ImageUploadService
+    private imageUploadService: ImageUploadService,
+    private formStateService: FormStateService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
+    // Initialize empty form early to prevent FormGroup errors
+    this.itemForm = this.fb.group({});
+    
     // Determine mode based on route
     this.currentMode = this.router.url.includes('/edit') ? 'edit' : 'view';
 
@@ -123,26 +134,81 @@ export class PresetItemPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  ngAfterViewInit() {
+    // Ensure change detection runs after view initialization
+    this.cdr.detectChanges();
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    this.formStateService.unregisterForm('preset-item-edit-form');
   }
 
-  private initializeForm(preset: WallObjectType, item: WallItem) {
+  private initializeForm(preset: WallObjectType, item: WallItem, skipFormStateRegistration = false) {
     const formControls: any = {};
     
     preset.fields.forEach(field => {
       const validators = field.required ? [Validators.required] : [];
-      const value = item.fieldData[field.id] || '';
+      const value = item.fieldData[field.id] !== undefined && item.fieldData[field.id] !== null 
+        ? item.fieldData[field.id] 
+        : '';
       formControls[field.id] = [value, validators];
     });
 
+    // Create new form with the proper controls
     this.itemForm = this.fb.group(formControls);
+    
+    // Set initial form data for change detection
+    this.initialFormData = this.itemForm.value;
+    
+    // Register form with FormStateService only in edit mode and if not skipping registration
+    if (this.currentMode === 'edit' && !skipFormStateRegistration) {
+      this.formState$ = this.formStateService.registerForm('preset-item-edit-form', {
+        form: this.itemForm,
+        initialData: this.initialFormData
+      });
+    }
 
     // If in view mode, disable the form
     if (this.currentMode === 'view') {
       this.itemForm.disable();
     }
+    
+    // Force change detection after form initialization
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 0);
+  }
+
+  private initializeFormValues(preset: WallObjectType, item: WallItem) {
+    // Ensure form exists before trying to update values
+    if (!this.itemForm || !preset?.fields || !item?.fieldData) {
+      console.warn('Cannot initialize form values: missing form or data');
+      return;
+    }
+
+    // Update form values without recreating the form
+    preset.fields.forEach(field => {
+      const value = item.fieldData[field.id] !== undefined && item.fieldData[field.id] !== null 
+        ? item.fieldData[field.id] 
+        : '';
+      
+      const formControl = this.itemForm.get(field.id);
+      if (formControl) {
+        formControl.setValue(value);
+        // Also mark as touched to ensure validation states are updated
+        formControl.markAsTouched();
+      } else {
+        console.warn(`Form control not found for field: ${field.id}`);
+      }
+    });
+    
+    // Update initial form data
+    this.initialFormData = this.itemForm.value;
+    
+    // Force change detection
+    this.cdr.detectChanges();
   }
 
   private initializeImages(item: WallItem) {
@@ -158,16 +224,50 @@ export class PresetItemPageComponent implements OnInit, OnDestroy {
 
   // Toggle between view and edit modes
   toggleEditMode() {
+    // Ensure form is initialized before toggling modes
+    if (!this.currentItem || !this.currentPreset) {
+      console.warn('Cannot toggle edit mode: data not initialized');
+      return;
+    }
+
     if (this.currentMode === 'view') {
+      // Unregister any existing form state first
+      this.formStateService.unregisterForm('preset-item-edit-form');
+      
+      // Create a new form with all controls BEFORE changing mode
+      const formControls: any = {};
+      this.currentPreset.fields.forEach(field => {
+        const validators = field.required ? [Validators.required] : [];
+        const value = this.currentItem!.fieldData[field.id] !== undefined && this.currentItem!.fieldData[field.id] !== null 
+          ? this.currentItem!.fieldData[field.id] 
+          : '';
+        formControls[field.id] = [value, validators];
+      });
+      
+      // Replace the form with a new one
+      this.itemForm = this.fb.group(formControls);
+      this.initialFormData = this.itemForm.value;
+      
+      // Now it's safe to change mode
       this.currentMode = 'edit';
-      this.itemForm.enable();
+      
+      // Register form state after mode change
+      this.formState$ = this.formStateService.registerForm('preset-item-edit-form', {
+        form: this.itemForm,
+        initialData: this.initialFormData
+      });
+      
+      // Force change detection
+      this.cdr.detectChanges();
     } else {
       this.currentMode = 'view';
       this.itemForm.disable();
-      // Reset form to original values
-      if (this.currentItem && this.currentPreset) {
-        this.initializeForm(this.currentPreset, this.currentItem);
-      }
+      
+      // Unregister form state when leaving edit mode
+      this.formStateService.unregisterForm('preset-item-edit-form');
+      
+      // Reset form to original values when exiting edit mode without saving
+      this.initializeFormValues(this.currentPreset, this.currentItem);
     }
   }
 
@@ -290,10 +390,12 @@ export class PresetItemPageComponent implements OnInit, OnDestroy {
   async onSave() {
     this.attemptedSubmit = true;
     
-    if (this.itemForm.invalid) {
+    const formState = this.formStateService.getFormState('preset-item-edit-form');
+    if (!formState?.canSave) {
       return;
     }
 
+    this.formStateService.setSavingState('preset-item-edit-form', true);
     this.isSaving = true;
     
     try {
@@ -335,6 +437,7 @@ export class PresetItemPageComponent implements OnInit, OnDestroy {
       await this.wallItemService.updateWallItem(itemId, updatedItem).toPromise();
       
       console.log('Item updated successfully');
+      this.formStateService.setSavingState('preset-item-edit-form', false);
       this.isSaving = false;
       this.attemptedSubmit = false;
       
@@ -352,15 +455,19 @@ export class PresetItemPageComponent implements OnInit, OnDestroy {
         if (this.currentPreset) {
           this.initializeForm(this.currentPreset, item!);
           this.initializeImages(item!);
+          
+          // Update FormStateService with new initial data
+          this.initialFormData = this.itemForm.value;
+          this.formStateService.updateInitialData('preset-item-edit-form', this.initialFormData);
+          
+          // Switch back to view mode after successful save
+          this.toggleEditMode();
         }
       });
       
-      // Switch back to view mode
-      this.currentMode = 'view';
-      this.itemForm.disable();
-      
     } catch (error) {
       console.error('Error updating item:', error);
+      this.formStateService.setSavingState('preset-item-edit-form', false);
       this.isSaving = false;
       // TODO: Show error message to user
     }
