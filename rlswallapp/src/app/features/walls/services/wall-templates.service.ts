@@ -211,16 +211,24 @@ export class WallTemplatesService {
       }
     }));
 
-    const deployments = this.getDefaultMilitaryDeployments().map(deployment => ({
-      objectTypeId: 'deployment',
-      fieldData: {
+    const deployments = this.getDefaultMilitaryDeployments().map(deployment => {
+      const fieldData: any = {
         title: deployment.title,
         description: deployment.description,
         startDate: new Date(deployment.startYear, 0, 1),
-        endDate: deployment.endYear ? new Date(deployment.endYear, 11, 31) : undefined,
         location: deployment.location
+      };
+      
+      // Only add endDate if endYear is defined to avoid undefined values in Firestore
+      if (deployment.endYear) {
+        fieldData.endDate = new Date(deployment.endYear, 11, 31);
       }
-    }));
+      
+      return {
+        objectTypeId: 'deployment',
+        fieldData
+      };
+    });
 
     return { branches, deployments };
   }

@@ -75,7 +75,7 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
     .content-container {
       width: 100%;
       height: 100%;
-      scale: 1.5;
+      scale: 1.0;
       position: relative;
       z-index: 1;
       pointer-events: none;
@@ -267,10 +267,10 @@ export class WallHomeComponent implements OnInit, OnDestroy {
     
     const animation = elm.animate([
       {
-        transform: `perspective(1000px) rotateY(${randomAngle}deg) rotateX(${randomAngleX}deg) translate3d(${randomStartX}%, ${randomStartY}%, 0) scale(1.5)`
+        transform: `perspective(1000px) rotateY(${randomAngle}deg) rotateX(${randomAngleX}deg) translate3d(${randomStartX}%, ${randomStartY}%, 0) scale(1.0)`
       },
       {
-        transform: `perspective(1000px) rotateY(${randomAngle}deg) rotateX(${randomAngleX}deg) translate3d(${randomEndX}%, ${randomEndY}%, 0) scale(1.5)`
+        transform: `perspective(1000px) rotateY(${randomAngle}deg) rotateX(${randomAngleX}deg) translate3d(${randomEndX}%, ${randomEndY}%, 0) scale(1.0)`
       }
     ], {
       duration: this.duration,

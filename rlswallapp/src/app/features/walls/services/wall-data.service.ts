@@ -115,11 +115,15 @@ export class WallDataService {
     options: WallCreationOptions = {}
   ): Observable<CompleteWallData> {
     const template = options.template || 'general';
+    console.log('createCompleteWall called with template:', template, 'options:', options);
     
     return this.wallService.createWallWithObjectTypes(wallData, template).pipe(
       switchMap(({ wallId, objectTypes }) => {
+        console.log('Wall created with ID:', wallId, 'objectTypes count:', objectTypes.length);
+        
         // Create sample relationship definitions
         const sampleRelationshipDefinitions = this.createSampleRelationshipDefinitions(objectTypes);
+        console.log('Created relationship definitions:', sampleRelationshipDefinitions.length);
         
         // Update wall with relationship definitions
         const wallUpdateObs = this.wallService.updateWall(wallId, {
@@ -129,8 +133,10 @@ export class WallDataService {
         // Create sample data if requested, or default data for veteran template
         let sampleDataObs: Observable<any>;
         if (options.createSampleData || template === 'veteran') {
+          console.log('Creating sample data for template:', template, 'createSampleData:', options.createSampleData);
           sampleDataObs = this.createSampleWallData(wallId, objectTypes, template);
         } else {
+          console.log('Skipping sample data creation for template:', template);
           sampleDataObs = of(null);
         }
 
@@ -138,7 +144,17 @@ export class WallDataService {
           wallUpdate: wallUpdateObs,
           sampleData: sampleDataObs
         }).pipe(
-          switchMap(() => this.getCompleteWallData(wallId))
+          switchMap((results) => {
+            console.log('forkJoin completed:', results);
+            console.log('Now getting complete wall data for:', wallId);
+            return this.getCompleteWallData(wallId);
+          }),
+          map((completeWallData) => {
+            console.log('CompleteWallData returned:', completeWallData);
+            console.log('Wall in CompleteWallData:', completeWallData.wall);
+            console.log('Wall ID in CompleteWallData:', completeWallData.wall?.id);
+            return completeWallData;
+          })
         );
       })
     );
@@ -448,7 +464,10 @@ export class WallDataService {
    * Create sample wall data for demonstration, or default data for templates
    */
   private createSampleWallData(wallId: string, objectTypes: WallObjectType[], template?: string): Observable<any> {
+    console.log('createSampleWallData called with:', { wallId, objectTypesCount: objectTypes.length, template });
+    
     if (objectTypes.length === 0) {
+      console.log('No object types found, returning null');
       return of(null);
     }
 
@@ -456,6 +475,7 @@ export class WallDataService {
 
     // Special handling for veteran template - create default branches and deployments
     if (template === 'veteran') {
+      console.log('Creating veteran registry default data');
       const defaultItems = this.wallTemplatesService.createDefaultVeteranRegistryItems(wallId);
       
       // Add default branches
@@ -489,7 +509,17 @@ export class WallDataService {
       });
 
       // Create the default objects and return
-      return this.wallItemService.bulkCreateWallItems(sampleItems);
+      console.log('Creating', sampleItems.length, 'default items for veteran registry');
+      return this.wallItemService.bulkCreateWallItems(sampleItems).pipe(
+        map(itemIds => {
+          console.log('Successfully created', itemIds.length, 'default items');
+          return itemIds;
+        }),
+        catchError(error => {
+          console.error('Error creating default items:', error);
+          throw error;
+        })
+      );
     }
 
     // Create 1-2 sample items per object type
@@ -539,6 +569,7 @@ export class WallDataService {
       }
     });
 
+    console.log('Creating', sampleItems.length, 'sample items for template:', template);
     return this.wallItemService.bulkCreateWallItems(sampleItems);
   }
 }

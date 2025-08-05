@@ -2816,7 +2816,7 @@ export class WallFormComponent implements OnInit {
             // Use WallDataService for template creation with automatic default data population
             this.wallDataService.createCompleteWall(wallData, { 
               template: templateType,
-              createSampleData: template === 'veterans' // Always create sample data for veteran template
+              createSampleData: true // Always create sample data for templates
             }).subscribe({
               next: (result) => {
                 console.log('Wall created successfully:', result);

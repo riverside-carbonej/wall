@@ -19,6 +19,7 @@ import {
 } from '@angular/fire/firestore';
 import { Wall, WallObjectType, FieldDefinition } from '../../../shared/models/wall.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { WallTemplatesService } from './wall-templates.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,7 +30,8 @@ export class WallService {
   constructor(
     private firestore: Firestore,
     private authService: AuthService,
-    private injector: Injector
+    private injector: Injector,
+    private wallTemplatesService: WallTemplatesService
   ) {}
 
   getDeletedWalls(): Observable<Wall[]> {
@@ -842,65 +844,18 @@ export class WallService {
    * Get veteran registry template
    */
   private getVeteranRegistryTemplate(wallId: string): WallObjectType[] {
-    return [
-      {
-        id: `ot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        wallId,
-        name: 'Veteran',
-        description: 'Service member information',
-        icon: 'military_tech',
-        color: '#059669',
-        fields: [
-          {
-            id: 'name',
-            name: 'Full Name',
-            type: 'text',
-            required: true,
-            placeholder: 'Enter full name...'
-          },
-          {
-            id: 'rank',
-            name: 'Rank',
-            type: 'text',
-            required: false,
-            placeholder: 'Enter rank...'
-          },
-          {
-            id: 'branch',
-            name: 'Branch',
-            type: 'text',
-            required: true,
-            placeholder: 'Army, Navy, Air Force, Marines, Coast Guard...'
-          },
-          {
-            id: 'serviceYears',
-            name: 'Years of Service',
-            type: 'text',
-            required: false,
-            placeholder: 'e.g., 1998-2018'
-          },
-          {
-            id: 'bio',
-            name: 'Biography',
-            type: 'longtext',
-            required: false,
-            placeholder: 'Enter biography...'
-          }
-        ],
-        relationships: [],
-        displaySettings: {
-          cardLayout: 'detailed',
-          showOnMap: false,
-          primaryField: 'name',
-          secondaryField: 'rank'
-        },
-        isActive: true,
-        sortOrder: 0,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-      // Add other veteran registry object types as needed
-    ];
+    // Get the proper veteran template from WallTemplatesService (key is 'veterans' plural)
+    const template = this.wallTemplatesService.getTemplate('veterans');
+    if (!template) {
+      throw new Error('Veterans template not found');
+    }
+    
+    // Return object types from template with correct wallId
+    return template.objectTypes.map(ot => ({
+      ...ot,
+      wallId,
+      id: `ot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    }));
   }
 
   /**

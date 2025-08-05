@@ -202,9 +202,14 @@ export class WallItemService {
       
       return this.createWallItem(wallItems[currentIndex]).pipe(
         switchMap(id => {
+          console.log('Created wall item', currentIndex + 1, 'of', wallItems.length, 'with ID:', id);
           results.push(id);
           currentIndex++;
           return createNext();
+        }),
+        catchError(error => {
+          console.error('Error creating wall item', currentIndex + 1, 'of', wallItems.length, ':', error);
+          throw error;
         })
       );
     };
