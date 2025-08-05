@@ -96,9 +96,21 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
     }
 
     .blur-background {
-      -webkit-mask-image: radial-gradient(circle, black 20%, transparent 500px);
-      mask-image: radial-gradient(circle, black 20%, transparent 500px);
-      width: 1100px;
+      background: radial-gradient(circle, 
+        color-mix(in srgb, var(--md-sys-color-background) 95%, transparent) 0%, 
+        color-mix(in srgb, var(--md-sys-color-background) 95%, transparent) 11%, 
+        color-mix(in srgb, var(--md-sys-color-background) 90%, transparent) 18%, 
+        color-mix(in srgb, var(--md-sys-color-background) 85%, transparent) 22%, 
+        color-mix(in srgb, var(--md-sys-color-background) 80%, transparent) 26%, 
+        color-mix(in srgb, var(--md-sys-color-background) 75%, transparent) 30%, 
+        color-mix(in srgb, var(--md-sys-color-background) 70%, transparent) 35%, 
+        color-mix(in srgb, var(--md-sys-color-background) 60%, transparent) 40%, 
+        color-mix(in srgb, var(--md-sys-color-background) 50%, transparent) 45%, 
+        color-mix(in srgb, var(--md-sys-color-background) 40%, transparent) 50%, 
+        color-mix(in srgb, var(--md-sys-color-background) 30%, transparent) 55%, 
+        color-mix(in srgb, var(--md-sys-color-background) 5%, transparent) 66%, 
+        transparent 75%);
+      width: 2000px;
       aspect-ratio: 1/1;
       position: absolute;
     }
@@ -196,10 +208,8 @@ export class WallHomeComponent implements OnInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    // Start animation after a short delay to let content load
-    setTimeout(() => {
-      this.startAnimation();
-    }, 1000);
+    // Start animation immediately
+    this.startAnimation();
   }
 
   ngOnDestroy() {

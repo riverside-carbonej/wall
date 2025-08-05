@@ -12,7 +12,7 @@ import { AuthService } from '../../core/services/auth.service';
     <div class="login-container">
       <div class="login-card">
         <div class="login-header">
-          <h1>RLS Wall App</h1>
+          <h1>Riverside Walls</h1>
           <p>Sign in to access your walls</p>
         </div>
 

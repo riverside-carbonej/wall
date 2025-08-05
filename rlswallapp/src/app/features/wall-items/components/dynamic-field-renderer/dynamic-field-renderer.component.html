@@ -81,10 +81,7 @@
             [formControlName]="field.id"
             [placeholder]="field.placeholder || ''"
             [required]="field.required"
-            rows="4"
-            cdkTextareaAutosize
-            cdkAutosizeMinRows="2"
-            cdkAutosizeMaxRows="8">
+            rows="4">
           </textarea>
         </app-form-field>
       }
@@ -110,19 +107,29 @@
 
       <!-- Date Input -->
       @if (isDate()) {
-        <app-form-field
-          [label]="field.name"
-          [required]="field.required"
-          [suffixIcon]="'calendar_today'"
-          [error]="formControl?.invalid && formControl?.touched ? getErrorMessage() : undefined"
-          appearance="outline"
-          spacing="comfortable">
-          <input 
-            matInput
-            type="date"
-            [formControlName]="field.id"
-            [required]="field.required">
-        </app-form-field>
+        <div class="form-field">
+          <label class="field-label">
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </label>
+          <div class="input-container" [class.error]="formControl?.invalid && formControl?.touched">
+            <mat-icon class="prefix-icon" [icon]="'calendar_today'"></mat-icon>
+            <input 
+              class="material-input" 
+              type="text"
+              [formControlName]="field.id"
+              [placeholder]="field.placeholder || 'Enter date (e.g., MM/DD/YYYY, Month DD, YYYY)'"
+              [required]="field.required">
+          </div>
+          @if (formControl?.invalid && formControl?.touched) {
+            <div class="field-error">
+              <mat-icon [icon]="'error'"></mat-icon>
+              {{ getErrorMessage() }}
+            </div>
+          }
+        </div>
       }
 
       <!-- Date Range Input -->

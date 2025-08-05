@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { WallService } from '../../services/wall.service';
+import { WallDataService } from '../../services/wall-data.service';
 import { Wall, DEFAULT_THEMES, WallTheme } from '../../../../shared/models/wall.model';
 import { WallPermissionsService } from '../../../../core/services/wall-permissions.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -2469,6 +2470,7 @@ export class WallFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private wallService: WallService,
+    private wallDataService: WallDataService,
     private router: Router,
     private route: ActivatedRoute,
     private wallPermissions: WallPermissionsService,
@@ -2802,18 +2804,56 @@ export class WallFormComponent implements OnInit {
             lastActivityAt: new Date()
           };
           
-          this.wallService.createWall(wallData).subscribe({
-            next: (result: string) => {
-              this.isSaving = false;
-              // Navigate to the newly created wall
-              this.router.navigate(['/walls', result]);
-            },
-            error: (error: any) => {
-              this.isSaving = false;
-              console.error('Error saving wall:', error);
-              alert('Failed to save wall. Please try again.');
-            }
-          });
+          // Determine if this is a template creation
+          const template = this.route.snapshot.queryParamMap.get('template');
+          console.log('Template parameter:', template);
+          
+          if (template) {
+            console.log('Creating wall with template:', template);
+            // Map template parameter to expected format
+            const templateType = template === 'veterans' ? 'veteran' : template as 'veteran' | 'alumni' | 'general';
+            
+            // Use WallDataService for template creation with automatic default data population
+            this.wallDataService.createCompleteWall(wallData, { 
+              template: templateType,
+              createSampleData: template === 'veterans' // Always create sample data for veteran template
+            }).subscribe({
+              next: (result) => {
+                console.log('Wall created successfully:', result);
+                console.log('Wall object:', result.wall);
+                console.log('Wall ID:', result.wall?.id);
+                this.isSaving = false;
+                
+                // Check if wall and id exist
+                if (result.wall && result.wall.id) {
+                  // Navigate to the newly created wall
+                  this.router.navigate(['/walls', result.wall.id]);
+                } else {
+                  console.error('Wall or Wall ID is missing from result:', result);
+                  alert('Wall was created but navigation failed. Please check the walls list.');
+                }
+              },
+              error: (error: any) => {
+                this.isSaving = false;
+                console.error('Error saving wall with template:', error);
+                alert('Failed to save wall. Please try again.');
+              }
+            });
+          } else {
+            // Use regular wall creation for blank walls
+            this.wallService.createWall(wallData).subscribe({
+              next: (result: string) => {
+                this.isSaving = false;
+                // Navigate to the newly created wall
+                this.router.navigate(['/walls', result]);
+              },
+              error: (error: any) => {
+                this.isSaving = false;
+                console.error('Error saving wall:', error);
+                alert('Failed to save wall. Please try again.');
+              }
+            });
+          }
         }
       });
     }

@@ -200,6 +200,7 @@ import { NavigationService } from '../../../../shared/services/navigation.servic
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: var(--md-sys-spacing-4);
       padding: var(--md-sys-spacing-2) 0;
+      perspective: 1500px; /* Add perspective for more distant camera effect */
     }
 
     .template-item {
@@ -262,7 +263,7 @@ import { NavigationService } from '../../../../shared/services/navigation.servic
     }
 
     .template-item:hover .template-icon {
-      transform: scale(1.1);
+      transform: scale(1.03);
       background: linear-gradient(135deg, 
         var(--md-sys-color-primary-container),
         var(--md-sys-color-tertiary-container));
@@ -318,13 +319,13 @@ import { NavigationService } from '../../../../shared/services/navigation.servic
 
     .wall-item:hover {
       box-shadow: var(--md-sys-elevation-3);
-      transform: translateY(-4px);
+      transform: translateY(-2px);
       border-color: var(--md-sys-color-primary);
       background-color: var(--md-sys-color-surface-container-high);
     }
 
     .wall-item:active {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       transition-duration: 0.1s;
     }
 
