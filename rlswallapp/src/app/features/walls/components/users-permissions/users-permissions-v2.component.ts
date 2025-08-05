@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormControl, Validators, FormsModule } from '@angular/forms';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, of, firstValueFrom } from 'rxjs';
 
 // Our reusable components
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
@@ -17,6 +17,7 @@ import { ProgressSpinnerComponent } from '../../../../shared/components/progress
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { FirebaseAuthSearchService } from '../../../../shared/services/firebase-auth-search.service';
+import { FirestoreUserService } from '../../../../shared/services/firestore-user.service';
 import { WallService } from '../../services/wall.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 
@@ -526,6 +527,7 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
     private wallService: WallService,
     private authService: AuthService,
     private firebaseAuthSearch: FirebaseAuthSearchService,
+    private firestoreUserService: FirestoreUserService,
     private confirmationDialog: ConfirmationDialogService,
     private notification: NotificationService
   ) {}
@@ -651,24 +653,64 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
     this.searchQuery = value;
     if (value.length > 2) {
       this.showSearchResults.set(true);
-      // Perform search
-      this.firebaseAuthSearch.searchUsers(value).subscribe({
-        next: (results) => {
-          console.log('Search results:', results);
-          this.searchResults.set(results);
-          // If no results from Firebase, show mock results for testing
-          if (results.length === 0) {
-            this.searchResults.set(this.getMockSearchResults(value));
+      
+      // Try Firestore user search first (more reliable)
+      this.firestoreUserService.searchUsers(value).subscribe({
+        next: (firestoreResults) => {
+          console.log('Firestore search results:', firestoreResults);
+          
+          // Convert Firestore users to AuthUser format
+          const convertedResults = firestoreResults.map(user => ({
+            uid: user.uid,
+            email: user.email || '',
+            displayName: user.displayName,
+            photoURL: user.photoURL
+          }));
+          
+          if (convertedResults.length > 0) {
+            this.searchResults.set(convertedResults);
+            this.positionDropdownFromInput();
+          } else {
+            // Fallback to Firebase Auth search if no Firestore results
+            this.firebaseAuthSearch.searchUsers(value).subscribe({
+              next: (authResults) => {
+                console.log('Firebase Auth search results:', authResults);
+                if (authResults.length > 0) {
+                  this.searchResults.set(authResults);
+                } else {
+                  // Final fallback to mock results for testing
+                  this.searchResults.set(this.getMockSearchResults(value));
+                }
+                this.positionDropdownFromInput();
+              },
+              error: (error) => {
+                console.error('Firebase Auth search error:', error);
+                // Fallback to mock results
+                this.searchResults.set(this.getMockSearchResults(value));
+                this.positionDropdownFromInput();
+              }
+            });
           }
-          // Position dropdown after results are set
-          this.positionDropdownFromInput();
         },
         error: (error) => {
-          console.error('Search error:', error);
-          // Fallback to mock results
-          this.searchResults.set(this.getMockSearchResults(value));
-          // Position dropdown after results are set
-          this.positionDropdownFromInput();
+          console.error('Firestore search error:', error);
+          // Fallback to Firebase Auth search
+          this.firebaseAuthSearch.searchUsers(value).subscribe({
+            next: (authResults) => {
+              console.log('Firebase Auth search results (fallback):', authResults);
+              if (authResults.length > 0) {
+                this.searchResults.set(authResults);
+              } else {
+                this.searchResults.set(this.getMockSearchResults(value));
+              }
+              this.positionDropdownFromInput();
+            },
+            error: (authError) => {
+              console.error('Both search methods failed:', authError);
+              this.searchResults.set(this.getMockSearchResults(value));
+              this.positionDropdownFromInput();
+            }
+          });
         }
       });
     } else {
@@ -907,36 +949,174 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
   }
 
   private async loadUserProfiles(users: WallUser[]) {
-    // Use Firebase Auth search service to get user profiles
-    for (const user of users) {
-      try {
-        // In a real app, you'd want to batch these requests or use a different approach
-        // For now, we'll try to get user info from the current user or show UID
-        if (user.uid === this.currentUserUid) {
-          // Get current user info from auth service
+    console.log('Loading profiles for users:', users.map(u => u.uid));
+    
+    // Get all UIDs
+    const uids = users.map(u => u.uid);
+    
+    try {
+      // First try Firebase Auth Cloud Function to get all users
+      const authUsers = await firstValueFrom(this.firebaseAuthSearch.getUsersByUids(uids));
+      console.log('Loaded Firebase Auth users:', authUsers);
+      
+      if (authUsers && authUsers.length > 0) {
+        // Update users with Firebase Auth data
+        for (const user of users) {
+          const authUser = authUsers.find(au => au.uid === user.uid);
+          if (authUser && authUser.email) {
+            user.email = authUser.email;
+            user.displayName = authUser.displayName || this.extractDisplayNameFromEmail(authUser.email);
+            user.photoURL = authUser.photoURL;
+            console.log('Updated user from Firebase Auth:', user.displayName, user.email);
+          } else {
+            console.log('User not found in Firebase Auth, trying Firestore fallback for:', user.uid);
+            await this.loadSingleUserFromFirestore(user);
+          }
+        }
+      } else {
+        // Fallback to Firestore if Cloud Function fails
+        console.log('Firebase Auth Cloud Function failed, falling back to Firestore');
+        await this.loadUserProfilesFromFirestore(users);
+      }
+      
+      // Trigger UI refresh after all profiles are loaded
+      this.wallUsers.update(currentUsers => [...currentUsers]);
+    } catch (error) {
+      console.error('Error loading user profiles from Firebase Auth:', error);
+      
+      // Fallback to Firestore
+      await this.loadUserProfilesFromFirestore(users);
+      this.wallUsers.update(currentUsers => [...currentUsers]);
+    }
+  }
+
+  private async loadUserProfilesFromFirestore(users: WallUser[]) {
+    console.log('Loading user profiles from Firestore');
+    const uids = users.map(u => u.uid);
+    
+    try {
+      // Use Firestore service to get all users at once
+      const firestoreUsers = await firstValueFrom(this.firestoreUserService.getUsersByUids(uids));
+      console.log('Loaded Firestore users:', firestoreUsers);
+      
+      // Update users with Firestore data
+      for (const user of users) {
+        const firestoreUser = firestoreUsers.find(fu => fu.uid === user.uid);
+        if (firestoreUser) {
+          user.email = firestoreUser.email || user.uid;
+          user.displayName = firestoreUser.displayName || this.extractDisplayNameFromEmail(firestoreUser.email || user.uid);
+          user.photoURL = firestoreUser.photoURL;
+          console.log('Updated user from Firestore:', user.displayName, user.email);
+        } else {
+          // Final fallback for users not found anywhere
+          console.log('User not found in Firestore either, using fallback display for:', user.uid);
+          await this.loadSingleUserProfileFallback(user);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user profiles from Firestore:', error);
+      
+      // Final fallback to individual loading
+      const profilePromises = users.map(user => this.loadSingleUserProfileFallback(user));
+      await Promise.all(profilePromises);
+    }
+  }
+
+  private async loadSingleUserFromFirestore(user: WallUser): Promise<void> {
+    try {
+      const firestoreUser = await firstValueFrom(this.firestoreUserService.getUserByUid(user.uid));
+      if (firestoreUser) {
+        user.email = firestoreUser.email || user.uid;
+        user.displayName = firestoreUser.displayName || this.extractDisplayNameFromEmail(firestoreUser.email || user.uid);
+        user.photoURL = firestoreUser.photoURL;
+        console.log('Updated user from Firestore single call:', user.displayName, user.email);
+      } else {
+        await this.loadSingleUserProfileFallback(user);
+      }
+    } catch (error) {
+      console.error('Error loading single user from Firestore:', user.uid, error);
+      await this.loadSingleUserProfileFallback(user);
+    }
+  }
+
+  private async loadSingleUserProfileFallback(user: WallUser): Promise<void> {
+    try {
+      // First check if this is the current user
+      if (user.uid === this.currentUserUid) {
+        const currentUser = await firstValueFrom(
           this.authService.currentUser$.pipe(
             takeUntil(this.destroy$)
-          ).subscribe(currentUser => {
-            if (currentUser && currentUser.uid === user.uid) {
-              user.email = currentUser.email || user.uid;
-              user.displayName = currentUser.displayName || currentUser.email || user.uid;
-              user.photoURL = currentUser.photoURL;
-              this.wallUsers.update(users => [...users]); // Trigger update
-            }
-          });
-        } else {
-          // For other users, show UID as fallback since we don't have a user lookup service
-          user.email = user.uid;
-          user.displayName = `User ${user.uid.substring(0, 8)}...`;
+          )
+        );
+        
+        if (currentUser && currentUser.uid === user.uid) {
+          user.email = currentUser.email || user.uid;
+          user.displayName = currentUser.displayName || currentUser.email || user.uid;
+          user.photoURL = currentUser.photoURL;
+          console.log('Loaded current user profile:', user.displayName, user.email);
+          return;
         }
-      } catch (error) {
-        console.error('Error loading user profile:', error);
-        user.email = user.uid;
-        user.displayName = `User ${user.uid.substring(0, 8)}...`;
       }
+
+      // Try to get user info from Firebase Auth search
+      const userInfo = await this.getUserDisplayInfo(user.uid);
+      user.email = userInfo.email;
+      user.displayName = userInfo.displayName;
+      user.photoURL = userInfo.photoURL || null;
+      
+      console.log('Loaded user profile:', user.displayName, user.email);
+    } catch (error) {
+      console.error('Error loading profile for user:', user.uid, error);
+      // Fallback to UID display
+      user.email = user.uid;
+      user.displayName = `User ${user.uid.substring(0, 8)}...`;
+      user.photoURL = null;
     }
+  }
+
+  private async getUserDisplayInfo(uid: string): Promise<{email: string, displayName: string, photoURL?: string}> {
+    try {
+      console.log('Searching for user:', uid);
+      
+      // Try searching by UID (some implementations support this)
+      let searchResult = await firstValueFrom(this.firebaseAuthSearch.searchUsers(uid));
+      
+      // If UID search fails, try searching by partial email if UID looks like email
+      if (!searchResult || searchResult.length === 0) {
+        if (uid.includes('@')) {
+          searchResult = await firstValueFrom(this.firebaseAuthSearch.searchUsers(uid.split('@')[0]));
+        }
+      }
+      
+      if (searchResult && searchResult.length > 0) {
+        const user = searchResult.find(u => u.uid === uid) || searchResult[0];
+        console.log('Found user via search:', user);
+        return {
+          email: user.email || `uid:${uid}`,
+          displayName: user.displayName || this.extractDisplayNameFromEmail(user.email || uid),
+          photoURL: user.photoURL || undefined
+        };
+      }
+    } catch (error) {
+      console.warn('Could not fetch user info for UID:', uid, error);
+    }
+
+    // Fallback: if UID looks like email, use it; otherwise create fallback
+    const isEmail = uid.includes('@');
+    return {
+      email: isEmail ? uid : `uid:${uid}`,
+      displayName: isEmail ? this.extractDisplayNameFromEmail(uid) : `User ${uid.substring(0, 8)}...`,
+      photoURL: undefined
+    };
+  }
+
+  private extractDisplayNameFromEmail(email: string): string {
+    if (!email || !email.includes('@')) return email;
     
-    // Update the signal to trigger UI refresh
-    this.wallUsers.update(users => [...users]);
+    return email
+      .split('@')[0]
+      .split('.')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
   }
 }

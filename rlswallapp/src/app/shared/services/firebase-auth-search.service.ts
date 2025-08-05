@@ -14,6 +14,10 @@ export interface SearchUsersResponse {
   users: AuthUser[];
 }
 
+export interface GetUsersByUidsResponse {
+  users: AuthUser[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -35,7 +39,30 @@ export class FirebaseAuthSearchService {
       searchUsersFunction({ searchTerm }).then(result => result.data.users)
     ).pipe(
       catchError(error => {
-        console.warn('Cloud Function not available, falling back to empty results:', error);
+        console.warn('Cloud Function searchUsers not available, falling back to empty results:', error);
+        // Return empty array if Cloud Function is not deployed
+        return from([[]]);
+      })
+    );
+  }
+
+  /**
+   * Get Firebase Auth users by UIDs using a Cloud Function
+   * Falls back to empty results if Cloud Function is not deployed yet
+   */
+  getUsersByUids(uids: string[]): Observable<AuthUser[]> {
+    if (uids.length === 0) return from([[]]);
+    
+    const getUsersByUidsFunction = httpsCallable<{ uids: string[] }, GetUsersByUidsResponse>(
+      this.functions, 
+      'getUsersByUids'
+    );
+
+    return from(
+      getUsersByUidsFunction({ uids }).then(result => result.data.users)
+    ).pipe(
+      catchError(error => {
+        console.warn('Cloud Function getUsersByUids not available, falling back to empty results:', error);
         // Return empty array if Cloud Function is not deployed
         return from([[]]);
       })
