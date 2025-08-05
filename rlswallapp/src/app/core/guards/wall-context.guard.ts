@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, ActivatedRouteSnapshot, Router } from '@angular/router';
 import { Observable, of, combineLatest } from 'rxjs';
-import { map, catchError, tap, switchMap } from 'rxjs/operators';
+import { map, catchError, tap, switchMap, filter, take } from 'rxjs/operators';
 
 import { WallService } from '../../features/walls/services/wall.service';
 import { WallItemService } from '../../features/wall-items/services/wall-item.service';
@@ -25,25 +25,35 @@ export const wallContextGuard: CanActivateFn = (
   const router = inject(Router);
 
   const wallId = route.paramMap.get('id') || route.paramMap.get('wallId');
+  console.log(`wallContextGuard: route params:`, route.paramMap.keys.map(key => `${key}=${route.paramMap.get(key)}`));
+  console.log(`wallContextGuard: extracted wallId: ${wallId}`);
   
   if (!wallId) {
+    console.warn('wallContextGuard: No wallId found in route params, redirecting to /walls');
     router.navigate(['/walls']);
     return of(false);
   }
 
-  // Pre-load wall data and set navigation context before allowing navigation
-  return combineLatest([
-    wallService.getWallById(wallId),
-    authService.currentUser$
-  ]).pipe(
+  // Wait for auth to be ready, then load wall data and set navigation context
+  return authService.authStateReady$.pipe(
+    filter(ready => ready), // Wait until auth state is determined
+    take(1),
+    switchMap(() => combineLatest([
+      wallService.getWallById(wallId),
+      authService.currentUser$
+    ])),
     switchMap(([wall, user]) => {
+      console.log(`wallContextGuard: wallId=${wallId}, wall=${!!wall}, user=${!!user}`);
+      
       if (!wall) {
-          router.navigate(['/walls']);
+        console.warn('wallContextGuard: Wall not found, redirecting to /walls');
+        router.navigate(['/walls']);
         return of(false);
       }
 
       if (!user) {
-          router.navigate(['/login']);
+        console.warn('wallContextGuard: User not authenticated, redirecting to /login');
+        router.navigate(['/login']);
         return of(false);
       }
 
@@ -94,6 +104,7 @@ export const wallContextGuard: CanActivateFn = (
       );
     }),
     catchError(error => {
+      console.error('wallContextGuard: Error occurred, redirecting to /walls', error);
       router.navigate(['/walls']);
       return of(false);
     })
