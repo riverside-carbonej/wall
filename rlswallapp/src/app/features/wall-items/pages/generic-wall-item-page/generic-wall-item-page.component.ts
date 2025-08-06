@@ -20,11 +20,13 @@ import { ItemImageGalleryComponent } from '../../components/item-image-gallery/i
 import { DynamicFieldRendererComponent } from '../../components/dynamic-field-renderer/dynamic-field-renderer.component';
 import { DeleteButtonComponent } from '../../components/delete-button/delete-button.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
-import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
+import { PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 
 import { Wall, WallItem, WallObjectType, FieldDefinition, WallItemImage } from '../../../../shared/models/wall.model';
 import { ErrorDialogComponent } from '../../../../shared/components/error-dialog/error-dialog.component';
 import { FormStateService, FormState } from '../../../../shared/services/form-state.service';
+import { NlpService } from '../../../../shared/services/nlp.service';
+import { WallItemsGridComponent } from '../../components/wall-items-grid/wall-items-grid.component';
 
 @Component({
   selector: 'app-generic-wall-item-page',
@@ -42,7 +44,7 @@ import { FormStateService, FormState } from '../../../../shared/services/form-st
     DynamicFieldRendererComponent,
     DeleteButtonComponent,
     LoadingStateComponent,
-    PageLayoutComponent
+    WallItemsGridComponent
   ],
   templateUrl: './generic-wall-item-page.component.html',
   styleUrls: ['./generic-wall-item-page.component.css']
@@ -102,7 +104,8 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     private imageUploadService: ImageUploadService,
     private fb: FormBuilder,
     private formStateService: FormStateService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private nlpService: NlpService
   ) {}
   
   ngOnInit() {
@@ -701,20 +704,38 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     if (!this.wall) return [];
     
     const relatedTypes: { objectType: WallObjectType; fieldName: string }[] = [];
+    const addedTypes = new Set<string>(); // Prevent duplicates
     
-    // Find all object types that have entity fields pointing to this object type
     this.wall.objectTypes?.forEach((otherObjectType: WallObjectType) => {
       if (otherObjectType.id === this.objectType?.id) return; // Skip self
       
+      // INCOMING: Find object types that have entity fields pointing TO this object type
       otherObjectType.fields.forEach((field: FieldDefinition) => {
         if (field.type === 'entity' && 
-            field.entityConfig?.targetObjectTypeId === this.objectType?.id) {
+            field.entityConfig?.targetObjectTypeId === this.objectType?.id &&
+            !addedTypes.has(otherObjectType.id)) {
           relatedTypes.push({ 
             objectType: otherObjectType, 
             fieldName: field.name 
           });
+          addedTypes.add(otherObjectType.id);
         }
       });
+      
+      // OUTGOING: Find object types that this object type points TO
+      if (this.objectType) {
+        this.objectType.fields.forEach((field: FieldDefinition) => {
+          if (field.type === 'entity' && 
+              field.entityConfig?.targetObjectTypeId === otherObjectType.id &&
+              !addedTypes.has(otherObjectType.id)) {
+            relatedTypes.push({ 
+              objectType: otherObjectType, 
+              fieldName: field.name 
+            });
+            addedTypes.add(otherObjectType.id);
+          }
+        });
+      }
     });
     
     return relatedTypes;
@@ -728,14 +749,15 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     
     try {
       const relatedTypes = this.getRelatedObjectTypes();
+      const allItems = await firstValueFrom(
+        this.wallItemService.getWallItems(this.wallId)
+      );
       
       for (const { objectType, fieldName } of relatedTypes) {
-        // Find all items of this object type that reference the current item
-        const allItems = await firstValueFrom(
-          this.wallItemService.getWallItems(this.wallId)
-        );
+        const relatedItemsForType: WallItem[] = [];
         
-        const relatedItemsForType = allItems.filter(item => {
+        // INCOMING: Find items of this object type that reference the current item
+        const incomingItems = allItems.filter(item => {
           if (item.objectTypeId !== objectType.id) return false;
           
           // Check if this item's entity fields contain reference to current item
@@ -750,8 +772,33 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
           });
         });
         
-        if (relatedItemsForType.length > 0) {
-          this.relatedItems[objectType.id] = relatedItemsForType;
+        // OUTGOING: Find items of this object type that the current item references
+        const outgoingItems = allItems.filter(item => {
+          if (item.objectTypeId !== objectType.id) return false;
+          
+          // Check if the current item's entity fields contain reference to this item
+          if (this.objectType) {
+            const currentItemEntityFields = this.objectType.fields.filter(f => f.type === 'entity');
+            
+            return currentItemEntityFields.some(field => {
+              const fieldValue = this.wallItem.fieldData[field.id];
+              if (Array.isArray(fieldValue)) {
+                return fieldValue.includes(item.id);
+              }
+              return fieldValue === item.id;
+            });
+          }
+          return false;
+        });
+        
+        // Combine both directions and remove duplicates
+        const combinedItems = [...incomingItems, ...outgoingItems];
+        const uniqueItems = combinedItems.filter((item, index, self) => 
+          index === self.findIndex(t => t.id === item.id)
+        );
+        
+        if (uniqueItems.length > 0) {
+          this.relatedItems[objectType.id] = uniqueItems;
         }
       }
     } catch (error) {
@@ -797,4 +844,9 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     // Navigate back to wall after successful deletion
     this.router.navigate(['/walls', this.wallId]);
   }
+
+  getTabLabelForEntityType(objectType: WallObjectType): string {
+    return this.nlpService.getDisplayPlural(objectType.name);
+  }
+
 }

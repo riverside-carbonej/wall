@@ -1,54 +1,84 @@
 @if (!isLoading) {
-  <app-page-layout
-    [title]="title"
-    [showBackButton]="true"
-    [actions]="pageActions()"
-    (backClick)="onBackClick()">
+  <div class="generic-wall-item-page">
     
-    <!-- Main Content Layout -->
-  <div class="content-layout">
-    <!-- Image Section -->
-    <div class="image-section">
-      <!-- Image Gallery -->
-      <div class="image-gallery-container">
-        <app-item-image-gallery
-          [images]="wallItem.images || []"
-          [showControls]="editing"
-          [maxImages]="10"
-          (imageAdded)="onImageAdded(wallItem)"
-          (imageEdited)="onImageEdited($event, wallItem)"
-          (imageDeleted)="onImageDeleted($event, wallItem)"
-          (primaryImageChanged)="onPrimaryImageChanged($event, wallItem)">
-        </app-item-image-gallery>
-      </div>
-      
-      <!-- Image Upload -->
-      @if (editing) {
-        <div class="image-upload">
-        <input 
-          #imageInput
-          type="file" 
-          multiple 
-          accept="image/*"
-          (change)="onImageSelected($event)"
-          style="display: none;">
-        
-        <button 
-          mat-outlined-button 
-          (click)="imageInput.click()"
-          class="upload-button">
-          <mat-icon>add_photo_alternate</mat-icon>
-          Add Images
-        </button>
+    <!-- Integrated Header with Tabs -->
+    <div class="page-header-with-tabs">
+      <div class="header-content">
+        <div class="header-left">
+          <button 
+            type="button"
+            class="back-button"
+            (click)="onBackClick()"
+            title="Go back">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <div class="header-info">
+            <h1 class="page-title">{{ title }}</h1>
+          </div>
         </div>
-      }
+        
+        <div class="header-actions">
+          @for (action of pageActions(); track action.label) {
+            <app-themed-button
+              [variant]="action.variant || 'raised'"
+              [color]="action.color || 'primary'"
+              [icon]="action.icon"
+              [disabled]="action.disabled || false"
+              [pill]="true"
+              [label]="action.label"
+              [height]="'48px'"
+              class="header-action-button"
+              (buttonClick)="action.action()">
+            </app-themed-button>
+          }
+        </div>
+      </div>
     </div>
 
-    <!-- Form Section -->
-    <div class="form-section">
-      @if (objectType) {
-        <!-- Tab Groups -->
-        <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="item-tabs">
+    <!-- Main Content Layout -->
+    <div class="content-layout">
+      <!-- Image Section -->
+      <div class="image-section">
+        <!-- Image Gallery -->
+        <div class="image-gallery-container">
+          <app-item-image-gallery
+            [images]="wallItem.images || []"
+            [showControls]="editing"
+            [maxImages]="10"
+            (imageAdded)="onImageAdded(wallItem)"
+            (imageEdited)="onImageEdited($event, wallItem)"
+            (imageDeleted)="onImageDeleted($event, wallItem)"
+            (primaryImageChanged)="onPrimaryImageChanged($event, wallItem)">
+          </app-item-image-gallery>
+        </div>
+        
+        <!-- Image Upload -->
+        @if (editing) {
+          <div class="image-upload">
+          <input 
+            #imageInput
+            type="file" 
+            multiple 
+            accept="image/*"
+            (change)="onImageSelected($event)"
+            style="display: none;">
+          
+          <button 
+            mat-outlined-button 
+            (click)="imageInput.click()"
+            class="upload-button">
+            <mat-icon>add_photo_alternate</mat-icon>
+            Add Images
+          </button>
+          </div>
+        }
+      </div>
+
+      <!-- Form Section with Integrated Tabs -->
+      <div class="form-section">
+        @if (objectType) {
+          <!-- Tab Groups -->
+          <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="item-tabs">
           
           <!-- Details Tab -->
           <mat-tab label="Details">
@@ -162,64 +192,47 @@
             </form>
           </mat-tab>
           
-          <!-- Related Items Tab (only show for existing items with relationships) -->
+          <!-- Individual tabs for each related entity type -->
           @if (!isNewItem && hasRelatedItems()) {
-            <mat-tab label="Related Items">
-              <div class="related-items-section">
-                @if (loadingRelatedItems) {
-                  <app-loading-state 
-                    type="spinner" 
-                    message="Loading related items..."
-                    [spinnerSize]="40">
-                  </app-loading-state>
-                } @else {
-                  
-                  @for (relatedType of getRelatedObjectTypes(); track relatedType.objectType.id) {
-                    <div class="related-type-section">
-                      <h3 class="related-type-title">
+            @for (relatedType of getRelatedObjectTypes(); track relatedType.objectType.id) {
+              <mat-tab [label]="getTabLabelForEntityType(relatedType.objectType)">
+                <div class="related-items-section">
+                  @if (loadingRelatedItems) {
+                    <app-loading-state 
+                      type="spinner" 
+                      message="Loading {{ relatedType.objectType.name.toLowerCase() }}..."
+                      [spinnerSize]="40">
+                    </app-loading-state>
+                  } @else {
+                    @if (getRelatedItemsForType(relatedType.objectType.id).length > 0) {
+                      <app-wall-items-grid
+                        [items]="getRelatedItemsForType(relatedType.objectType.id)"
+                        [preset]="relatedType.objectType"
+                        [viewMode]="'grid'"
+                        [isSelectionMode]="false"
+                        [selectedItems]="[]"
+                        (viewItem)="navigateToRelatedItem($event)"
+                        (editItem)="navigateToRelatedItem($event)">
+                      </app-wall-items-grid>
+                    } @else {
+                      <div class="no-related-items">
                         <mat-icon [style.color]="relatedType.objectType.color">{{ relatedType.objectType.icon || 'circle' }}</mat-icon>
-                        {{ relatedType.objectType.name }}
-                        <span class="item-count">({{ getRelatedItemsForType(relatedType.objectType.id).length }})</span>
-                      </h3>
-                      
-                      @if (getRelatedItemsForType(relatedType.objectType.id).length > 0) {
-                        <div class="related-items-grid">
-                          @for (item of getRelatedItemsForType(relatedType.objectType.id); track item.id) {
-                            <div class="related-item-card" (click)="navigateToRelatedItem(item)">
-                              <div class="related-item-header">
-                                <mat-icon [style.color]="relatedType.objectType.color">{{ relatedType.objectType.icon || 'circle' }}</mat-icon>
-                                <h4>{{ getItemDisplayName(item) }}</h4>
-                              </div>
-                              <p class="related-item-summary">
-                                {{ getItemSummary(item) }}
-                              </p>
-                            </div>
-                          }
-                        </div>
-                      } @else {
-                        <p class="no-related-items">No {{ relatedType.objectType.name.toLowerCase() }} are linked to this {{ objectType?.name?.toLowerCase() || 'item' }}.</p>
-                      }
-                    </div>
+                        <p>No {{ relatedType.objectType.name.toLowerCase() }} are linked to this {{ objectType?.name?.toLowerCase() || 'item' }}.</p>
+                      </div>
+                    }
+                    
                   }
-                  
-                  @if (getRelatedObjectTypes().length === 0) {
-                    <div class="no-relationships">
-                      <mat-icon>link_off</mat-icon>
-                      <p>No related items found for this {{ objectType?.name?.toLowerCase() || 'item' }}.</p>
-                    </div>
-                  }
-                  
-                }
-              </div>
-            </mat-tab>
+                </div>
+              </mat-tab>
+            }
           }
           
         </mat-tab-group>
       }
     </div>
-  </div>
+    </div>
 
-  <!-- Metadata Section (View Mode Only) -->
+    <!-- Metadata Section (View Mode Only) -->
   @if (!editing && !isNewItem) {
     <div class="metadata-section">
     <mat-card class="metadata-card">
@@ -255,7 +268,7 @@
     </div>
   }
   
-  </app-page-layout>
+  </div>
 }
 
 <!-- Loading State -->

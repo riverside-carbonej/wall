@@ -170,11 +170,19 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
   private initializeForm(preset: WallObjectType, item: WallItem, skipFormStateRegistration = false) {
     const formControls: any = {};
     
+    console.log('🔧 Initializing form for preset:', preset.name);
+    console.log('📊 Item fieldData:', item.fieldData);
+    
     preset.fields.forEach(field => {
       const validators = field.required ? [Validators.required] : [];
       const value = item.fieldData[field.id] !== undefined && item.fieldData[field.id] !== null 
         ? item.fieldData[field.id] 
         : '';
+      
+      if (field.type === 'entity') {
+        console.log(`🔗 Entity field "${field.name}" (${field.id}): value =`, value);
+      }
+      
       formControls[field.id] = [value, validators];
     });
 
@@ -478,16 +486,20 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
         this.pendingImages = [];
       }
       
+      console.log('📝 Form values being saved:', this.itemForm.value);
+      
       const updatedItem: Partial<WallItem> = {
         fieldData: this.itemForm.value,
         images: allImages,
         primaryImageIndex: this.primaryImageIndex,
         updatedAt: new Date()
       };
+      
+      console.log('📤 Sending update with fieldData:', updatedItem.fieldData);
 
       await this.wallItemService.updateWallItem(itemId, updatedItem).toPromise();
       
-      console.log('Item updated successfully');
+      console.log('✅ Item updated successfully');
       this.formStateService.setSavingState('preset-item-edit-form', false);
       this.isSaving = false;
       this.attemptedSubmit = false;

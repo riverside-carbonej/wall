@@ -6,14 +6,15 @@
   font-family: var(--md-sys-typescale-body-large-font-family);
 }
 
-/* Page Header */
-.page-header {
+/* Integrated Header */
+.page-header-with-tabs {
   background: var(--md-sys-color-surface);
   border-bottom: 1px solid var(--md-sys-color-outline-variant);
-  padding: 24px;
+  padding: 16px 24px;
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: var(--md-sys-elevation-1);
 }
 
 .header-content {
@@ -22,27 +23,62 @@
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.back-button:hover {
+  background: var(--md-sys-color-surface-container-highest);
+}
+
+.header-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .page-title {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 500;
   color: var(--md-sys-color-on-surface);
+  font-family: 'Google Sans', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
+  flex-shrink: 0;
 }
 
-.action-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 0 16px;
+.header-action-button {
+  flex-shrink: 0;
 }
 
 /* Main Content Layout */
@@ -307,12 +343,18 @@
   margin-bottom: 32px;
 }
 
+.related-type-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
 .related-type-title {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
-  font-size: 18px;
+  margin: 0;
+  font-size: 24px;
   font-weight: 500;
   color: var(--md-sys-color-on-surface);
 }

@@ -15,6 +15,8 @@ import { ImageGalleryComponent } from '../../../../shared/components/image-galle
 import { ThemeService } from '../../../../shared/services/theme.service';
 import { WallItemService } from '../../services/wall-item.service';
 import { MatTabGroup, MatTab } from '../../../../shared/components/material-stubs';
+import { WallItemsGridComponent } from '../wall-items-grid/wall-items-grid.component';
+import { NlpService } from '../../../../shared/services/nlp.service';
 
 export type PageMode = 'create' | 'view' | 'edit';
 
@@ -33,7 +35,8 @@ export type PageMode = 'create' | 'view' | 'edit';
     WallItemImageComponent,
     ImageGalleryComponent,
     MatTabGroup,
-    MatTab
+    MatTab,
+    WallItemsGridComponent
   ],
   template: `
     <div *ngIf="wall && preset">
@@ -199,56 +202,39 @@ export type PageMode = 'create' | 'view' | 'edit';
                       </form>
                     </mat-tab>
                     
-                    <!-- Related Items Tab (only show for existing items with relationships) -->
+                    <!-- Individual tabs for each related entity type -->
                     @if (mode === 'view' && item && hasRelatedItems()) {
-                      <mat-tab label="Related Items">
-                        <div class="related-items-section">
-                          @if (loadingRelatedItems) {
-                            <app-loading-state 
-                              type="spinner" 
-                              message="Loading related items..."
-                              [spinnerSize]="40">
-                            </app-loading-state>
-                          } @else {
-                            
-                            @for (relatedType of getRelatedObjectTypes(); track relatedType.objectType.id) {
-                              <div class="related-type-section">
-                                <h3 class="related-type-title">
+                      @for (relatedType of relatedTypes; track relatedType.objectType.id; let i = $index) {
+                        <mat-tab [label]="getTabLabelForEntityType(relatedType.objectType, i)">
+                          <div class="related-items-section">
+                            @if (loadingRelatedItems) {
+                              <app-loading-state 
+                                type="spinner" 
+                                message="Loading {{ relatedType.objectType.name.toLowerCase() }}..."
+                                [spinnerSize]="40">
+                              </app-loading-state>
+                            } @else {
+                              @if (getRelatedItemsForType(relatedType.objectType.id).length > 0) {
+                                <app-wall-items-grid
+                                  [items]="getRelatedItemsForType(relatedType.objectType.id)"
+                                  [preset]="relatedType.objectType"
+                                  [viewMode]="'grid'"
+                                  [isSelectionMode]="false"
+                                  [selectedItems]="[]"
+                                  (viewItem)="navigateToRelatedItem($event)"
+                                  (editItem)="navigateToRelatedItem($event)">
+                                </app-wall-items-grid>
+                              } @else {
+                                <div class="no-related-items">
                                   <mat-icon [style.color]="relatedType.objectType.color">{{ relatedType.objectType.icon || 'circle' }}</mat-icon>
-                                  {{ relatedType.objectType.name }}
-                                  <span class="item-count">({{ getRelatedItemsForType(relatedType.objectType.id).length }})</span>
-                                </h3>
-                                
-                                @if (getRelatedItemsForType(relatedType.objectType.id).length > 0) {
-                                  <div class="related-items-grid">
-                                    @for (item of getRelatedItemsForType(relatedType.objectType.id); track item.id) {
-                                      <div class="related-item-card" (click)="navigateToRelatedItem(item)">
-                                        <div class="related-item-header">
-                                          <mat-icon [style.color]="relatedType.objectType.color">{{ relatedType.objectType.icon || 'circle' }}</mat-icon>
-                                          <h4>{{ getItemDisplayName(item) }}</h4>
-                                        </div>
-                                        <p class="related-item-summary">
-                                          {{ getItemSummary(item) }}
-                                        </p>
-                                      </div>
-                                    }
-                                  </div>
-                                } @else {
-                                  <p class="no-related-items">No {{ relatedType.objectType.name.toLowerCase() }} are linked to this {{ preset?.name?.toLowerCase() || 'item' }}.</p>
-                                }
-                              </div>
+                                  <p>No {{ relatedType.objectType.name.toLowerCase() }} are linked to this {{ preset?.name?.toLowerCase() || 'item' }}.</p>
+                                </div>
+                              }
+                              
                             }
-                            
-                            @if (getRelatedObjectTypes().length === 0) {
-                              <div class="no-relationships">
-                                <mat-icon>link_off</mat-icon>
-                                <p>No related items found for this {{ preset?.name?.toLowerCase() || 'item' }}.</p>
-                              </div>
-                            }
-                            
-                          }
-                        </div>
-                      </mat-tab>
+                          </div>
+                        </mat-tab>
+                      }
                     }
                     
                   </mat-tab-group>
@@ -803,12 +789,18 @@ export type PageMode = 'create' | 'view' | 'edit';
       margin-bottom: 32px;
     }
 
+    .related-type-header {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    }
+
     .related-type-title {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 16px;
-      font-size: 18px;
+      margin: 0;
+      font-size: 24px;
       font-weight: 500;
       color: var(--md-sys-color-on-surface);
     }
@@ -819,47 +811,7 @@ export type PageMode = 'create' | 'view' | 'edit';
       font-size: 14px;
     }
 
-    .related-items-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-    }
-
-    .related-item-card {
-      background: var(--md-sys-color-surface-container);
-      border: 1px solid var(--md-sys-color-outline-variant);
-      border-radius: var(--md-sys-shape-corner-large);
-      padding: 16px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .related-item-card:hover {
-      background: var(--md-sys-color-surface-container-high);
-      box-shadow: var(--md-sys-elevation-level1);
-      transform: translateY(-2px);
-    }
-
-    .related-item-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-
-    .related-item-header h4 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--md-sys-color-on-surface);
-    }
-
-    .related-item-summary {
-      margin: 0;
-      font-size: 14px;
-      color: var(--md-sys-color-on-surface-variant);
-      line-height: 1.4;
-    }
+    /* Grid component handles its own styling */
 
     .no-related-items,
     .no-relationships {
@@ -917,11 +869,16 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
   // Related items (reverse entity lookups)
   relatedItems: { [objectTypeId: string]: WallItem[] } = {};
   loadingRelatedItems = false;
+  private cachedRelatedTypes: { objectType: WallObjectType; fieldName: string }[] | null = null;
+  
+  // Public property for template binding
+  relatedTypes: { objectType: WallObjectType; fieldName: string }[] = [];
   
   private destroy$ = new Subject<void>();
   private themeService = inject(ThemeService);
   private wallItemService = inject(WallItemService);
   private router = inject(Router);
+  private nlpService = inject(NlpService);
 
   @Output() backClick = new EventEmitter<void>();
   @Output() addImage = new EventEmitter<void>();
@@ -935,12 +892,18 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
   ngOnInit() {
     // Initial check for related items
     this.checkAndLoadRelatedItems();
+    // Initialize related types
+    this.updateRelatedTypes();
   }
 
   ngOnChanges(changes: SimpleChanges) {
     // Check if relevant inputs have changed
     if (changes['mode'] || changes['item'] || changes['wall'] || changes['preset']) {
+      // Invalidate cache when inputs change
+      this.cachedRelatedTypes = null;
       this.checkAndLoadRelatedItems();
+      // Update related types
+      this.updateRelatedTypes();
     }
   }
 
@@ -952,8 +915,30 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
   private checkAndLoadRelatedItems() {
     // Load related items if this is an existing item in view mode and we have all required data
     if (this.mode === 'view' && this.item && this.wall && this.preset) {
-      console.log('Loading related items for:', this.item.id, 'preset:', this.preset.name);
+      console.log('🔍 PresetItemBasePageComponent - Loading related items for:', {
+        itemId: this.item.id,
+        presetName: this.preset.name,
+        presetId: this.preset.id,
+        wallObjectTypes: this.wall.objectTypes?.map(ot => ({ id: ot.id, name: ot.name, fields: ot.fields?.map(f => ({ name: f.name, type: f.type, target: f.entityConfig?.targetObjectTypeId })) }))
+      });
+      
+      // Update related types property 
+      this.updateRelatedTypes();
+      console.log('🔗 Found related types:', this.relatedTypes.map(rt => ({ name: rt.objectType.name, fieldName: rt.fieldName, id: rt.objectType.id })));
+      console.log('🔍 Total related types count:', this.relatedTypes.length);
+      
+      // Debug: Show all entity fields to understand why no relationships are found
+      // Debug logging removed - relationships working correctly
+      
       this.loadRelatedItems();
+    } else {
+      console.log('❌ PresetItemBasePageComponent - Cannot load related items:', {
+        mode: this.mode,
+        hasItem: !!this.item,
+        hasWall: !!this.wall,
+        hasPreset: !!this.preset,
+        shouldLoad: this.mode === 'view' && this.item && this.wall && this.preset
+      });
     }
   }
 
@@ -1121,35 +1106,134 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
 
   // Related items methods
   hasRelatedItems(): boolean {
-    const relatedTypes = this.getRelatedObjectTypes();
-    return relatedTypes.length > 0;
+    return this.relatedTypes.length > 0;
   }
 
+  private updateRelatedTypes() {
+    console.log('🔄 Updating relatedTypes property');
+    const types = this.getRelatedObjectTypes();
+    this.relatedTypes = types;
+    console.log('✅ relatedTypes property updated with', types.length, 'types');
+  }
+  
   getRelatedObjectTypes(): { objectType: WallObjectType; fieldName: string }[] {
+    console.log('🔵 getRelatedObjectTypes() called');
+    
+    // Return cached result if available
+    if (this.cachedRelatedTypes !== null) {
+      console.log('📦 Returning cached result:', this.cachedRelatedTypes.length, 'types');
+      return this.cachedRelatedTypes;
+    }
+    
     if (!this.wall || !this.preset) {
+      console.log('❌ No wall or preset');
       return [];
     }
     
-    const relatedTypes: { objectType: WallObjectType; fieldName: string }[] = [];
+    console.log(`📊 Current preset: ${this.preset.name} (${this.preset.id})`);
+    console.log(`📊 Total object types in wall: ${this.wall.objectTypes?.length}`);
     
-    // Find all object types that have entity fields pointing to this object type
+    const relatedTypesMap = new Map<string, { objectType: WallObjectType; fieldNames: string[] }>();
+    
     this.wall.objectTypes?.forEach((otherObjectType: WallObjectType) => {
-      if (otherObjectType.id === this.preset?.id) return; // Skip self
+      if (otherObjectType.id === this.preset?.id) {
+        console.log(`⏭️ Skipping self: ${otherObjectType.name}`);
+        return; // Skip self
+      }
       
+      let foundRelationship = false;
+      const fieldNames: string[] = [];
+      
+      // INCOMING: Find object types that have entity fields pointing TO this object type
       otherObjectType.fields.forEach((field: FieldDefinition) => {
-        const targetId = field.entityConfig?.targetObjectTypeId;
-        const isMatch = targetId === this.preset?.id || 
-                       targetId === this.preset?.name?.toLowerCase() ||
-                       (targetId === 'deployment' && this.preset?.name?.toLowerCase() === 'deployment');
-        
-        if (field.type === 'entity' && isMatch) {
-          relatedTypes.push({ 
-            objectType: otherObjectType, 
-            fieldName: field.name 
-          });
+        if (field.type === 'entity') {
+          const targetId = field.entityConfig?.targetObjectTypeId;
+          const isTargetingThis = 
+            targetId === this.preset?.id ||
+            targetId === this.preset?.name?.toLowerCase();
+          
+          if (isTargetingThis) {
+            console.log(`📥 INCOMING: ${otherObjectType.name}.${field.name} → ${this.preset?.name}`);
+            foundRelationship = true;
+            fieldNames.push(field.name);
+          }
         }
       });
+      
+      // OUTGOING: Find object types that this object type points TO
+      if (this.preset) {
+        this.preset.fields.forEach((field: FieldDefinition) => {
+          if (field.type === 'entity') {
+            const targetId = field.entityConfig?.targetObjectTypeId;
+            console.log(`   Checking field: ${field.name}, type: ${field.type}, target: ${targetId}`);
+            
+            const isTargetingOther = 
+              targetId === otherObjectType.id ||
+              targetId === otherObjectType.name?.toLowerCase();
+            
+            if (isTargetingOther) {
+              console.log(`📤 OUTGOING: ${this.preset?.name}.${field.name} → ${otherObjectType.name}`);
+              foundRelationship = true;
+              fieldNames.push(field.name);
+            }
+          }
+        });
+      }
+      
+      // Add to map only once per object type, combining field names
+      if (foundRelationship) {
+        const existing = relatedTypesMap.get(otherObjectType.id);
+        if (existing) {
+          console.log(`⚠️ DUPLICATE FOUND: ${otherObjectType.name} already in map!`);
+          console.log(`   Existing fields: ${existing.fieldNames.join(', ')}`);
+          console.log(`   New fields: ${fieldNames.join(', ')}`);
+          existing.fieldNames.push(...fieldNames);
+        } else {
+          console.log(`✅ Adding to map: ${otherObjectType.name} (${otherObjectType.id})`);
+          relatedTypesMap.set(otherObjectType.id, {
+            objectType: otherObjectType,
+            fieldNames: [...new Set(fieldNames)] // Remove duplicate field names
+          });
+        }
+      }
     });
+    
+    console.log(`📊 Map size: ${relatedTypesMap.size}`);
+    console.log('📊 Map contents:');
+    relatedTypesMap.forEach((value, key) => {
+      console.log(`   - ${key}: ${value.objectType.name} (fields: ${value.fieldNames.join(', ')})`);
+    });
+    
+    // Convert map to array with single field name (first one found)
+    const relatedTypes = Array.from(relatedTypesMap.values()).map(item => ({
+      objectType: item.objectType,
+      fieldName: item.fieldNames[0] // Just use first field name for display
+    }));
+    
+    console.log(`🏁 Final array length: ${relatedTypes.length}`);
+    
+    // Check for duplicate IDs!
+    const seenIds = new Set<string>();
+    const duplicateIds: string[] = [];
+    
+    relatedTypes.forEach((rt, index) => {
+      console.log(`   [${index}] ${rt.objectType.name} (${rt.objectType.id})`);
+      
+      if (seenIds.has(rt.objectType.id)) {
+        console.error(`🚨 DUPLICATE ID DETECTED: ${rt.objectType.id} is used by multiple items!`);
+        duplicateIds.push(rt.objectType.id);
+      }
+      seenIds.add(rt.objectType.id);
+    });
+    
+    if (duplicateIds.length > 0) {
+      console.error('🚨🚨🚨 CRITICAL: Duplicate IDs found in related types!', duplicateIds);
+      console.error('This will cause Angular to create duplicate tabs!');
+    }
+    
+    // Cache the result before returning
+    this.cachedRelatedTypes = relatedTypes;
+    console.log('💾 Result cached');
     
     return relatedTypes;
   }
@@ -1161,15 +1245,16 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
     this.relatedItems = {};
     
     try {
-      const relatedTypes = this.getRelatedObjectTypes();
+      // Use the stable relatedTypes property instead of calling the method
+      const allItems = await firstValueFrom(
+        this.wallItemService.getWallItems(this.wall.id!)
+      );
       
-      for (const { objectType, fieldName } of relatedTypes) {
-        // Find all items of this object type that reference the current item
-        const allItems = await firstValueFrom(
-          this.wallItemService.getWallItems(this.wall.id!)
-        );
+      for (const { objectType, fieldName } of this.relatedTypes) {
+        const relatedItemsForType: WallItem[] = [];
         
-        const relatedItemsForType = allItems.filter(item => {
+        // INCOMING: Find items of this object type that reference the current item
+        const incomingItems = allItems.filter(item => {
           if (item.objectTypeId !== objectType.id) return false;
           
           // Check if this item's entity fields contain reference to current item
@@ -1184,8 +1269,33 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
           });
         });
         
-        if (relatedItemsForType.length > 0) {
-          this.relatedItems[objectType.id] = relatedItemsForType;
+        // OUTGOING: Find items of this object type that the current item references
+        const outgoingItems = allItems.filter(item => {
+          if (item.objectTypeId !== objectType.id) return false;
+          
+          // Check if the current item's entity fields contain reference to this item
+          if (this.preset) {
+            const currentItemEntityFields = this.preset.fields.filter(f => f.type === 'entity');
+            
+            return currentItemEntityFields.some(field => {
+              const fieldValue = this.item!.fieldData[field.id];
+              if (Array.isArray(fieldValue)) {
+                return fieldValue.includes(item.id);
+              }
+              return fieldValue === item.id;
+            });
+          }
+          return false;
+        });
+        
+        // Combine both directions and remove duplicates
+        const combinedItems = [...incomingItems, ...outgoingItems];
+        const uniqueItems = combinedItems.filter((item, index, self) => 
+          index === self.findIndex(t => t.id === item.id)
+        );
+        
+        if (uniqueItems.length > 0) {
+          this.relatedItems[objectType.id] = uniqueItems;
         }
       }
     } catch (error) {
@@ -1234,5 +1344,11 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
       .slice(0, 2) as string[];
     
     return values.join(' • ') || 'No additional details';
+  }
+
+  getTabLabelForEntityType(objectType: WallObjectType, index?: number): string {
+    const label = this.nlpService.getDisplayPlural(objectType.name);
+    console.log(`🏷️ Tab label requested - Index: ${index}, Type: ${objectType.name} (${objectType.id}), Label: ${label}`);
+    return label;
   }
 }
