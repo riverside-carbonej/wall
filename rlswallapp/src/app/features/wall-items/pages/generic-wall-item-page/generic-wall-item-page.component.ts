@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions } from '../../../../shared/components/material-stubs';
@@ -71,6 +71,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   // Image management
   selectedImages: File[] = [];
   imagePreviewUrls: string[] = [];
+  hasImageChanges = signal(false); // Using signal for reactivity
   
   // Location management
   showLocationPicker = false;
@@ -81,6 +82,9 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   // Form state management
   formState$!: Observable<FormState>;
   private initialFormData: any = {};
+  
+  // Computed page actions that will react to state changes
+  pageActions = computed(() => this.computePageActions());
   
   constructor(
     private route: ActivatedRoute,
@@ -105,7 +109,9 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     this.formStateService.unregisterForm('generic-wall-item-form');
   }
 
-  getPageActions(): PageAction[] {
+  private computePageActions(): PageAction[] {
+    // Access reactive state to ensure change detection
+    const hasChanges = this.hasImageChanges();
     const actions: PageAction[] = [];
     
     if (this.canEdit()) {
@@ -125,7 +131,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
           icon: this.isSaving ? 'hourglass_empty' : 'save',
           variant: 'raised',
           color: 'primary',
-          disabled: !(this.formStateService.getFormState('generic-wall-item-form')?.canSave ?? false),
+          disabled: !this.canSave(),
           action: () => this.onSaveItem()
         });
       }
@@ -321,7 +327,14 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     const formValues: { [key: string]: any } = {};
     
     this.objectType.fields.forEach(field => {
-      formValues[field.id] = this.wallItem.fieldData[field.id] || this.getDefaultValueForField(field);
+      let value = this.wallItem.fieldData[field.id] || this.getDefaultValueForField(field);
+      
+      // Convert Date objects to ISO string for date fields
+      if (field.type === 'date' && value instanceof Date) {
+        value = value.toISOString().split('T')[0]; // YYYY-MM-DD format
+      }
+      
+      formValues[field.id] = value;
     });
     
     this.itemForm.patchValue(formValues, { emitEvent: false });
@@ -331,8 +344,12 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     if (!this.objectType) return;
     
     this.objectType.fields.forEach(field => {
-      const formValue = this.itemForm.get(field.id)?.value;
+      let formValue = this.itemForm.get(field.id)?.value;
       if (formValue !== undefined) {
+        // Convert date strings to Date objects for date fields
+        if (field.type === 'date' && formValue && typeof formValue === 'string') {
+          formValue = new Date(formValue);
+        }
         this.wallItem.fieldData[field.id] = formValue;
       }
     });
@@ -391,6 +408,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
       });
       
       // Mark form as dirty when images are selected
+      this.hasImageChanges.set(true);
       this.markFormAsDirty();
     }
   }
@@ -406,23 +424,40 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   }
   
   onImageAdded(item: WallItem) {
+    // When "Add Images" is clicked in the gallery, trigger file input
     this.imageInput.nativeElement.click();
-    // Mark form as dirty to enable save button
+    // Note: markFormAsDirty will be called in onImageSelected when files are chosen
+  }
+  
+  onImageEdited(event: WallItemImage, item: WallItem) {
+    // Handle image editing - update the image in the wallItem
+    if (!item.images) return;
+    
+    const imageIndex = item.images.findIndex(img => img.id === event.id);
+    if (imageIndex >= 0) {
+      item.images[imageIndex] = event;
+    }
+    this.hasImageChanges.set(true);
     this.markFormAsDirty();
   }
   
-  onImageEdited(event: any, item: WallItem) {
-    // Handle image editing
+  onImageDeleted(event: WallItemImage, item: WallItem) {
+    // Handle image deletion - remove the image from wallItem
+    if (!item.images) return;
+    
+    item.images = item.images.filter(img => img.id !== event.id);
+    this.hasImageChanges.set(true);
     this.markFormAsDirty();
   }
   
-  onImageDeleted(event: any, item: WallItem) {
-    // Handle image deletion
-    this.markFormAsDirty();
-  }
-  
-  onPrimaryImageChanged(event: any, item: WallItem) {
-    // Handle primary image change
+  onPrimaryImageChanged(event: WallItemImage, item: WallItem) {
+    // Handle primary image change - update isPrimary flag
+    if (!item.images) return;
+    
+    item.images.forEach(img => {
+      img.isPrimary = img.id === event.id;
+    });
+    this.hasImageChanges.set(true);
     this.markFormAsDirty();
   }
   
@@ -430,15 +465,18 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     // Mark the form as dirty even if no form fields changed
     if (this.itemForm) {
       this.itemForm.markAsDirty();
-      // Trigger change detection to update form state
-      this.cdr.detectChanges();
+      // Force change detection to update the UI
+      this.cdr.markForCheck();
+      // Also trigger immediate change detection
+      setTimeout(() => {
+        this.cdr.detectChanges();
+      }, 0);
     }
   }
   
   async onSaveItem() {
-    // Check form state
-    const formState = this.formStateService.getFormState('generic-wall-item-form');
-    if (!formState?.canSave) {
+    // Check if we can save
+    if (!this.canSave()) {
       this.markFormGroupTouched(this.itemForm);
       this.showValidationSnackBar();
       return;
@@ -476,6 +514,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
       
       // Success! 
       this.formStateService.setSavingState('generic-wall-item-form', false);
+      this.hasImageChanges.set(false); // Reset image changes flag
       
       if (this.isNewItem) {
         // For create mode: navigate to the created item page
@@ -569,6 +608,13 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   canDelete(): boolean {
     // TODO: Implement permission checking
     return !this.isNewItem;
+  }
+  
+  canSave(): boolean {
+    // Check if form state allows saving OR if there are image changes
+    const formState = this.formStateService.getFormState('generic-wall-item-form');
+    const formCanSave = formState?.canSave ?? false;
+    return formCanSave || this.hasImageChanges();
   }
   
   async onDeleteItem() {

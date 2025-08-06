@@ -110,14 +110,21 @@
               <span class="required-indicator">*</span>
             }
           </label>
-          <div class="input-container" [class.error]="formControl?.invalid && formControl?.touched">
+          <div class="date-input-container" [class.error]="formControl?.invalid && formControl?.touched">
             <mat-icon class="prefix-icon" [icon]="'calendar_today'"></mat-icon>
-            <textarea 
-              class="material-textarea" 
+            <input 
+              type="date"
+              class="material-input date-input" 
               [formControl]="formControl"
-              [placeholder]="field.placeholder || 'Enter date (e.g., MM/DD/YYYY, Month DD, YYYY)'"
+              [placeholder]="field.placeholder || ''"
               [required]="field.required"
-              rows="1"></textarea>
+              #dateInput>
+            <button 
+              type="button"
+              class="date-choose-button"
+              (click)="dateInput.showPicker()">
+              Choose
+            </button>
           </div>
           @if (formControl?.invalid && formControl?.touched) {
             <div class="field-error">

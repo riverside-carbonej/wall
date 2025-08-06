@@ -183,10 +183,12 @@ import { WallItemImageComponent } from '../wall-item-image/wall-item-image.compo
       max-width: 90vw;
       max-height: 90vh;
       width: 1200px;
+      height: 90vh;
       display: flex;
       flex-direction: column;
       box-shadow: var(--md-sys-elevation-5);
       overflow: hidden;
+      position: relative;
     }
 
     /* Header */
@@ -229,17 +231,21 @@ import { WallItemImageComponent } from '../wall-item-image/wall-item-image.compo
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 400px;
+      min-height: 0; /* Allow shrinking */
       position: relative;
+      overflow: hidden;
     }
 
     .main-image-container {
       position: relative;
       width: 100%;
-      height: 500px;
+      height: 100%;
+      max-height: calc(100% - 40px); /* Leave space for margins */
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
     }
 
     .main-image-container app-wall-item-image {
@@ -348,6 +354,9 @@ import { WallItemImageComponent } from '../wall-item-image/wall-item-image.compo
     .thumbnail-strip {
       padding: 20px 24px;
       border-top: 1px solid var(--md-sys-color-outline-variant);
+      flex-shrink: 0; /* Prevent shrinking */
+      height: 120px; /* Fixed height */
+      box-sizing: border-box;
     }
 
     .thumbnails-container {
@@ -355,6 +364,8 @@ import { WallItemImageComponent } from '../wall-item-image/wall-item-image.compo
       gap: 12px;
       overflow-x: auto;
       padding: 4px;
+      height: 100%;
+      align-items: center;
     }
 
     .thumbnail {

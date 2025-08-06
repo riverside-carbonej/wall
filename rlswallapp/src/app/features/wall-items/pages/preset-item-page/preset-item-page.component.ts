@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -31,7 +31,7 @@ import { FormStateService, FormState } from '../../../../shared/services/form-st
       [attemptedSubmit]="attemptedSubmit"
       [images]="getAllImages()"
       [primaryImageIndex]="primaryImageIndex"
-      [canSave]="currentMode === 'edit' ? ((formState$ | async)?.canSave ?? false) : true"
+      [canSave]="canSaveValue"
       (backClick)="goBack()"
       (addImage)="addImage()"
       (changeImage)="changeImage($event)"
@@ -65,10 +65,14 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
   images: WallItemImage[] = [];
   pendingImages: PendingImage[] = [];
   primaryImageIndex = 0;
+  private hasImageChanges = false;
 
   // Form state management
   formState$!: Observable<FormState>;
   private initialFormData: any = {};
+  
+  // Track canSave state
+  canSaveValue = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -87,6 +91,9 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
     
     // Determine mode based on route
     this.currentMode = this.router.url.includes('/edit') ? 'edit' : 'view';
+    
+    // Subscribe to form state changes
+    this.subscribeToFormState();
 
     // Get route parameters
     const routeParams$ = this.route.paramMap.pipe(
@@ -143,6 +150,21 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
     this.destroy$.next();
     this.destroy$.complete();
     this.formStateService.unregisterForm('preset-item-edit-form');
+  }
+  
+  private subscribeToFormState() {
+    // We'll subscribe to form state when it's registered in toggleEditMode
+  }
+  
+  private updateCanSave() {
+    if (this.currentMode !== 'edit') {
+      this.canSaveValue = false;
+      return;
+    }
+    
+    const formCanSave = this.formStateService.getFormState('preset-item-edit-form')?.canSave ?? false;
+    this.canSaveValue = formCanSave || this.hasImageChanges;
+    this.cdr.detectChanges();
   }
 
   private initializeForm(preset: WallObjectType, item: WallItem, skipFormStateRegistration = false) {
@@ -262,6 +284,14 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
         initialData: this.initialFormData
       });
       
+      // Subscribe to form state changes
+      this.formState$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+        this.updateCanSave();
+      });
+      
+      // Update can save state
+      this.updateCanSave();
+      
       // Force change detection
       this.cdr.detectChanges();
     } else {
@@ -309,6 +339,10 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
       // Add to pending images
       this.pendingImages.push(...processed.valid);
       
+      // Mark that images have changed
+      this.hasImageChanges = true;
+      this.updateCanSave();
+      
       // Set as primary if it's the first image
       const allImages = this.getAllImages();
       if (allImages.length === processed.valid.length) {
@@ -349,6 +383,10 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
         this.pendingImages.push(newImage);
         // TODO: Mark the old image for deletion
       }
+      
+      // Mark that images have changed
+      this.hasImageChanges = true;
+      this.updateCanSave();
     } catch (error) {
       console.error('Error changing image:', error);
     }
@@ -377,10 +415,18 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
     } else if (this.primaryImageIndex > index) {
       this.primaryImageIndex--;
     }
+    
+    // Mark that images have changed
+    this.hasImageChanges = true;
+    this.updateCanSave();
   }
 
   setPrimaryImage(index: number) {
     this.primaryImageIndex = index;
+    
+    // Mark that images have changed
+    this.hasImageChanges = true;
+    this.updateCanSave();
   }
 
   // Form Actions
@@ -395,8 +441,8 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
   async onSave() {
     this.attemptedSubmit = true;
     
-    const formState = this.formStateService.getFormState('preset-item-edit-form');
-    if (!formState?.canSave) {
+    // Use our canSaveValue that includes image changes
+    if (!this.canSaveValue) {
       return;
     }
 
@@ -448,6 +494,9 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
       
       // Update local images array
       this.images = allImages;
+      
+      // Reset image changes flag after successful save
+      this.hasImageChanges = false;
       
       // Refresh the item data
       this.item$ = this.wallItemService.getWallItemById(itemId).pipe(

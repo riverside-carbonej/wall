@@ -41,12 +41,16 @@ export class WallItemService {
       return from(getDocs(q)).pipe(
         map(snapshot => {
           console.log('✅ Wall items query successful, found', snapshot.docs.length, 'items');
-          return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: this.timestampToDate(doc.data()['createdAt']),
-            updatedAt: this.timestampToDate(doc.data()['updatedAt'])
-          } as WallItem));
+          return snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              fieldData: this.convertTimestampsInFieldData(data['fieldData']),
+              createdAt: this.timestampToDate(data['createdAt']),
+              updatedAt: this.timestampToDate(data['updatedAt'])
+            } as WallItem;
+          });
         }),
         catchError(error => {
           console.error('❌ Error getting wall items for wallId:', wallId, 'Error:', error);
@@ -73,12 +77,16 @@ export class WallItemService {
       
       return from(getDocs(q)).pipe(
         map(snapshot => 
-          snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: this.timestampToDate(doc.data()['createdAt']),
-            updatedAt: this.timestampToDate(doc.data()['updatedAt'])
-          } as WallItem))
+          snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              fieldData: this.convertTimestampsInFieldData(data['fieldData']),
+              createdAt: this.timestampToDate(data['createdAt']),
+              updatedAt: this.timestampToDate(data['updatedAt'])
+            } as WallItem;
+          })
         ),
         catchError(error => {
           console.error('Error getting wall items by object type:', error);
@@ -95,11 +103,13 @@ export class WallItemService {
       return from(getDoc(docRef)).pipe(
         map(docSnap => {
           if (docSnap.exists()) {
+            const data = docSnap.data();
             return {
               id: docSnap.id,
-              ...docSnap.data(),
-              createdAt: this.timestampToDate(docSnap.data()['createdAt']),
-              updatedAt: this.timestampToDate(docSnap.data()['updatedAt'])
+              ...data,
+              fieldData: this.convertTimestampsInFieldData(data['fieldData']),
+              createdAt: this.timestampToDate(data['createdAt']),
+              updatedAt: this.timestampToDate(data['updatedAt'])
             } as WallItem;
           }
           return null;
@@ -317,6 +327,49 @@ export class WallItemService {
       return new Date(timestamp.seconds * 1000);
     }
     return timestamp || new Date();
+  }
+
+  private convertTimestampsInFieldData(fieldData: any): any {
+    if (!fieldData) return fieldData;
+    
+    const converted: any = {};
+    
+    for (const key in fieldData) {
+      const value = fieldData[key];
+      
+      // Check if it's a Firestore Timestamp
+      if (value && typeof value === 'object' && 'seconds' in value && 'nanoseconds' in value) {
+        // Convert Firestore Timestamp to JavaScript Date
+        converted[key] = this.timestampToDate(value);
+      } else if (value && typeof value === 'object' && value.toDate) {
+        // Handle Timestamp objects with toDate method
+        converted[key] = value.toDate();
+      } else if (Array.isArray(value)) {
+        // Handle arrays recursively
+        converted[key] = value.map(item => this.convertTimestampValue(item));
+      } else if (value && typeof value === 'object') {
+        // Handle nested objects recursively
+        converted[key] = this.convertTimestampsInFieldData(value);
+      } else {
+        // Keep the value as is
+        converted[key] = value;
+      }
+    }
+    
+    return converted;
+  }
+
+  private convertTimestampValue(value: any): any {
+    if (value && typeof value === 'object' && 'seconds' in value && 'nanoseconds' in value) {
+      return this.timestampToDate(value);
+    } else if (value && typeof value === 'object' && value.toDate) {
+      return value.toDate();
+    } else if (Array.isArray(value)) {
+      return value.map(item => this.convertTimestampValue(item));
+    } else if (value && typeof value === 'object') {
+      return this.convertTimestampsInFieldData(value);
+    }
+    return value;
   }
 
   private cleanUndefinedValues(obj: any): any {

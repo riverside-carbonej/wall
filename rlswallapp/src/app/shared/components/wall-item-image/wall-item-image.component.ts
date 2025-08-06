@@ -27,6 +27,12 @@ import { ThemeService } from '../../services/theme.service';
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
     .wall-item-image {
       position: relative;
       width: 100%;

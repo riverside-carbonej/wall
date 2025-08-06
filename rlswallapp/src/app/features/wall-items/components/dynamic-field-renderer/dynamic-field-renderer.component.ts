@@ -104,10 +104,16 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     }
     
     // Get initial value from form control or input property
-    const initialValue = this.formControl.value !== null && this.formControl.value !== undefined 
+    let initialValue = this.formControl.value !== null && this.formControl.value !== undefined 
       ? this.formControl.value 
       : this.value;
     
+    // Convert Date objects to ISO string format for date inputs
+    if (this.field.type === 'date' && initialValue instanceof Date) {
+      const isoString = initialValue.toISOString().split('T')[0]; // YYYY-MM-DD format
+      this.formControl.setValue(isoString, { emitEvent: false });
+      initialValue = isoString;
+    }
     
     if (this.field.type === 'multiselect' && initialValue) {
       this.selectedOptions = Array.isArray(initialValue) ? initialValue : [];

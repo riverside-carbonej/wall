@@ -43,51 +43,51 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
         </div>
       </div>
 
-      <!-- Gallery Thumbnails -->
-      <div class="thumbnail-gallery" *ngIf="galleryImages.length > 0">
-        <div class="thumbnail-container" *ngFor="let image of galleryImages; trackBy: trackByImageId">
-          <img 
-            [src]="image.url" 
-            [alt]="image.altText || 'Gallery image'"
-            class="thumbnail-image"
-            [class.primary]="image.isPrimary"
-            (click)="openLightbox(image)"
-            loading="lazy">
-          <div class="thumbnail-overlay" *ngIf="showControls">
-            <button 
-              class="btn-icon thumbnail-action"
-              (click)="setPrimaryImage(image)"
-              [class.active]="image.isPrimary"
-              [title]="image.isPrimary ? 'Primary image' : 'Set as primary'">
-              <span class="material-icons md-16">{{ image.isPrimary ? 'star' : 'star_border' }}</span>
-            </button>
-            <button 
-              class="btn-icon thumbnail-action"
-              (click)="editImage(image)"
-              [title]="'Edit image'">
-              <span class="material-icons md-16">edit</span>
-            </button>
-            <button 
-              class="btn-icon thumbnail-action delete-action"
-              (click)="deleteImage(image)"
-              [title]="'Delete image'">
-              <span class="material-icons md-16">delete</span>
-            </button>
-          </div>
-          <div class="image-badge" *ngIf="image.isPrimary">
-            <span class="material-icons md-12">star</span>
+      <!-- Gallery Section with Thumbnails and Add Button -->
+      <div class="gallery-controls" *ngIf="showControls">
+        <div class="thumbnail-gallery" *ngIf="images.length > 1">
+          <div class="thumbnail-container" *ngFor="let image of galleryImages; trackBy: trackByImageId">
+            <img 
+              [src]="image.url" 
+              [alt]="image.altText || 'Gallery image'"
+              class="thumbnail-image"
+              [class.primary]="image.isPrimary"
+              (click)="openLightbox(image)"
+              loading="lazy">
+            <div class="thumbnail-overlay">
+              <button 
+                class="btn-icon thumbnail-action"
+                (click)="setPrimaryImage(image)"
+                [class.active]="image.isPrimary"
+                [title]="image.isPrimary ? 'Primary image' : 'Set as primary'">
+                <span class="material-icons md-16">{{ image.isPrimary ? 'star' : 'star_border' }}</span>
+              </button>
+              <button 
+                class="btn-icon thumbnail-action"
+                (click)="editImage(image)"
+                [title]="'Edit image'">
+                <span class="material-icons md-16">edit</span>
+              </button>
+              <button 
+                class="btn-icon thumbnail-action delete-action"
+                (click)="deleteImage(image)"
+                [title]="'Delete image'">
+                <span class="material-icons md-16">delete</span>
+              </button>
+            </div>
+            <div class="image-badge" *ngIf="image.isPrimary">
+              <span class="material-icons md-12">star</span>
+            </div>
           </div>
         </div>
-      </div>
-
-      <!-- Add Image Button -->
-      <div class="add-image-container" *ngIf="showControls">
+        
+        <!-- Add Image Button -->
         <button 
-          class="add-image-button btn-outline touch-target interactive"
+          class="add-image-button btn-outline touch-target"
           (click)="addImage()"
           [title]="'Add new image'">
           <span class="material-icons md-20">add_photo_alternate</span>
-          <span>Add Image</span>
+          <span *ngIf="images.length === 1">Add Image</span>
         </button>
       </div>
     </div>
@@ -109,14 +109,15 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
 
     <!-- Lightbox Modal -->
     <div class="lightbox-overlay" *ngIf="selectedImage()" (click)="closeLightbox()">
+      <!-- Close button outside container to ensure it's never covered -->
+      <button 
+        class="lightbox-close btn-icon"
+        (click)="closeLightbox()"
+        [title]="'Close'">
+        <span class="material-icons md-24">close</span>
+      </button>
+      
       <div class="lightbox-container" (click)="$event.stopPropagation()">
-        <button 
-          class="lightbox-close btn-icon"
-          (click)="closeLightbox()"
-          [title]="'Close'">
-          <span class="material-icons md-24">close</span>
-        </button>
-        
         <img 
           [src]="selectedImage()?.url" 
           [alt]="selectedImage()?.altText || 'Full size image'"
@@ -148,7 +149,12 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
     .image-gallery {
       display: flex;
       flex-direction: column;
-      gap: var(--md-sys-spacing-lg);
+      gap: var(--md-sys-spacing-md);
+      padding: var(--md-sys-spacing-lg);
+      height: 100%;
+      box-sizing: border-box;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     /* Primary Image */
@@ -158,13 +164,17 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       overflow: hidden;
       background: var(--md-sys-color-surface-variant);
       box-shadow: var(--md-sys-elevation-level2);
+      max-height: 300px; /* Constrain height to prevent overflow */
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .primary-image {
       width: 100%;
-      height: auto;
-      max-height: 400px;
-      object-fit: cover;
+      height: 100%;
+      max-height: 300px;
+      object-fit: contain; /* Changed to contain to fit within bounds */
       cursor: pointer;
       transition: transform var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
     }
@@ -209,20 +219,31 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       font-size: var(--md-sys-typescale-body-medium-font-size);
     }
 
+    /* Gallery Controls Section */
+    .gallery-controls {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--md-sys-spacing-lg);
+      margin-top: var(--md-sys-spacing-lg);
+    }
+
     /* Thumbnail Gallery */
     .thumbnail-gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      display: flex;
       gap: var(--md-sys-spacing-md);
+      flex-wrap: wrap;
+      flex: 1;
     }
 
     .thumbnail-container {
       position: relative;
-      aspect-ratio: 1;
+      width: 120px;
+      height: 120px;
       border-radius: var(--md-sys-shape-corner-medium);
       overflow: hidden;
       background: var(--md-sys-color-surface-variant);
       box-shadow: var(--md-sys-elevation-level1);
+      flex-shrink: 0;
     }
 
     .thumbnail-image {
@@ -238,7 +259,8 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
     }
 
     .thumbnail-image.primary {
-      border: 2px solid var(--md-sys-color-primary);
+      border: 3px solid var(--md-sys-color-primary);
+      box-shadow: 0 0 0 1px var(--md-sys-color-primary);
     }
 
     .thumbnail-overlay {
@@ -265,6 +287,13 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       color: var(--md-sys-color-on-surface);
       width: 32px;
       height: 32px;
+      border-radius: var(--md-sys-shape-corner-small);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
     }
 
     .thumbnail-action.active {
@@ -290,16 +319,32 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       justify-content: center;
     }
 
-    /* Add Image */
-    .add-image-container {
+    /* Add Image Button */
+    .add-image-button {
+      width: 120px;
+      height: 120px;
       display: flex;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
+      gap: var(--md-sys-spacing-xs);
+      border: 2px dashed var(--md-sys-color-outline-variant);
+      border-radius: var(--md-sys-shape-corner-medium);
+      background: var(--md-sys-color-surface-container-lowest);
+      color: var(--md-sys-color-on-surface-variant);
+      cursor: pointer;
+      transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+      flex-shrink: 0;
     }
 
-    .add-image-button {
-      display: flex;
-      align-items: center;
-      gap: var(--md-sys-spacing-sm);
+    .add-image-button:hover {
+      background: var(--md-sys-color-surface-container-low);
+      border-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-primary);
+    }
+
+    .add-image-button span {
+      display: block;
     }
 
     /* Empty State */
@@ -338,28 +383,34 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       background: rgba(0, 0, 0, 0.95);
       z-index: 2000;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       animation: fadeIn var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-standard);
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      padding: 80px 40px 40px 40px; /* Extra top padding for close button */
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .lightbox-container {
       position: relative;
-      max-width: 90vw;
-      max-height: calc(90vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      width: 100%;
+      height: 100%;
+      max-width: 1200px;
       display: flex;
       flex-direction: column;
-      margin: var(--md-sys-spacing-lg);
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
     }
 
     .lightbox-close {
       position: fixed;
-      top: var(--md-sys-spacing-lg);
-      right: var(--md-sys-spacing-lg);
+      top: 20px;
+      right: 20px;
       background: rgba(0, 0, 0, 0.8);
       color: white;
-      z-index: 2001;
+      z-index: 2002; /* Higher than lightbox content */
       backdrop-filter: blur(4px);
       width: 48px;
       height: 48px;
@@ -369,6 +420,7 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       border-radius: 50%;
       border: 2px solid rgba(255, 255, 255, 0.2);
       transition: all 0.2s ease;
+      cursor: pointer;
     }
     
     .lightbox-close:hover {
@@ -378,10 +430,15 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
     }
 
     .lightbox-image {
-      max-width: 100%;
-      max-height: 80vh;
+      max-width: calc(100% - 40px);
+      max-height: calc(100% - 40px);
+      width: auto;
+      height: auto;
       object-fit: contain;
       border-radius: var(--md-sys-shape-corner-medium);
+      display: block;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      margin: auto;
     }
 
     .lightbox-info {
@@ -397,25 +454,55 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
     }
 
     .lightbox-nav {
-      position: absolute;
+      position: fixed;
       top: 50%;
       transform: translateY(-50%);
       background: rgba(0, 0, 0, 0.7);
       color: white;
       backdrop-filter: blur(4px);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      z-index: 2001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .lightbox-nav:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-50%) scale(1.1);
     }
 
     .prev-button {
-      left: var(--md-sys-spacing-lg);
+      left: 20px;
     }
 
     .next-button {
-      right: var(--md-sys-spacing-lg);
+      right: 20px;
     }
 
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
+    }
+
+    /* Button icon base styles */
+    .btn-icon {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      padding: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-icon:hover {
+      background: rgba(255, 255, 255, 0.1);
     }
 
     @media (max-width: 768px) {
