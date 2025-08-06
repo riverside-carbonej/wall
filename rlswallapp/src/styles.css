@@ -24,6 +24,7 @@
     padding: 0;
 }
 
+/* Legacy marker style */
 .custom-marker {
   width: 32px;
   height: 32px;
@@ -48,9 +49,90 @@
   transform: rotate(45deg);
 }
 
+/* New Material Design 3 Marker */
+.custom-marker-material {
+  position: relative;
+  width: 48px;
+  height: 64px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.custom-marker-material:hover {
+  transform: translateY(-4px);
+}
+
+.custom-marker-material .marker-shadow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 8px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.3) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.custom-marker-material .marker-body {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.custom-marker-material:hover .marker-body {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.2);
+  transform: translateX(-50%) scale(1.05);
+}
+
+.custom-marker-material .marker-body .material-icons {
+  color: white;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+}
+
+.custom-marker-material .marker-pointer {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 14px;
+  height: 14px;
+  border-radius: 0 0 50% 0;
+  border-right: 3px solid white;
+  border-bottom: 3px solid white;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Leaflet Popup Override - Ensure solid backgrounds */
+.leaflet-popup-content-wrapper {
+  background: white !important;
+  background-color: white !important;
+  opacity: 1 !important;
+}
+
+.leaflet-popup-tip {
+  background: white !important;
+  background-color: white !important;
+  opacity: 1 !important;
+}
+
 .map-popup {
   font-family: var(--md-sys-typescale-body-medium-font-family, 'Roboto', sans-serif);
   min-width: 200px;
+  background: white !important;
+  opacity: 1 !important;
 }
 
 .map-popup h4 {

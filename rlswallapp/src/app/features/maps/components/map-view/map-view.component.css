@@ -14,6 +14,157 @@
   bottom: 0;
 }
 
+/* Material Design Popup Styles */
+:host ::ng-deep .material-popup .leaflet-popup-content-wrapper {
+  background: var(--md-sys-color-surface) !important;
+  background-color: var(--md-sys-color-surface) !important;
+  opacity: 1 !important;
+  border-radius: var(--md-sys-shape-corner-large);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), var(--md-sys-elevation-level3);
+  padding: 0;
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+:host ::ng-deep .material-popup .leaflet-popup-close-button {
+  display: none !important;
+}
+
+:host ::ng-deep .material-popup .leaflet-popup-content {
+  margin: 0;
+  min-width: 280px;
+  max-width: 320px;
+  background: transparent !important;
+}
+
+:host ::ng-deep .material-popup .leaflet-popup-tip {
+  background: var(--md-sys-color-surface) !important;
+  background-color: var(--md-sys-color-surface) !important;
+  opacity: 1 !important;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-top: none;
+  border-right: none;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+:host ::ng-deep .map-popup-card {
+  padding: 16px;
+  font-family: var(--md-sys-typescale-body-large-font-family-name);
+  background: var(--md-sys-color-surface) !important;
+  background-color: var(--md-sys-color-surface) !important;
+  opacity: 1 !important;
+  border-radius: var(--md-sys-shape-corner-large);
+}
+
+:host ::ng-deep .map-popup-card .popup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+:host ::ng-deep .map-popup-card .popup-title {
+  margin: 0;
+  font-size: var(--md-sys-typescale-headline-small-size, 18px);
+  font-weight: var(--md-sys-typescale-headline-small-weight);
+  color: var(--md-sys-color-on-surface);
+  line-height: 1.3;
+  flex: 1;
+}
+
+:host ::ng-deep .map-popup-card .popup-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+:host ::ng-deep .map-popup-card .popup-close-btn:hover {
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+}
+
+:host ::ng-deep .map-popup-card .popup-close-btn:active {
+  transform: scale(0.95);
+}
+
+:host ::ng-deep .map-popup-card .popup-close-btn .material-icons {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+:host ::ng-deep .map-popup-card .popup-content {
+  margin: 0 0 16px 0;
+  font-size: var(--md-sys-typescale-body-large-size, 16px);
+  color: var(--md-sys-color-on-surface-variant);
+  line-height: 1.5;
+}
+
+:host ::ng-deep .map-popup-card .popup-address {
+  margin: 12px 0;
+  font-size: var(--md-sys-typescale-body-medium-size, 14px);
+  color: var(--md-sys-color-on-surface-variant);
+  font-style: italic;
+}
+
+:host ::ng-deep .map-popup-card .popup-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  display: flex;
+  justify-content: center;
+}
+
+:host ::ng-deep .map-popup-card .view-item-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  min-height: 48px;
+  min-width: 160px;
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border: none;
+  border-radius: var(--md-sys-shape-corner-full);
+  font-size: var(--md-sys-typescale-label-large-size, 16px);
+  font-weight: var(--md-sys-typescale-label-large-weight, 500);
+  font-family: var(--md-sys-typescale-label-large-font-family-name);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: none;
+  letter-spacing: 0.5px;
+}
+
+:host ::ng-deep .map-popup-card .view-item-btn:hover {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+:host ::ng-deep .map-popup-card .view-item-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+:host ::ng-deep .map-popup-card .view-item-btn .material-icons {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
 .map-view {
   display: flex;
   flex-direction: column;

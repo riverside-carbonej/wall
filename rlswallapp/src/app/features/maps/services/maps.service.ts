@@ -125,19 +125,23 @@ export class MapsService {
   } = {}): L.Marker {
     const { title, content, color = '#3388ff', icon = 'location_on' } = options;
 
-    // Create custom icon HTML
+    // Create custom icon HTML with larger, more Material Design
     const iconHtml = `
-      <div class="custom-marker" style="background-color: ${color};">
-        <span class="material-icons">${icon}</span>
+      <div class="custom-marker-material">
+        <div class="marker-shadow"></div>
+        <div class="marker-body" style="background: ${color};">
+          <span class="material-icons">${icon}</span>
+        </div>
+        <div class="marker-pointer" style="background: ${color};"></div>
       </div>
     `;
 
     const customIcon = L.divIcon({
       html: iconHtml,
       className: 'custom-marker-container',
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -32]
+      iconSize: [48, 64],
+      iconAnchor: [24, 64],
+      popupAnchor: [0, -64]
     });
 
     const marker = L.marker([coordinates.lat, coordinates.lng], { icon: customIcon });

@@ -42,17 +42,14 @@ import { Subject } from 'rxjs';
         <section class="tab-content" *ngIf="activeTab === 0">
           <div class="basic-info-section">
           <div class="form-group">
-            <label for="name">Wall Name *</label>
+            <label for="name">Wall Name</label>
             <input 
               id="name" 
               type="text" 
               formControlName="name" 
-              placeholder="Enter wall name"
+              placeholder="Enter wall name (optional)"
               class="form-input"
             >
-            <div class="error-message" *ngIf="wallForm.get('name')?.invalid && wallForm.get('name')?.touched">
-              Wall name is required
-            </div>
           </div>
 
           <div class="form-group">
@@ -2554,7 +2551,7 @@ export class WallFormComponent implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     this.wallForm = this.fb.group({
-      name: ['Untitled Wall', [Validators.required]],
+      name: ['Untitled Wall'], // Remove required validator - allow empty
       description: [''],
       
       // Organization branding

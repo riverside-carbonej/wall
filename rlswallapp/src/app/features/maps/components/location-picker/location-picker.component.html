@@ -1,151 +1,82 @@
-<div class="location-picker">
-  <!-- Address Search Section -->
-  @if (showAddressSearch) {
-    <div class="search-section">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Search for location</mat-label>
-      <input 
-        matInput 
-        [formControl]="addressControl"
-        placeholder="Enter address, city, or landmark"
-        autocomplete="off">
-      <mat-icon matSuffix>search</mat-icon>
-      @if (isSearching) {
-        <mat-progress-bar 
-          mode="indeterminate" 
-          class="search-progress">
-        </mat-progress-bar>
-      }
-    </mat-form-field>
-    
-    <!-- Search Results -->
-    @if (searchResults.length > 0) {
-      <div class="search-results">
-      @for (result of searchResults; track result) {
-        <div 
-          class="search-result" 
-          (click)="selectSearchResult(result)">
-          <mat-icon class="result-icon">place</mat-icon>
-          <div class="result-content">
-            <div class="result-name">{{ result.displayName }}</div>
-            <div class="result-coords">
-              {{ result.coordinates.lat.toFixed(4) }}, {{ result.coordinates.lng.toFixed(4) }}
-            </div>
-          </div>
-        </div>
-      }
+<div class="location-picker-material">
+  <!-- Compact selected location display -->
+  @if (hasLocation) {
+    <div class="selected-location-chip">
+      <mat-icon class="location-icon">place</mat-icon>
+      <div class="location-text">
+        @if (currentCoordinates && currentCoordinates.address) {
+          <span class="address-text">{{ currentCoordinates.address }}</span>
+        } @else if (currentCoordinates) {
+          <span class="coords-text">{{ currentCoordinates.lat.toFixed(4) }}, {{ currentCoordinates.lng.toFixed(4) }}</span>
+        }
       </div>
-    }
+      <button mat-icon-button class="clear-btn" (click)="clearLocation()">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
   }
-  
-  <!-- Action Buttons -->
-  <div class="action-buttons">
-    @if (showCurrentLocationButton) {
-      <button 
-        mat-raised-button 
-        color="primary"
-        (click)="getCurrentLocation()"
-        [disabled]="isGettingLocation">
-        <mat-icon>my_location</mat-icon>
-        @if (!isGettingLocation) {
-          <span>Use Current Location</span>
-        }
-        @if (isGettingLocation) {
-          <span>Getting Location...</span>
-        }
-      </button>
-    }
-    
-    @if (hasLocation) {
-      <button 
-        mat-outlined-button
-        (click)="clearLocation()">
-        <mat-icon>clear</mat-icon>
-        Clear Location
-      </button>
-    }
-  </div>
-  
-  <!-- Map Container -->
-  <div class="map-container">
+
+  <!-- Map Container - Always visible -->
+  <div class="integrated-map-container" [class.has-location]="hasLocation">
     <div 
       #mapContainer 
-      id="location-picker-map"
       [style.height]="height"
-      class="map">
+      class="map-view">
     </div>
     
-    <!-- Map Instructions Overlay -->
-    @if (allowMapClick && !hasLocation) {
-      <div class="map-instructions">
-      <mat-icon>touch_app</mat-icon>
-      <span>Click on the map to select a location</span>
+    <!-- Overlay instruction when no location -->
+    @if (!hasLocation) {
+      <div class="map-overlay-instruction">
+        <mat-icon>touch_app</mat-icon>
+        <span>Click map to select location</span>
       </div>
     }
   </div>
-  
-  <!-- Coordinate Inputs -->
-  @if (showCoordinateInputs) {
-    <div class="coordinate-inputs">
-    <div class="coordinate-row">
-      <mat-form-field appearance="outline" class="coordinate-field">
-        <mat-label>Latitude</mat-label>
+
+  <!-- Compact controls row -->
+  <div class="location-controls">
+    <!-- Search input -->
+    @if (showAddressSearch) {
+      <div class="search-input-wrapper">
         <input 
-          matInput 
-          type="number"
-          step="any"
-          [formControl]="latitudeControl"
-          placeholder="e.g., 40.7128">
-        @if (latitudeControl.hasError('min')) {
-          <mat-error>
-            Latitude must be between -90 and 90
-          </mat-error>
-        }
-        @if (latitudeControl.hasError('max')) {
-          <mat-error>
-            Latitude must be between -90 and 90
-          </mat-error>
-        }
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="coordinate-field">
-        <mat-label>Longitude</mat-label>
-        <input 
-          matInput 
-          type="number"
-          step="any"
-          [formControl]="longitudeControl"
-          placeholder="e.g., -74.0060">
-        @if (longitudeControl.hasError('min')) {
-          <mat-error>
-            Longitude must be between -180 and 180
-          </mat-error>
-        }
-        @if (longitudeControl.hasError('max')) {
-          <mat-error>
-            Longitude must be between -180 and 180
-          </mat-error>
-        }
-      </mat-form-field>
-    </div>
-    
-    <!-- Selected Location Display -->
-    @if (hasLocation) {
-      <div class="selected-location">
-      <mat-icon class="location-icon">place</mat-icon>
-      <div class="location-details">
-        <div class="location-coordinates">
-          {{ currentCoordinates!.lat.toFixed(6) }}, {{ currentCoordinates!.lng.toFixed(6) }}
-        </div>
-        @if (currentCoordinates && currentCoordinates.address) {
-          <div class="location-address">
-            {{ currentCoordinates.address }}
+          class="material-search-input"
+          [formControl]="addressControl"
+          placeholder="Search address or place..."
+          autocomplete="off">
+        <mat-icon class="search-icon">search</mat-icon>
+        
+        <!-- Search Results Dropdown -->
+        @if (searchResults.length > 0) {
+          <div class="search-dropdown">
+            @for (result of searchResults; track result) {
+              <div class="search-item" (click)="selectSearchResult(result)">
+                <mat-icon>place</mat-icon>
+                <span class="search-text">{{ result.displayName }}</span>
+              </div>
+            }
           </div>
         }
       </div>
-      </div>
     }
+    
+    <!-- Current location button -->
+    @if (showCurrentLocationButton) {
+      <button 
+        mat-icon-button
+        class="location-btn"
+        (click)="getCurrentLocation()"
+        [disabled]="isGettingLocation"
+        title="Use current location">
+        <mat-icon>my_location</mat-icon>
+      </button>
+    }
+  </div>
+
+  <!-- Optional coordinate inputs - more compact -->
+  @if (showCoordinateInputs && hasLocation && currentCoordinates) {
+    <div class="coordinate-display">
+      <span class="coord-label">Coordinates:</span>
+      <span class="coord-value">{{ currentCoordinates.lat.toFixed(6) }}, {{ currentCoordinates.lng.toFixed(6) }}</span>
     </div>
   }
 </div>

@@ -5,7 +5,7 @@ import { FormFieldComponent } from '../../../../shared/components/input-field/in
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { ProgressBarComponent } from '../../../../shared/components/progress-bar/progress-bar.component';
-import { MatLabel, MatError } from '../../../../shared/components/material-stubs';
+import { MatLabel, MatError, MatIcon, MatIconButton } from '../../../../shared/components/material-stubs';
 import { Observable, Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs';
 import * as L from 'leaflet';
 import { MapsService, Coordinates, GeocodingResult } from '../../services/maps.service';
@@ -27,7 +27,9 @@ export interface LocationPickerResult {
     MaterialIconComponent,
     ProgressBarComponent,
     MatLabel,
-    MatError
+    MatError,
+    MatIcon,
+    MatIconButton
   ],
   templateUrl: './location-picker.component.html',
   styleUrls: ['./location-picker.component.css']
@@ -84,7 +86,7 @@ export class LocationPickerComponent implements OnInit, OnDestroy, AfterViewInit
     // Delay map initialization to ensure container is fully rendered
     setTimeout(() => {
       this.initializeMap();
-    }, 100);
+    }, 200);
   }
   
   ngOnDestroy() {
@@ -129,33 +131,33 @@ export class LocationPickerComponent implements OnInit, OnDestroy, AfterViewInit
         zoom
       });
       
-      // Force map to invalidate size after initialization
-      setTimeout(() => {
-        if (this.map) {
-          this.map.invalidateSize();
-        }
-      }, 200);
-    } catch (error) {
-      console.error('Error creating map:', error);
-    }
-    
-    // Add tile layer
-    this.mapsService.addTileLayer(this.map);
-    
-    // Add initial marker if coordinates provided
-    if (this.initialCoordinates) {
-      this.addMarker(this.initialCoordinates);
-    }
-    
-    // Handle map clicks
-    if (this.allowMapClick) {
+      // Add tile layer immediately
+      this.mapsService.addTileLayer(this.map);
+      
+      // Add initial marker if coordinates provided
+      if (this.initialCoordinates && this.mapsService.isValidCoordinates(this.initialCoordinates)) {
+        this.addMarker(this.initialCoordinates);
+      }
+      
+      // Handle map clicks - enable click handler
       this.map.on('click', (e: L.LeafletMouseEvent) => {
         const coordinates: Coordinates = {
           lat: e.latlng.lat,
           lng: e.latlng.lng
         };
-        this.setLocation(coordinates, true);
+        this.setLocation(coordinates, true, true);
       });
+      
+      // Force map to invalidate size after initialization
+      setTimeout(() => {
+        if (this.map) {
+          this.map.invalidateSize();
+        }
+      }, 300);
+    } catch (error) {
+      console.error('Error creating map:', error);
+      // Try to reinitialize after a delay
+      setTimeout(() => this.initializeMap(), 500);
     }
   }
   

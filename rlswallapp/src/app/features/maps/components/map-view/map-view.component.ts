@@ -235,6 +235,29 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   
   private addMarkersToMap() {
     this.mapMarkers.forEach(markerData => {
+      const wallItem = this.wallItems.find(item => item.id === markerData.wallItemId);
+      const objectType = this.objectTypes.find(ot => ot.id === markerData.objectTypeId);
+      
+      // Create enhanced popup content with view button
+      const popupContent = `
+        <div class="map-popup-card">
+          <div class="popup-header">
+            <h4 class="popup-title">${markerData.title}</h4>
+            <button class="popup-close-btn" onclick="this.closest('.leaflet-popup').querySelector('.leaflet-popup-close-button').click()">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+          <p class="popup-content">${markerData.content}</p>
+          ${markerData.coordinates.address ? `<p class="popup-address"><small>${markerData.coordinates.address}</small></p>` : ''}
+          <div class="popup-actions">
+            <button class="view-item-btn" data-wall-id="${this.currentWallId}" data-object-type="${markerData.objectTypeId}" data-item-id="${markerData.wallItemId}">
+              <span class="material-icons">open_in_new</span>
+              <span>View Details</span>
+            </button>
+          </div>
+        </div>
+      `;
+      
       const marker = this.mapsService.createCustomMarker(markerData.coordinates, {
         title: markerData.title,
         content: markerData.content,
@@ -242,25 +265,43 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
         icon: markerData.icon
       });
       
-      // Add click event
-      marker.on('click', (e: any) => {
-        // Prevent default zoom behavior
-        e.originalEvent?.stopPropagation();
-        
-        const wallItem = this.wallItems.find(item => item.id === markerData.wallItemId);
-        if (wallItem) {
-          // If in full page mode, navigate directly to the item
-          if (this.fullPage && this.currentWallId) {
-            this.router.navigate(['/walls', this.currentWallId, 'items', wallItem.id]);
-          } else {
-            this.itemClick.emit({
-              wallItem,
-              coordinates: markerData.coordinates,
-              marker
+      // Bind enhanced popup
+      marker.bindPopup(popupContent, {
+        maxWidth: 300,
+        className: 'material-popup'
+      });
+      
+      // Add popup open event to handle button click
+      marker.on('popupopen', (e: any) => {
+        // Add click handler to the view button
+        const popup = e.popup;
+        const container = popup.getElement();
+        if (container) {
+          const viewBtn = container.querySelector('.view-item-btn');
+          if (viewBtn) {
+            viewBtn.addEventListener('click', () => {
+              const wallId = viewBtn.getAttribute('data-wall-id');
+              const objectTypeId = viewBtn.getAttribute('data-object-type');
+              const itemId = viewBtn.getAttribute('data-item-id');
+              if (wallId && objectTypeId && itemId) {
+                // Navigate to the correct preset/items path
+                this.router.navigate(['/walls', wallId, 'presets', objectTypeId, 'items', itemId]);
+              }
             });
           }
         }
       });
+      
+      // Handle click event for non-full page mode
+      if (!this.fullPage && wallItem) {
+        marker.on('click', (e: any) => {
+          this.itemClick.emit({
+            wallItem,
+            coordinates: markerData.coordinates,
+            marker
+          });
+        });
+      }
       
       // Store additional data
       (marker as any).wallItemId = markerData.wallItemId;

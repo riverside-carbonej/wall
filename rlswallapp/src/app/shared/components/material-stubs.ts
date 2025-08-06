@@ -1339,3 +1339,34 @@ export class MatAutocomplete {
   `]
 })
 export class MatIcon {}
+
+// Material Icon Button Component
+@Component({
+  selector: 'button[mat-icon-button]',
+  standalone: true,
+  imports: [CommonModule],
+  template: `<ng-content></ng-content>`,
+  styles: [`
+    :host {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--md-sys-color-on-surface);
+      transition: background-color 0.2s ease;
+    }
+    :host:hover {
+      background-color: var(--md-sys-color-surface-container-highest);
+    }
+    :host:disabled {
+      opacity: 0.38;
+      cursor: not-allowed;
+    }
+  `]
+})
+export class MatIconButton {}
