@@ -933,3 +933,79 @@ router-outlet + * {
 .btn-icon:active {
   background: var(--md-sys-color-surface-container-high);
 }
+
+/* Material Tab Global Fixes */
+.mat-tab-group,
+.mat-tab-header,
+.mat-tab-label-container {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.mat-tab-label-container {
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Ensure tab content spans full width */
+.mat-tab-body-wrapper,
+.mat-tab-body-content {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Comprehensive Material Component Width Fixes */
+.mat-card,
+.mat-card-header,
+.mat-card-content,
+.mat-card-actions,
+.mat-expansion-panel,
+.mat-expansion-panel-header,
+.mat-expansion-panel-content,
+.mat-accordion,
+.mat-form-field,
+.mat-form-field-wrapper,
+.mat-form-field-flex,
+.mat-form-field-infix {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure form inputs and textareas span full width */
+.mat-form-field input,
+.mat-form-field textarea,
+.mat-input-element {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Fix for components that might have fixed widths */
+app-dynamic-field-renderer,
+app-form-field,
+app-material-date-picker,
+app-material-switch,
+app-location-picker {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+
+/* Fix expansion panel width constraints */
+.mat-expansion-panel,
+.mat-expansion-panel-header,
+.mat-expansion-panel-content,
+.mat-expansion-panel-body {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Fix Material form field containers specifically */
+.mat-form-field-wrapper,
+.mat-form-field-flex,
+.mat-form-field-infix,
+.mat-input-element {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}

@@ -113,10 +113,11 @@
 }
 
 .field-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   padding: 16px 0;
+  width: 100%;
 }
 
 /* Location Section */

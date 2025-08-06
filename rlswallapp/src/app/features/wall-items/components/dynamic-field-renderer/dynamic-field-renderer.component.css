@@ -1,6 +1,8 @@
 .dynamic-field-renderer {
   width: 100%;
   margin-bottom: 16px;
+  display: block;
+  box-sizing: border-box;
 }
 
 /* Override for view mode parent - compact spacing */
@@ -57,6 +59,9 @@
   background: var(--md-sys-color-surface-variant);
   border-radius: 8px;
   border: 1px solid var(--md-sys-color-outline-variant);
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
 }
 
 .readonly-field .field-label {
@@ -85,6 +90,8 @@
 /* Edit Mode */
 .edit-field {
   width: 100%;
+  display: block;
+  box-sizing: border-box;
 }
 
 /* Remove vertical gaps between fields in edit mode */
@@ -627,6 +634,36 @@
 
 .mat-mdc-form-field-subscript-wrapper {
   margin-top: 4px;
+}
+
+/* Ensure all custom app components span full width */
+app-form-field,
+app-material-date-picker,
+app-material-switch,
+app-location-picker {
+  display: block;
+  width: 100%;
+}
+
+/* Ensure color field components maintain full width */
+.color-field app-form-field {
+  width: 100%;
+}
+
+/* Entity field search input full width */
+.entity-search,
+.relationship-search {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Form field containers */
+.form-field,
+.boolean-field,
+.color-field,
+.location-field,
+.entity-field {
+  width: 100%;
 }
 
 /* Material Input Styles (copied from working ObjectTypeBuilder) */

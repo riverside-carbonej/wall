@@ -1,4 +1,4 @@
-import { Component, Directive, input, output, model, signal, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, Directive, input, output, model, signal, HostListener, ElementRef, ViewChild, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MaterialIconComponent } from './material-icon/material-icon.component';
@@ -16,6 +16,9 @@ import { MaterialIconComponent } from './material-icon/material-icon.component';
       box-shadow: var(--md-sys-elevation-1);
       padding: 24px;
       margin: 16px 0;
+      width: 100%;
+      box-sizing: border-box;
+      display: block;
     }
   `]
 })
@@ -31,6 +34,8 @@ export class MatCard {}
       display: flex;
       align-items: center;
       margin-bottom: 16px;
+      width: 100%;
+      box-sizing: border-box;
     }
   `]
 })
@@ -59,6 +64,8 @@ export class MatCardTitle {}
   styles: [`
     .mat-card-content {
       color: var(--md-sys-color-on-surface-variant);
+      width: 100%;
+      box-sizing: border-box;
     }
   `]
 })
@@ -73,6 +80,8 @@ export class MatCardContent {}
     .mat-card-actions {
       display: flex;
       gap: 8px;
+      width: 100%;
+      box-sizing: border-box;
     }
   `]
 })
@@ -294,7 +303,7 @@ export class MatChipOption {
   }
 }
 
-// Tabs - Simple working implementation
+// Tabs - Proper working implementation
 @Component({
   selector: 'mat-tab-group',
   standalone: true,
@@ -303,12 +312,20 @@ export class MatChipOption {
     <div class="mat-tab-group">
       <div class="mat-tab-header">
         <div class="mat-tab-label-container">
-          <ng-content select="mat-tab" hidden></ng-content>
-          <!-- We'll show tabs dynamically after they register -->
+          @for (tab of tabs; track tab.label; let i = $index) {
+            <button 
+              class="mat-tab-label"
+              [class.mat-tab-label-active]="selectedIndex() === i"
+              (click)="selectTab(i)">
+              {{ tab.label }}
+            </button>
+          }
         </div>
       </div>
       <div class="mat-tab-body-wrapper">
-        <ng-content></ng-content>
+        <div class="mat-tab-body-content">
+          <ng-content></ng-content>
+        </div>
       </div>
     </div>
   `,
@@ -318,19 +335,69 @@ export class MatChipOption {
       background: var(--md-sys-color-surface);
       border: 1px solid var(--md-sys-color-outline-variant);
       border-radius: var(--md-sys-shape-corner-medium);
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden; /* Ensures content respects border radius */
     }
     .mat-tab-header {
       border-bottom: 1px solid var(--md-sys-color-outline-variant);
       background: var(--md-sys-color-surface-container);
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: var(--md-sys-shape-corner-medium) var(--md-sys-shape-corner-medium) 0 0;
     }
     .mat-tab-label-container {
       display: flex;
       align-items: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .mat-tab-label {
+      background: none;
+      border: none;
+      padding: 16px 24px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface-variant);
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .mat-tab-label:first-child {
+      border-top-left-radius: var(--md-sys-shape-corner-medium);
+    }
+    .mat-tab-label:hover {
+      background: var(--md-sys-color-surface-container-highest);
+      color: var(--md-sys-color-on-surface);
+    }
+    .mat-tab-label-active {
+      color: var(--md-sys-color-primary) !important;
+      border-bottom-color: var(--md-sys-color-primary) !important;
+      background: var(--md-sys-color-primary-container);
+    }
+    .mat-tab-body-wrapper {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 0 0 var(--md-sys-shape-corner-medium) var(--md-sys-shape-corner-medium);
+      overflow: hidden; /* Ensures tab content respects border radius */
+    }
+    .mat-tab-body-content {
+      width: 100%;
+      box-sizing: border-box;
     }
   `]
 })
 export class MatTabGroup {
   selectedIndex = model<number>(0);
+  tabs: {label: string, disabled: boolean}[] = [];
+
+  selectTab(index: number) {
+    this.selectedIndex.set(index);
+  }
+
+  addTab(label: string, disabled: boolean = false) {
+    this.tabs.push({label, disabled});
+  }
 }
 
 @Component({
@@ -345,16 +412,27 @@ export class MatTabGroup {
   styles: [`
     .mat-tab-content {
       padding: 24px;
+      width: 100%;
+      box-sizing: border-box;
     }
   `]
 })
-export class MatTab {
+export class MatTab implements OnInit {
   label = input<string>('');
   disabled = input<boolean>(false);
   
+  private tabGroup = inject(MatTabGroup, { optional: true });
+  private tabIndex: number = 0;
+
+  ngOnInit() {
+    if (this.tabGroup) {
+      this.tabIndex = this.tabGroup.tabs.length;
+      this.tabGroup.addTab(this.label(), this.disabled());
+    }
+  }
+  
   isActive(): boolean {
-    // For now, just show all tabs - we'll improve this
-    return true;
+    return this.tabGroup?.selectedIndex() === this.tabIndex;
   }
 }
 
@@ -380,14 +458,21 @@ export class MatTab {
       border: 1px solid var(--md-sys-color-outline-variant);
       border-radius: var(--md-sys-shape-corner-small);
       margin: 8px 0;
+      width: 100%;
+      box-sizing: border-box;
+      display: block;
     }
     .mat-expansion-panel-header {
       padding: 16px;
       cursor: pointer;
       background: var(--md-sys-color-surface-container);
+      width: 100%;
+      box-sizing: border-box;
     }
     .mat-expansion-panel-content {
       padding: 16px;
+      width: 100%;
+      box-sizing: border-box;
     }
   `]
 })
@@ -633,6 +718,8 @@ export class MatProgressBar {
     .mat-form-field-wrapper {
       position: relative;
       padding-bottom: 1.25em;
+      width: 100%;
+      box-sizing: border-box;
     }
     
     .mat-form-field-flex {
@@ -648,8 +735,9 @@ export class MatProgressBar {
       position: relative;
       flex: auto;
       min-width: 0;
-      width: 180px;
+      width: 100%;
       padding: 16px 0;
+      box-sizing: border-box;
     }
     
     .mat-form-field-prefix,
@@ -936,6 +1024,8 @@ export class MatDatepickerToggle {
       border-radius: var(--md-sys-shape-corner-medium);
       border: 1px solid var(--md-sys-color-outline-variant);
       overflow: hidden;
+      width: 100%;
+      box-sizing: border-box;
     }
     .mat-accordion > ::ng-deep mat-expansion-panel:not(:first-child) {
       border-top: 1px solid var(--md-sys-color-outline-variant);

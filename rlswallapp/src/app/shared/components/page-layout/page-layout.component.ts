@@ -125,6 +125,8 @@ export interface PageAction {
       display: flex;
       flex-direction: column;
       gap: 24px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .page-content.grid {
