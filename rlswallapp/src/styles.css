@@ -9,6 +9,9 @@
 /* Material Icons - Local Fallback */
 @import '@fontsource/material-icons/index.css';
 
+/* Leaflet CSS - Required for map display */
+@import 'leaflet/dist/leaflet.css';
+
 /* Leaflet Map Styles */
 .custom-marker-container {
   background: transparent !important;

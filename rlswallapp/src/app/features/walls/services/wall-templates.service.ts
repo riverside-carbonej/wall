@@ -217,7 +217,7 @@ export class WallTemplatesService {
         title: deployment.title,
         description: deployment.description,
         startDate: new Date(deployment.startYear, 0, 1),
-        location: deployment.location
+        location: this.getDeploymentCoordinates(deployment.location)
       };
       
       // Only add endDate if endYear is defined to avoid undefined values in Firestore
@@ -241,6 +241,29 @@ export class WallTemplatesService {
     }));
 
     return { branches, deployments, awards };
+  }
+
+  private getDeploymentCoordinates(location: string): { lat: number; lng: number; address: string } {
+    const coordinates: { [key: string]: { lat: number; lng: number; address: string } } = {
+      'Europe': { lat: 50.8503, lng: 4.3517, address: 'Brussels, Belgium (Europe)' },
+      'Pacific': { lat: 13.4443, lng: 144.7937, address: 'Guam (Pacific Theater)' },
+      'Korea': { lat: 37.5665, lng: 126.9780, address: 'Seoul, South Korea' },
+      'Vietnam': { lat: 10.8231, lng: 106.6297, address: 'Ho Chi Minh City, Vietnam' },
+      'Worldwide': { lat: 38.9072, lng: -77.0369, address: 'Washington, D.C., United States' },
+      'Kuwait/Iraq': { lat: 29.3759, lng: 47.9774, address: 'Kuwait City, Kuwait' },
+      'Bosnia-Herzegovina': { lat: 43.8563, lng: 18.4131, address: 'Sarajevo, Bosnia and Herzegovina' },
+      'Kosovo': { lat: 42.6629, lng: 21.1655, address: 'Pristina, Kosovo' },
+      'Afghanistan': { lat: 34.5553, lng: 69.2075, address: 'Kabul, Afghanistan' },
+      'Iraq': { lat: 33.3152, lng: 44.3661, address: 'Baghdad, Iraq' },
+      'Iraq/Syria': { lat: 36.2021, lng: 37.1343, address: 'Aleppo, Syria' },
+      'Horn of Africa': { lat: 11.5877, lng: 43.1450, address: 'Djibouti, Horn of Africa' },
+      'Philippines': { lat: 14.5995, lng: 120.9842, address: 'Manila, Philippines' },
+      'Haiti': { lat: 18.5944, lng: -72.3074, address: 'Port-au-Prince, Haiti' },
+      'Japan': { lat: 38.2682, lng: 140.8694, address: 'Sendai, Japan (Tsunami Relief)' },
+      'Pacific Region': { lat: 13.4443, lng: 144.7937, address: 'Guam (Pacific Partnership)' }
+    };
+    
+    return coordinates[location] || { lat: 38.9072, lng: -77.0369, address: location };
   }
 
   private getDefaultMilitaryAwards(): Array<{ name: string; description: string; category: string[] }> {

@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { SelectComponent } from '../../../../shared/components/select/select.component';
@@ -7,12 +8,14 @@ import { TooltipDirective } from '../../../../shared/components/tooltip/tooltip.
 import { ProgressSpinnerComponent } from '../../../../shared/components/progress-spinner/progress-spinner.component';
 import { MatFormField, MatLabel, MatSelect, MatOption } from '../../../../shared/components/material-stubs';
 import { Observable, Subject, combineLatest, takeUntil } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import * as L from 'leaflet';
 import { MapsService, Coordinates, MapMarker } from '../../services/maps.service';
-import { WallItem, WallObjectType } from '../../../../shared/models/wall.model';
+import { WallItem, WallObjectType, Wall } from '../../../../shared/models/wall.model';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { WallService } from '../../../walls/services/wall.service';
+import { WallItemService } from '../../../wall-items/services/wall-item.service';
 
 export interface MapViewSettings {
   tileProvider: 'openstreetmap' | 'satellite';
@@ -55,6 +58,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() height = '500px';
   @Input() showControls = true;
   @Input() initialSettings: Partial<MapViewSettings> = {};
+  @Input() fullPage = false;  // New input to determine if map should fill entire page
   
   @Output() itemClick = new EventEmitter<MapItemClickEvent>();
   @Output() settingsChanged = new EventEmitter<MapViewSettings>();
@@ -74,12 +78,29 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   isLoading = false;
   visibleItems: WallItem[] = [];
   mapMarkers: MapMarker[] = [];
+  private currentWallId?: string;
+  private currentWall?: Wall;
   
-  constructor(private mapsService: MapsService) {}
+  constructor(
+    private mapsService: MapsService,
+    private route: ActivatedRoute,
+    private wallService: WallService,
+    private wallItemService: WallItemService,
+    private router: Router
+  ) {}
   
   ngOnInit() {
     // Apply initial settings
     this.settings = { ...this.settings, ...this.initialSettings };
+    
+    // Check if we're being used as a standalone route (no inputs provided)
+    const isStandaloneRoute = !this.wallItems.length && !this.objectTypes.length;
+    
+    if (isStandaloneRoute) {
+      this.fullPage = true;
+      this.showControls = true; // Always show controls in standalone mode
+      this.loadWallData();
+    }
     
     // Update map when wall items or settings change
     this.updateVisibleItems();
@@ -87,6 +108,9 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   
   ngAfterViewInit() {
     this.initializeMap();
+    
+    // Set up global event listener for map item clicks from popup buttons
+    window.addEventListener('mapItemClick', this.handleMapItemClick);
   }
   
   ngOnDestroy() {
@@ -95,6 +119,16 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
     
     if (this.map) {
       this.map.remove();
+    }
+    
+    // Clean up event listener
+    window.removeEventListener('mapItemClick', this.handleMapItemClick);
+  }
+  
+  private handleMapItemClick = (event: any) => {
+    const itemId = event.detail;
+    if (itemId && this.currentWallId) {
+      this.router.navigate(['/walls', this.currentWallId, 'items', itemId]);
     }
   }
   
@@ -145,11 +179,21 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
     // Clear existing markers
     this.markersLayer.clearLayers();
     
-    // Filter items that have coordinates
-    const itemsWithCoordinates = this.visibleItems.filter(item => 
-      item.coordinates && 
-      this.mapsService.isValidCoordinates(item.coordinates)
-    );
+    // Filter items that have coordinates (either directly or in fieldData.location)
+    const itemsWithCoordinates = this.visibleItems.filter(item => {
+      // Check direct coordinates first
+      if (item.coordinates && this.mapsService.isValidCoordinates(item.coordinates)) {
+        return true;
+      }
+      // Check fieldData.location for location field type
+      if (item.fieldData?.['location'] && 
+          typeof item.fieldData['location'] === 'object' &&
+          'lat' in item.fieldData['location'] && 
+          'lng' in item.fieldData['location']) {
+        return this.mapsService.isValidCoordinates(item.fieldData['location']);
+      }
+      return false;
+    });
     
     if (itemsWithCoordinates.length === 0) {
       this.isLoading = false;
@@ -160,9 +204,15 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.mapMarkers = itemsWithCoordinates.map(item => {
       const objectType = this.objectTypes.find(type => type.id === item.objectTypeId);
       
+      // Get coordinates from either direct coordinates or fieldData.location
+      let coordinates = item.coordinates;
+      if (!coordinates && item.fieldData?.['location']) {
+        coordinates = item.fieldData['location'];
+      }
+      
       return {
         id: item.id,
-        coordinates: item.coordinates!,
+        coordinates: coordinates!,
         title: this.getItemDisplayName(item),
         content: this.getItemDescription(item),
         icon: objectType?.icon || 'place',
@@ -199,11 +249,16 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
         
         const wallItem = this.wallItems.find(item => item.id === markerData.wallItemId);
         if (wallItem) {
-          this.itemClick.emit({
-            wallItem,
-            coordinates: markerData.coordinates,
-            marker
-          });
+          // If in full page mode, navigate directly to the item
+          if (this.fullPage && this.currentWallId) {
+            this.router.navigate(['/walls', this.currentWallId, 'items', wallItem.id]);
+          } else {
+            this.itemClick.emit({
+              wallItem,
+              coordinates: markerData.coordinates,
+              marker
+            });
+          }
         }
       });
       
@@ -232,9 +287,11 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
     
     let description = `<strong>${objectTypeName}</strong><br>`;
     
-    // Add first few field values
+    // Add first few field values (excluding location object)
     const fieldData = item.fieldData || item.data || {};
-    const fieldEntries = Object.entries(fieldData).slice(0, 3);
+    const fieldEntries = Object.entries(fieldData)
+      .filter(([key, value]) => key !== 'location' && value && typeof value === 'string')
+      .slice(0, 3);
     fieldEntries.forEach(([fieldId, value]) => {
       if (value && typeof value === 'string' && value.trim()) {
         const truncatedValue = value.length > 50 ? value.substring(0, 50) + '...' : value;
@@ -242,9 +299,24 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
     
+    // Add View button only if not in full page mode
+    if (!this.fullPage) {
+      description += `<br><button onclick="window.dispatchEvent(new CustomEvent('mapItemClick', {detail: '${item.id}'}))" style="
+        background: ${objectType?.color || '#4285f4'};
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-top: 8px;
+      ">View Details</button>`;
+    }
+    
     // Add coordinates
-    if (item.coordinates) {
-      description += `<small>📍 ${item.coordinates.lat.toFixed(4)}, ${item.coordinates.lng.toFixed(4)}</small>`;
+    const coords = item.coordinates || item.fieldData?.['location'];
+    if (coords) {
+      description += `<br><small>📍 ${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}</small>`;
     }
     
     return description;
@@ -300,14 +372,52 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   getItemsWithCoordinatesCount(): number {
-    return this.visibleItems.filter(item => 
-      item.coordinates && 
-      this.mapsService.isValidCoordinates(item.coordinates)
-    ).length;
+    return this.visibleItems.filter(item => {
+      // Check direct coordinates
+      if (item.coordinates && this.mapsService.isValidCoordinates(item.coordinates)) {
+        return true;
+      }
+      
+      // Check fieldData.location
+      if (item.fieldData?.['location'] && 
+          typeof item.fieldData['location'] === 'object' &&
+          'lat' in item.fieldData['location'] && 
+          'lng' in item.fieldData['location']) {
+        return this.mapsService.isValidCoordinates(item.fieldData['location']);
+      }
+      
+      return false;
+    }).length;
   }
   
   private emitSettingsChange() {
     this.settingsChanged.emit({ ...this.settings });
+  }
+  
+  private loadWallData() {
+    // Load wall data when used as standalone route
+    this.route.params.pipe(
+      switchMap(params => {
+        const wallId = params['wallId'];
+        if (wallId) {
+          this.currentWallId = wallId;
+          return this.wallService.getWallById(wallId);
+        }
+        return [];
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe(wall => {
+      if (wall) {
+        this.currentWall = wall;
+        this.objectTypes = wall.objectTypes || [];
+        
+        // Load wall items
+        this.wallItemService.getWallItems(wall.id!).subscribe(items => {
+          this.wallItems = items;
+          this.updateVisibleItems();
+        });
+      }
+    });
   }
   
   // Handle input changes
@@ -321,11 +431,24 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   
   // Helper methods for template
   getItemCountForObjectType(objectTypeId: string): number {
-    return this.wallItems.filter(item => 
-      item.objectTypeId === objectTypeId && 
-      item.coordinates &&
-      this.mapsService.isValidCoordinates(item.coordinates)
-    ).length;
+    return this.wallItems.filter(item => {
+      if (item.objectTypeId !== objectTypeId) return false;
+      
+      // Check direct coordinates
+      if (item.coordinates && this.mapsService.isValidCoordinates(item.coordinates)) {
+        return true;
+      }
+      
+      // Check fieldData.location
+      if (item.fieldData?.['location'] && 
+          typeof item.fieldData['location'] === 'object' &&
+          'lat' in item.fieldData['location'] && 
+          'lng' in item.fieldData['location']) {
+        return this.mapsService.isValidCoordinates(item.fieldData['location']);
+      }
+      
+      return false;
+    }).length;
   }
   
   getTotalItemsCount(): number {

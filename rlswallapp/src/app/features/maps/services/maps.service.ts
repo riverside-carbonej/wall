@@ -47,13 +47,11 @@ export class MapsService {
    * Setup default Leaflet marker icons
    */
   private setupLeafletIcons(): void {
-    const iconRetinaUrl = 'assets/marker-icon-2x.png';
-    const iconUrl = 'assets/marker-icon.png';
-    const shadowUrl = 'assets/marker-shadow.png';
+    // Use Leaflet's default CDN icons or create simple markers
     const iconDefault = L.icon({
-      iconRetinaUrl,
-      iconUrl,
-      shadowUrl,
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34],
@@ -67,13 +65,24 @@ export class MapsService {
    * Create a new Leaflet map instance
    */
   createMap(containerId: string, options?: L.MapOptions): L.Map {
+    // Validate and set default center if invalid
+    let center = options?.center || [39.8283, -98.5795];
+    
+    // Ensure center is valid
+    if (!Array.isArray(center) || center.length !== 2 || 
+        typeof center[0] !== 'number' || typeof center[1] !== 'number' ||
+        isNaN(center[0]) || isNaN(center[1])) {
+      console.warn('Invalid center coordinates, using default');
+      center = [39.8283, -98.5795]; // Center of USA
+    }
+    
     const defaultOptions: L.MapOptions = {
-      center: [39.8283, -98.5795], // Center of USA
       zoom: 4,
       zoomControl: true,
       scrollWheelZoom: true,
       doubleClickZoom: true,
-      ...options
+      ...options,
+      center // Override with validated center
     };
 
     return L.map(containerId, defaultOptions);
@@ -195,7 +204,12 @@ export class MapsService {
    * Geocode an address to coordinates using Nominatim
    */
   geocodeAddress(address: string): Observable<GeocodingResult[]> {
-    const encodedAddress = encodeURIComponent(address);
+    // Validate address input
+    if (!address || address.trim().length < 3) {
+      return of([]);
+    }
+    
+    const encodedAddress = encodeURIComponent(address.trim());
     const url = `${this.NOMINATIM_BASE_URL}/search?format=json&q=${encodedAddress}&limit=5&addressdetails=1`;
 
     return from(fetch(url)).pipe(

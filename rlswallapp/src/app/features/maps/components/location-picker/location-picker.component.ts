@@ -81,7 +81,10 @@ export class LocationPickerComponent implements OnInit, OnDestroy, AfterViewInit
   }
   
   ngAfterViewInit() {
-    this.initializeMap();
+    // Delay map initialization to ensure container is fully rendered
+    setTimeout(() => {
+      this.initializeMap();
+    }, 100);
   }
   
   ngOnDestroy() {
@@ -94,15 +97,47 @@ export class LocationPickerComponent implements OnInit, OnDestroy, AfterViewInit
   }
   
   private initializeMap() {
-    // Create map with initial position
-    const center: [number, number] = this.initialCoordinates 
-      ? [this.initialCoordinates.lat, this.initialCoordinates.lng]
-      : [39.8283, -98.5795]; // Center of USA
+    if (!this.mapContainer || !this.mapContainer.nativeElement) {
+      console.error('Map container not found');
+      return;
+    }
+    
+    // Ensure the container has a unique ID
+    const mapId = this.mapContainer.nativeElement.id || `location-picker-map-${Date.now()}`;
+    this.mapContainer.nativeElement.id = mapId;
+    
+    // Create map with initial position - ensure valid coordinates
+    let center: [number, number];
+    let zoom: number;
+    
+    if (this.initialCoordinates && 
+        typeof this.initialCoordinates.lat === 'number' && 
+        typeof this.initialCoordinates.lng === 'number' &&
+        !isNaN(this.initialCoordinates.lat) && 
+        !isNaN(this.initialCoordinates.lng)) {
+      center = [this.initialCoordinates.lat, this.initialCoordinates.lng];
+      zoom = 12;
+    } else {
+      // Default to center of USA
+      center = [39.8283, -98.5795];
+      zoom = 4;
+    }
+    
+    try {
+      this.map = this.mapsService.createMap(mapId, {
+        center,
+        zoom
+      });
       
-    this.map = this.mapsService.createMap(this.mapContainer.nativeElement.id, {
-      center,
-      zoom: this.initialCoordinates ? 12 : 4
-    });
+      // Force map to invalidate size after initialization
+      setTimeout(() => {
+        if (this.map) {
+          this.map.invalidateSize();
+        }
+      }, 200);
+    } catch (error) {
+      console.error('Error creating map:', error);
+    }
     
     // Add tile layer
     this.mapsService.addTileLayer(this.map);

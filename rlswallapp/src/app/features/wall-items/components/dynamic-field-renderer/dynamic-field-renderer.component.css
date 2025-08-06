@@ -249,7 +249,20 @@
 .location-edit {
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible; /* Changed to visible for map dropdowns */
+  padding: 12px;
+  background: var(--md-sys-color-surface);
+}
+
+/* Ensure location picker map displays properly */
+.location-edit app-location-picker {
+  display: block;
+  width: 100%;
+}
+
+.location-edit .map-container {
+  min-height: 250px;
+  position: relative;
 }
 
 .location-info {

@@ -1,4 +1,4 @@
-<div class="map-view">
+<div class="map-view" [class.full-page]="fullPage">
   <!-- Map Controls -->
   @if (showControls) {
     <div class="map-controls">
@@ -78,7 +78,7 @@
     <div 
       #mapContainer 
       id="map-view-map"
-      [style.height]="height"
+      [style.height]="fullPage ? '100%' : height"
       class="map">
     </div>
     
@@ -103,8 +103,8 @@
     }
   </div>
   
-  <!-- Legend (if multiple object types visible) -->
-  @if (objectTypes.length > 1 && !isLoading) {
+  <!-- Legend (if multiple object types visible) - hide in full page mode -->
+  @if (!fullPage && objectTypes.length > 1 && !isLoading) {
     <div class="map-legend">
     <h4>Legend</h4>
     <div class="legend-items">
