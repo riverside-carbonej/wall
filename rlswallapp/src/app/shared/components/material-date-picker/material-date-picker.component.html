@@ -1,0 +1,110 @@
+<div class="date-picker-container" #pickerContainer>
+  <button 
+    type="button"
+    class="date-picker-trigger"
+    (click)="togglePicker($event)"
+    [class.has-value]="selectedDate">
+    <mat-icon [icon]="'calendar_today'" class="trigger-icon"></mat-icon>
+    <span class="trigger-text">
+      {{ selectedDate ? (selectedDate | date:'MMM d, y') : 'Choose date' }}
+    </span>
+    <mat-icon [icon]="'expand_more'" class="trigger-arrow" [class.open]="isOpen"></mat-icon>
+  </button>
+
+  @if (isOpen) {
+    <div class="date-picker-popup">
+      <!-- Header -->
+      <div class="picker-header">
+        <button type="button" class="nav-button" (click)="previousMonth()">
+          <mat-icon [icon]="'chevron_left'"></mat-icon>
+        </button>
+        <div class="month-year-selector">
+          <button type="button" class="selector-button" (click)="toggleMonthSelector()">
+            {{ currentMonthName }}
+            <mat-icon [icon]="showMonthSelector ? 'expand_less' : 'expand_more'" class="selector-arrow"></mat-icon>
+          </button>
+          <button type="button" class="selector-button" (click)="toggleYearSelector()">
+            {{ currentYear }}
+            <mat-icon [icon]="showYearSelector ? 'expand_less' : 'expand_more'" class="selector-arrow"></mat-icon>
+          </button>
+        </div>
+        <button type="button" class="nav-button" (click)="nextMonth()">
+          <mat-icon [icon]="'chevron_right'"></mat-icon>
+        </button>
+      </div>
+      
+      <!-- Year Selector Dropdown -->
+      @if (showYearSelector) {
+        <div class="selector-dropdown year-selector">
+          <div class="selector-scroll">
+            @for (year of yearOptions; track year) {
+              <button 
+                type="button" 
+                class="selector-option"
+                [class.selected]="year === currentYear"
+                (click)="selectYear(year)">
+                {{ year }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+      
+      <!-- Month Selector Dropdown -->
+      @if (showMonthSelector) {
+        <div class="selector-dropdown month-selector">
+          @for (month of monthNames; track month; let i = $index) {
+            <button 
+              type="button" 
+              class="selector-option"
+              [class.selected]="i === currentMonth.getMonth()"
+              (click)="selectMonth(i)">
+              {{ month }}
+            </button>
+          }
+        </div>
+      }
+
+      <!-- Weekday labels -->
+      <div class="weekdays">
+        @for (day of weekDays; track day) {
+          <div class="weekday">{{ day }}</div>
+        }
+      </div>
+
+      <!-- Calendar days -->
+      <div class="calendar-grid">
+        @for (week of calendarDays; track $index) {
+          <div class="week-row">
+            @for (day of week; track $index) {
+              @if (day) {
+                <button 
+                  type="button"
+                  class="day-button"
+                  [class.selected]="isSelected(day)"
+                  [class.today]="isToday(day)"
+                  (click)="selectDate(day)">
+                  {{ day }}
+                </button>
+              } @else {
+                <div class="day-empty"></div>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Footer actions -->
+      <div class="picker-footer">
+        <button type="button" class="footer-button" (click)="clearDate()">
+          <mat-icon [icon]="'clear'" class="footer-icon"></mat-icon>
+          Clear
+        </button>
+        <button type="button" class="footer-button primary" (click)="selectToday()">
+          <mat-icon [icon]="'today'" class="footer-icon"></mat-icon>
+          Today
+        </button>
+      </div>
+    </div>
+  }
+</div>

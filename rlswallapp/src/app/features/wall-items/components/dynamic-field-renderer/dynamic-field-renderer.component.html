@@ -110,22 +110,10 @@
               <span class="required-indicator">*</span>
             }
           </label>
-          <div class="date-input-container" [class.error]="formControl?.invalid && formControl?.touched">
-            <mat-icon class="prefix-icon" [icon]="'calendar_today'"></mat-icon>
-            <input 
-              type="date"
-              class="material-input date-input" 
-              [formControl]="formControl"
-              [placeholder]="field.placeholder || ''"
-              [required]="field.required"
-              #dateInput>
-            <button 
-              type="button"
-              class="date-choose-button"
-              (click)="dateInput.showPicker()">
-              Choose
-            </button>
-          </div>
+          <app-material-date-picker
+            [value]="formControl?.value"
+            (dateSelected)="onDateSelected($event)">
+          </app-material-date-picker>
           @if (formControl?.invalid && formControl?.touched) {
             <div class="field-error">
               <mat-icon [icon]="'error'"></mat-icon>

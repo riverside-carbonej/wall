@@ -385,13 +385,6 @@ export class WallItemsGridComponent {
   getMetadata(item: WallItem): Array<{key: string; value: string; icon?: string}> {
     const metadata: Array<{key: string; value: string; icon?: string}> = [];
     
-    // Add last updated date
-    metadata.push({
-      key: 'updated',
-      value: new Date(item.updatedAt).toLocaleDateString(),
-      icon: 'schedule'
-    });
-    
     // Add additional relevant field data if available and not already in subtitle
     if (this.preset) {
       const displaySettings = this.preset.displaySettings;

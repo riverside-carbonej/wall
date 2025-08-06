@@ -16,6 +16,7 @@ import { FormFieldComponent } from '../../../../shared/components/form-field/for
 import { MaterialTextInputComponent } from '../../../../shared/components/material-text-input/material-text-input.component';
 import { MaterialSelectComponent, SelectOption } from '../../../../shared/components/material-select/material-select.component';
 import { MaterialSwitchComponent } from '../../../../shared/components/material-switch/material-switch.component';
+import { MaterialDatePickerComponent } from '../../../../shared/components/material-date-picker/material-date-picker.component';
 
 @Component({
   selector: 'app-dynamic-field-renderer',
@@ -35,7 +36,8 @@ import { MaterialSwitchComponent } from '../../../../shared/components/material-
     FormFieldComponent,
     MaterialTextInputComponent,
     MaterialSelectComponent,
-    MaterialSwitchComponent
+    MaterialSwitchComponent,
+    MaterialDatePickerComponent
   ],
   templateUrl: './dynamic-field-renderer.component.html',
   styleUrls: ['./dynamic-field-renderer.component.css']
@@ -414,6 +416,17 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
 
   onLocationCleared() {
     this.formControl?.setValue(null);
+  }
+
+  onDateSelected(date: Date) {
+    if (date && !isNaN(date.getTime())) {
+      // Convert to ISO string format for the form
+      const isoString = date.toISOString().split('T')[0];
+      this.formControl?.setValue(isoString);
+    } else {
+      // Clear date was selected
+      this.formControl?.setValue(null);
+    }
   }
 
   // Helper method to get select options for multiselect and other select-based fields

@@ -49,73 +49,7 @@
   width: 100%;
 }
 
-/* Date Input Field */
-.date-input-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  position: relative;
-}
-
-.date-input-container .prefix-icon {
-  position: absolute;
-  left: 12px;
-  color: var(--md-sys-color-on-surface-variant);
-  font-size: 20px;
-  pointer-events: none;
-}
-
-.material-input.date-input {
-  flex: 1;
-  padding: 8px 12px 8px 40px;
-  border: 1px solid var(--md-sys-color-outline);
-  border-radius: 4px;
-  background: var(--md-sys-color-surface);
-  color: var(--md-sys-color-on-surface);
-  font-size: 14px;
-  font-family: inherit;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
-}
-
-.material-input.date-input:hover {
-  border-color: var(--md-sys-color-on-surface-variant);
-}
-
-.material-input.date-input:focus {
-  outline: none;
-  border-color: var(--md-sys-color-primary);
-  background: var(--md-sys-color-surface);
-}
-
-.date-input-container.error .material-input.date-input {
-  border-color: var(--md-sys-color-error);
-}
-
-/* Choose Button - Pill Style */
-.date-choose-button {
-  padding: 6px 16px;
-  background: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
-  border: none;
-  border-radius: 16px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.date-choose-button:hover {
-  background: var(--md-sys-color-primary-container);
-  color: var(--md-sys-color-on-primary-container);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.date-choose-button:active {
-  transform: translateY(0);
-  box-shadow: none;
-}
+/* Date field styles now handled by MaterialDatePickerComponent */
 
 /* Read-only Mode */
 .readonly-field {
