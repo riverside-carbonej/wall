@@ -8,6 +8,11 @@
   margin-bottom: 0 !important;
 }
 
+/* Remove gaps in edit mode */
+.edit-field .dynamic-field-renderer {
+  margin-bottom: 0;
+}
+
 /* Common Styles */
 .field-label {
   display: flex;
@@ -146,6 +151,20 @@
 /* Edit Mode */
 .edit-field {
   width: 100%;
+}
+
+/* Remove vertical gaps between fields in edit mode */
+.edit-field .form-field,
+.edit-field .boolean-field,
+.edit-field .color-field,
+.edit-field .multiselect-field,
+.edit-field .file-field,
+.edit-field .location-field,
+.edit-field .relationship-field,
+.edit-field .daterange-field,
+.edit-field .numberrange-field {
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 /* Boolean Field */
