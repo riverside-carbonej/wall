@@ -16,6 +16,7 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { WallService } from '../../../walls/services/wall.service';
 import { WallItemService } from '../../../wall-items/services/wall-item.service';
+import { ThemeService } from '../../../../shared/services/theme.service';
 
 export interface MapViewSettings {
   tileProvider: 'openstreetmap' | 'satellite';
@@ -80,18 +81,37 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   mapMarkers: MapMarker[] = [];
   private currentWallId?: string;
   private currentWall?: Wall;
+  private wallThemeColors?: { primary: string; secondary: string; accent: string; };
   
   constructor(
     private mapsService: MapsService,
     private route: ActivatedRoute,
     private wallService: WallService,
     private wallItemService: WallItemService,
-    private router: Router
+    private router: Router,
+    private themeService: ThemeService
   ) {}
   
   ngOnInit() {
     // Apply initial settings
     this.settings = { ...this.settings, ...this.initialSettings };
+    
+    // Subscribe to theme changes
+    this.themeService.getCurrentTheme()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(theme => {
+        if (theme.wallTheme) {
+          this.wallThemeColors = {
+            primary: theme.wallTheme.primaryColor,
+            secondary: theme.wallTheme.secondaryColor,
+            accent: theme.wallTheme.accentColor || theme.wallTheme.primaryColor
+          };
+          // Update existing markers with new theme colors
+          if (this.map && this.mapMarkers.length > 0) {
+            this.updateMapMarkers();
+          }
+        }
+      });
     
     // Check if we're being used as a standalone route (no inputs provided)
     const isStandaloneRoute = !this.wallItems.length && !this.objectTypes.length;
@@ -210,13 +230,30 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
         coordinates = item.fieldData['location'];
       }
       
+      // Use wall theme colors if available, otherwise use object type colors
+      let markerColor = objectType?.color || '#4285f4';
+      if (this.wallThemeColors) {
+        // Use theme colors based on object type index for variety
+        const objectTypeIndex = this.objectTypes.findIndex(type => type.id === item.objectTypeId);
+        if (objectTypeIndex === 0) {
+          markerColor = this.wallThemeColors.primary;
+        } else if (objectTypeIndex === 1) {
+          markerColor = this.wallThemeColors.secondary;
+        } else if (objectTypeIndex === 2) {
+          markerColor = this.wallThemeColors.accent;
+        } else {
+          // For additional object types, alternate between primary and secondary
+          markerColor = objectTypeIndex % 2 === 0 ? this.wallThemeColors.primary : this.wallThemeColors.secondary;
+        }
+      }
+      
       return {
         id: item.id,
         coordinates: coordinates!,
         title: this.getItemDisplayName(item),
         content: this.getItemDescription(item),
         icon: objectType?.icon || 'place',
-        color: objectType?.color || '#4285f4',
+        color: markerColor,
         wallItemId: item.id,
         objectTypeId: item.objectTypeId
       };
@@ -239,6 +276,10 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
       const objectType = this.objectTypes.find(ot => ot.id === markerData.objectTypeId);
       
       // Create enhanced popup content with view button
+      // Apply theme color to the view button if available
+      const buttonStyle = this.wallThemeColors ? 
+        `style="background: ${this.wallThemeColors.primary}; color: white;"` : '';
+      
       const popupContent = `
         <div class="map-popup-card">
           <div class="popup-header">
@@ -250,7 +291,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
           <p class="popup-content">${markerData.content}</p>
           ${markerData.coordinates.address ? `<p class="popup-address"><small>${markerData.coordinates.address}</small></p>` : ''}
           <div class="popup-actions">
-            <button class="view-item-btn" data-wall-id="${this.currentWallId}" data-object-type="${markerData.objectTypeId}" data-item-id="${markerData.wallItemId}">
+            <button class="view-item-btn" ${buttonStyle} data-wall-id="${this.currentWallId}" data-object-type="${markerData.objectTypeId}" data-item-id="${markerData.wallItemId}">
               <span class="material-icons">open_in_new</span>
               <span>View Details</span>
             </button>
@@ -451,6 +492,11 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
       if (wall) {
         this.currentWall = wall;
         this.objectTypes = wall.objectTypes || [];
+        
+        // Apply wall theme if it exists
+        if (wall.theme) {
+          this.themeService.applyWallTheme(wall.theme);
+        }
         
         // Load wall items
         this.wallItemService.getWallItems(wall.id!).subscribe(items => {

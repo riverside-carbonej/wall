@@ -134,7 +134,7 @@
   padding: 14px 24px;
   min-height: 48px;
   min-width: 160px;
-  background: var(--md-sys-color-primary);
+  background: var(--wall-primary, var(--md-sys-color-primary));
   color: var(--md-sys-color-on-primary);
   border: none;
   border-radius: var(--md-sys-shape-corner-full);
@@ -260,8 +260,8 @@
   gap: 8px;
   min-height: 40px;
   background: var(--md-sys-color-surface);
-  color: var(--md-sys-color-primary);
-  border-color: var(--md-sys-color-outline);
+  color: var(--wall-primary, var(--md-sys-color-primary));
+  border-color: var(--wall-primary, var(--md-sys-color-outline));
   font-family: var(--md-sys-typescale-label-large-font-family);
   font-size: var(--md-sys-typescale-label-large-font-size);
   font-weight: var(--md-sys-typescale-label-large-font-weight);
@@ -272,7 +272,8 @@
 
 .action-buttons button:hover:not(:disabled) {
   background: var(--md-sys-color-primary-container);
-  border-color: var(--md-sys-color-primary);
+  border-color: var(--wall-primary, var(--md-sys-color-primary));
+  color: var(--md-sys-color-on-primary-container);
 }
 
 .action-buttons button:disabled {
@@ -392,7 +393,7 @@
 
 .stats-chip {
   background: var(--md-sys-color-surface-container-high);
-  border: 1px solid var(--md-sys-color-outline-variant);
+  border: 1px solid var(--wall-primary, var(--md-sys-color-outline-variant));
   border-radius: var(--md-sys-shape-corner-full);
   padding: 8px 16px;
   display: flex;
@@ -448,7 +449,7 @@
 
 .legend-item.active {
   opacity: 1;
-  background-color: rgba(66, 133, 244, 0.1);
+  background-color: var(--md-sys-color-primary-container);
 }
 
 .legend-marker {
