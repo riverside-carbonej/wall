@@ -501,6 +501,85 @@
           }
         </div>
       }
+      
+      <!-- Entity Association Field -->
+      @if (isEntity()) {
+        <div class="entity-field">
+          <div class="field-label">
+            {{ field.name }}
+            @if (field.required) {
+              <span class="required-indicator">*</span>
+            }
+          </div>
+          
+          <!-- Selected Entities Display -->
+          @if (selectedEntities && selectedEntities.length > 0) {
+            <div class="selected-entities">
+              @for (entity of selectedEntities; track entity.id) {
+                <div class="entity-chip">
+                  <span class="entity-name">{{ entity.name }}</span>
+                  @if (entity.subtitle) {
+                    <span class="entity-subtitle">{{ entity.subtitle }}</span>
+                  }
+                  <button 
+                    type="button"
+                    class="remove-entity"
+                    (click)="removeEntity(entity)"
+                    title="Remove">
+                    <mat-icon [icon]="'close'"></mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+          
+          <!-- Add Entity Interface -->
+          <div class="add-entity">
+            <div class="search-container">
+              <input 
+                type="text"
+                class="entity-search"
+                [(ngModel)]="entitySearchTerm"
+                [ngModelOptions]="{standalone: true}"
+                (input)="onEntitySearch($event)"
+                (focus)="showEntitySuggestions = true"
+                (blur)="hideEntitySuggestions()"
+                placeholder="Search {{ getEntityTypeName() }}..."
+                [disabled]="!field.entityConfig?.allowMultiple && selectedEntities && selectedEntities.length > 0">
+              
+              <!-- Search Results Dropdown -->
+              @if (showEntitySuggestions && filteredEntities && filteredEntities.length > 0) {
+                <div class="entity-suggestions">
+                  @for (item of filteredEntities; track item.id) {
+                    <div class="entity-suggestion"
+                         (mousedown)="selectEntity(item)">
+                      <div class="suggestion-content">
+                        <div class="suggestion-name">{{ item.name }}</div>
+                        @if (item.subtitle) {
+                          <div class="suggestion-subtitle">{{ item.subtitle }}</div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+              
+              @if (showEntitySuggestions && entitySearchTerm && filteredEntities && filteredEntities.length === 0) {
+                <div class="entity-suggestions">
+                  <div class="no-results">No matching {{ getEntityTypeName() }} found</div>
+                </div>
+              }
+            </div>
+          </div>
+          
+          @if (formControl?.invalid && formControl?.touched) {
+            <div class="field-error">
+              <mat-icon [icon]="'error'"></mat-icon>
+              {{ getErrorMessage() }}
+            </div>
+          }
+        </div>
+      }
 
     </div>
   }

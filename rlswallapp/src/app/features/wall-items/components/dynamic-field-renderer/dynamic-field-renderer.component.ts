@@ -71,6 +71,13 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   showRelationshipSuggestions: boolean = false;
   allRelationshipItems: Array<{id: string; name: string; subtitle?: string}> = [];
   
+  // For entity fields
+  selectedEntities: Array<{id: string; name: string; subtitle?: string}> = [];
+  filteredEntities: Array<{id: string; name: string; subtitle?: string}> = [];
+  entitySearchTerm: string = '';
+  showEntitySuggestions: boolean = false;
+  allEntityItems: Array<{id: string; name: string; subtitle?: string}> = [];
+  
   ngOnInit() {
     console.log('DynamicFieldRenderer ngOnInit:', {
       fieldId: this.field?.id,
@@ -136,6 +143,19 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
           name: `Item ${id}`,
           subtitle: 'Selected item'
         }));
+      }
+    }
+    
+    if (this.field.type === 'entity') {
+      this.loadEntityItems();
+      
+      // Initialize selected entities from current value
+      if (initialValue) {
+        // Handle both single and multiple entity values
+        const entityIds = Array.isArray(initialValue) ? initialValue : [initialValue];
+        
+        // Load the actual entity names
+        this.loadSelectedEntities(entityIds);
       }
     }
   }
@@ -209,6 +229,10 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
 
   isRelationship(): boolean {
     return this.field.type === 'relationship';
+  }
+  
+  isEntity(): boolean {
+    return this.field.type === 'entity';
   }
 
   getInputType(): string {
@@ -600,6 +624,174 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
       });
       
       this.updateFilteredRelationships();
+    });
+  }
+  
+  // Entity field methods
+  getEntityTypeName(): string {
+    if (!this.field.entityConfig || !this.wall) return 'Items';
+    
+    // Find the actual object type from the wall
+    const targetType = this.wall.objectTypes?.find(
+      ot => ot.id === this.field.entityConfig!.targetObjectTypeId
+    );
+    
+    if (targetType) {
+      return this.nlpService.getPlural(targetType.name);
+    }
+    
+    // Fallback to pluralizing the ID
+    return this.nlpService.getPlural(this.field.entityConfig.targetObjectTypeId);
+  }
+  
+  onEntitySearch(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.entitySearchTerm = input.value;
+    this.updateFilteredEntities();
+    this.showEntitySuggestions = true;
+  }
+  
+  private updateFilteredEntities() {
+    if (!this.entitySearchTerm.trim()) {
+      // Show first 10 items when no search term
+      this.filteredEntities = this.allEntityItems
+        .filter(item => !this.selectedEntities.some(selected => selected.id === item.id))
+        .slice(0, 10);
+      return;
+    }
+
+    const searchTerm = this.entitySearchTerm.toLowerCase();
+    this.filteredEntities = this.allEntityItems.filter(item => 
+      !this.selectedEntities.some(selected => selected.id === item.id) &&
+      (item.name.toLowerCase().includes(searchTerm) || 
+       (item.subtitle && item.subtitle.toLowerCase().includes(searchTerm)))
+    );
+  }
+  
+  selectEntity(item: {id: string; name: string; subtitle?: string}) {
+    if (!this.field.entityConfig?.allowMultiple) {
+      this.selectedEntities = [item];
+    } else {
+      if (!this.selectedEntities.some(selected => selected.id === item.id)) {
+        this.selectedEntities.push(item);
+      }
+    }
+    
+    this.updateEntityFormControlValue();
+    this.entitySearchTerm = '';
+    this.showEntitySuggestions = false;
+    this.updateFilteredEntities();
+  }
+  
+  removeEntity(item: {id: string; name: string; subtitle?: string}) {
+    this.selectedEntities = this.selectedEntities.filter(
+      selected => selected.id !== item.id
+    );
+    this.updateEntityFormControlValue();
+    this.updateFilteredEntities();
+  }
+  
+  private updateEntityFormControlValue() {
+    if (!this.field.entityConfig?.allowMultiple) {
+      this.formControl?.setValue(this.selectedEntities[0]?.id || null);
+    } else {
+      this.formControl?.setValue(this.selectedEntities.map(item => item.id));
+    }
+  }
+  
+  hideEntitySuggestions() {
+    setTimeout(() => {
+      this.showEntitySuggestions = false;
+    }, 200);
+  }
+  
+  private loadEntityItems() {
+    if (!this.field.entityConfig || !this.wall) return;
+    
+    const targetObjectTypeId = this.field.entityConfig.targetObjectTypeId;
+    if (!targetObjectTypeId) return;
+
+    // Find the target object type definition to get display field names
+    const targetObjectType = this.wall.objectTypes?.find(ot => ot.id === targetObjectTypeId);
+    if (!targetObjectType) return;
+
+    // Get items of the target object type from the same wall
+    this.wallItemService.getWallItemsByObjectType(this.wall.id!, targetObjectTypeId).subscribe(items => {
+      console.log(`Loaded ${items.length} items for entity field ${this.field.name} (type: ${targetObjectTypeId})`);
+      
+      this.allEntityItems = items.map(item => {
+        // Use the primary display field or fall back to first text field
+        const primaryField = targetObjectType.displaySettings?.primaryField;
+        const secondaryField = targetObjectType.displaySettings?.secondaryField;
+        
+        let name = 'Untitled';
+        let subtitle = '';
+
+        if (primaryField && item.fieldData[primaryField]) {
+          name = String(item.fieldData[primaryField]);
+        } else {
+          // Find first non-empty text field
+          const firstTextField = targetObjectType.fields.find(f => 
+            f.type === 'text' && item.fieldData[f.id]
+          );
+          if (firstTextField && item.fieldData[firstTextField.id]) {
+            name = String(item.fieldData[firstTextField.id]);
+          }
+        }
+
+        if (secondaryField && item.fieldData[secondaryField]) {
+          subtitle = String(item.fieldData[secondaryField]);
+        }
+
+        return {
+          id: item.id!,
+          name: name,
+          subtitle: subtitle
+        };
+      });
+      
+      this.updateFilteredEntities();
+    });
+  }
+  
+  private loadSelectedEntities(entityIds: string[]) {
+    if (!this.field.entityConfig || !this.wall) return;
+    
+    const targetObjectTypeId = this.field.entityConfig.targetObjectTypeId;
+    if (!targetObjectTypeId) return;
+
+    // Find the target object type definition
+    const targetObjectType = this.wall.objectTypes?.find(ot => ot.id === targetObjectTypeId);
+    if (!targetObjectType) return;
+
+    // Load each selected entity
+    entityIds.forEach(entityId => {
+      this.wallItemService.getWallItemById(entityId).subscribe(item => {
+        if (item) {
+          const primaryField = targetObjectType.displaySettings?.primaryField;
+          const secondaryField = targetObjectType.displaySettings?.secondaryField;
+          
+          let name = 'Untitled';
+          let subtitle = '';
+
+          if (primaryField && item.fieldData[primaryField]) {
+            name = String(item.fieldData[primaryField]);
+          }
+
+          if (secondaryField && item.fieldData[secondaryField]) {
+            subtitle = String(item.fieldData[secondaryField]);
+          }
+
+          // Only add if not already in the list
+          if (!this.selectedEntities.some(e => e.id === entityId)) {
+            this.selectedEntities.push({
+              id: entityId,
+              name: name,
+              subtitle: subtitle
+            });
+          }
+        }
+      });
     });
   }
 }

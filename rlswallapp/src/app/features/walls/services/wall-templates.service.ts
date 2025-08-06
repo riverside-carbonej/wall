@@ -197,11 +197,12 @@ export class WallTemplatesService {
   }
 
   /**
-   * Create default branch and deployment items for Veterans Registry
+   * Create default branch, deployment, and award items for Veterans Registry
    */
   createDefaultVeteranRegistryItems(wallId: string): {
     branches: Array<{ objectTypeId: string; fieldData: any }>;
     deployments: Array<{ objectTypeId: string; fieldData: any }>;
+    awards: Array<{ objectTypeId: string; fieldData: any }>;
   } {
     const branches = this.getDefaultMilitaryBranches().map(branch => ({
       objectTypeId: 'branch',
@@ -230,7 +231,38 @@ export class WallTemplatesService {
       };
     });
 
-    return { branches, deployments };
+    const awards = this.getDefaultMilitaryAwards().map(award => ({
+      objectTypeId: 'award',
+      fieldData: {
+        name: award.name,
+        description: award.description,
+        category: award.category
+      }
+    }));
+
+    return { branches, deployments, awards };
+  }
+
+  private getDefaultMilitaryAwards(): Array<{ name: string; description: string; category: string[] }> {
+    return [
+      { name: 'Purple Heart', description: 'Awarded to those wounded or killed in action', category: ['Combat'] },
+      { name: 'Bronze Star', description: 'For heroic or meritorious achievement or service', category: ['Combat', 'Achievement'] },
+      { name: 'Silver Star', description: 'For gallantry in action against an enemy', category: ['Combat'] },
+      { name: 'Good Conduct Medal', description: 'For exemplary behavior, efficiency, and fidelity', category: ['Service'] },
+      { name: 'National Defense Service Medal', description: 'For service during a period of national emergency', category: ['Service'] },
+      { name: 'Army Commendation Medal', description: 'For sustained acts of heroism or meritorious service', category: ['Achievement'] },
+      { name: 'Navy and Marine Corps Achievement Medal', description: 'For professional and leadership achievements', category: ['Achievement'] },
+      { name: 'Air Force Achievement Medal', description: 'For outstanding achievement or meritorious service', category: ['Achievement'] },
+      { name: 'Distinguished Service Cross', description: 'Second highest military decoration for valor', category: ['Combat'] },
+      { name: 'Medal of Honor', description: 'Highest military decoration for valor', category: ['Combat'] },
+      { name: 'Combat Action Ribbon', description: 'For active participation in ground or surface combat', category: ['Combat'] },
+      { name: 'Iraq Campaign Medal', description: 'For service in Iraq', category: ['Campaign'] },
+      { name: 'Afghanistan Campaign Medal', description: 'For service in Afghanistan', category: ['Campaign'] },
+      { name: 'Global War on Terrorism Service Medal', description: 'For service in the Global War on Terrorism', category: ['Campaign'] },
+      { name: 'Vietnam Service Medal', description: 'For service in Vietnam', category: ['Campaign'] },
+      { name: 'Korean Service Medal', description: 'For service in Korea', category: ['Campaign'] },
+      { name: 'NATO Medal', description: 'For service in NATO operations', category: ['Foreign'] }
+    ];
   }
 
   // Veterans Object Types
@@ -259,12 +291,12 @@ export class WallTemplatesService {
       },
       {
         id: 'branches',
-        name: 'Branches',
-        type: 'relationship',
-        required: true,
-        relationshipConfig: {
+        name: 'Service Branches',
+        type: 'entity',
+        required: false,
+        placeholder: 'Select service branches',
+        entityConfig: {
           targetObjectTypeId: 'branch',
-          relationshipType: 'one-to-many',
           allowMultiple: true
         }
       },
@@ -285,18 +317,29 @@ export class WallTemplatesService {
       {
         id: 'deployments',
         name: 'Deployments',
-        type: 'relationship',
+        type: 'entity',
         required: false,
-        relationshipConfig: {
+        placeholder: 'Select deployments and operations',
+        entityConfig: {
           targetObjectTypeId: 'deployment',
-          relationshipType: 'one-to-many',
+          allowMultiple: true
+        }
+      },
+      {
+        id: 'awards',
+        name: 'Awards & Decorations',
+        type: 'entity',
+        required: false,
+        placeholder: 'Select military awards and decorations',
+        entityConfig: {
+          targetObjectTypeId: 'award',
           allowMultiple: true
         }
       },
       {
         id: 'description',
         name: 'Service Description',
-        type: 'text',
+        type: 'longtext',
         required: false,
         placeholder: 'Share your service story and experiences'
       }
@@ -354,6 +397,33 @@ export class WallTemplatesService {
         type: 'text',
         required: false,
         placeholder: 'Description of the service branch'
+      }
+    ];
+
+    const awardFields: FieldDefinition[] = [
+      {
+        id: 'name',
+        name: 'Award Name',
+        type: 'text',
+        required: true,
+        placeholder: 'e.g., Bronze Star, Purple Heart'
+      },
+      {
+        id: 'description',
+        name: 'Description',
+        type: 'longtext',
+        required: false,
+        placeholder: 'Description of the award and its significance'
+      },
+      {
+        id: 'category',
+        name: 'Category',
+        type: 'multiselect',
+        required: false,
+        multiselectConfig: {
+          options: ['Combat', 'Service', 'Achievement', 'Campaign', 'Unit', 'Foreign'],
+          allowCustom: true
+        }
       }
     ];
 
@@ -416,6 +486,26 @@ export class WallTemplatesService {
         },
         isActive: true,
         sortOrder: 2,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'award',
+        wallId: '',
+        name: 'Award',
+        description: 'Military awards, decorations, and commendations',
+        icon: 'emoji_events',
+        color: '#ffc107',
+        fields: awardFields,
+        relationships: [],
+        displaySettings: {
+          primaryField: 'name',
+          secondaryField: 'category',
+          showOnMap: false,
+          cardLayout: 'compact'
+        },
+        isActive: true,
+        sortOrder: 3,
         createdAt: new Date(),
         updatedAt: new Date()
       }

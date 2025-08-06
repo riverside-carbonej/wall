@@ -1,7 +1,7 @@
 export interface FieldDefinition {
   id: string;
   name: string;
-  type: 'text' | 'longtext' | 'date' | 'number' | 'email' | 'url' | 'relationship' | 'location' | 'richtext' | 'file' | 'daterange' | 'multiselect' | 'numberrange' | 'color' | 'boolean';
+  type: 'text' | 'longtext' | 'date' | 'number' | 'email' | 'url' | 'relationship' | 'entity' | 'location' | 'richtext' | 'file' | 'daterange' | 'multiselect' | 'numberrange' | 'color' | 'boolean';
   required: boolean;
   placeholder?: string;
   description?: string;
@@ -15,6 +15,11 @@ export interface FieldDefinition {
     targetObjectTypeId: string;
     relationshipType: 'one-to-one' | 'one-to-many' | 'many-to-many';
     allowMultiple: boolean;
+  };
+  entityConfig?: {
+    targetObjectTypeId: string; // The object type to select from
+    allowMultiple: boolean; // Allow selecting multiple entities
+    searchFields?: string[]; // Fields to search in (defaults to primary/secondary display fields)
   };
   multiselectConfig?: {
     options: string[];
