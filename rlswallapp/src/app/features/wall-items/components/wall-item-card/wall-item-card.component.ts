@@ -4,11 +4,12 @@ import { WallItem, WallObjectType, WallItemImage } from '../../../../shared/mode
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { ThemeService } from '../../../../shared/services/theme.service';
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { WallItemImageComponent } from '../../../../shared/components/wall-item-image/wall-item-image.component';
 
 @Component({
   selector: 'app-wall-item-card',
   standalone: true,
-  imports: [CommonModule, MaterialIconComponent, ThemedButtonComponent],
+  imports: [CommonModule, MaterialIconComponent, ThemedButtonComponent, WallItemImageComponent],
   template: `
     <div class="item-card" 
          [class.selected]="selected"
@@ -20,15 +21,14 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
          (touchend)="onTouchEnd($event)">
       
       <!-- Background Image -->
-      @if (hasImage) {
-        <div class="card-background" [style.background-image]="'url(' + primaryImage!.url + ')'"></div>
-      } @else {
-        <div class="card-background" [style.background-color]="getPresetColor()">
-          <div class="background-placeholder">
-            <mat-icon [icon]="preset?.icon || 'inventory_2'"></mat-icon>
-          </div>
-        </div>
-      }
+      <div class="card-background">
+        <app-wall-item-image
+          [images]="item?.images || []"
+          [primaryImageIndex]="item?.primaryImageIndex || 0"
+          [preset]="preset"
+          [uniqueId]="item?.id">
+        </app-wall-item-image>
+      </div>
       
       <!-- Content Overlay -->
       <div class="card-content">
@@ -126,29 +126,17 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
       transition: transform 0.3s ease;
     }
 
+    .card-background app-wall-item-image {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
     .item-card:hover .card-background {
       transform: scale(1.05);
     }
 
-    .background-placeholder {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 100%;
-    }
 
-    .background-placeholder mat-icon {
-      font-size: 64px;
-      width: 64px;
-      height: 64px;
-      color: rgba(255, 255, 255, 0.6);
-      opacity: 0.8;
-    }
 
     /* Content Overlay */
     .card-content {

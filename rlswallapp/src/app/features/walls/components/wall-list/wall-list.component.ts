@@ -345,6 +345,7 @@ import { NavigationService } from '../../../../shared/services/navigation.servic
       align-items: center;
       padding: var(--md-sys-spacing-4) var(--md-sys-spacing-5);
       min-height: var(--md-sys-touch-target-large);
+      width: 100%;
     }
 
     .wall-thumbnail {
@@ -447,6 +448,7 @@ import { NavigationService } from '../../../../shared/services/navigation.servic
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      min-width: 0; /* Enable text truncation in flex container */
     }
 
     .list-view .wall-info {
@@ -461,8 +463,10 @@ import { NavigationService } from '../../../../shared/services/navigation.servic
       margin: 0 0 var(--md-sys-spacing-2) 0;
       font-family: 'Google Sans', sans-serif;
       overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
     .list-view .wall-title {

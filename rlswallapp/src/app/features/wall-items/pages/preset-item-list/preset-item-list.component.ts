@@ -118,44 +118,62 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
           <!-- Content Container -->
           <div class="content-container">
             
-            <!-- Empty State -->
-            @if (!isLoading && totalItems === 0) {
-              <app-empty-state
-                [icon]="preset.icon || 'inventory_2'"
-                [title]="nlpService.getEmptyStateTitle(preset.name)"
-                [message]="'Add your first ' + preset.name.toLowerCase() + ' entry to get started!'"
-                [actions]="emptyStateActions">
-              </app-empty-state>
-            }
+            <!-- Page Navigation Arrows -->
+            <div class="page-nav-container">
+              <app-themed-button
+                [variant]="'icon'"
+                [icon]="'navigate_before'"
+                [disabled]="pageIndex === 0"
+                class="page-nav-arrow page-nav-left"
+                (buttonClick)="changePage(pageIndex - 1)">
+              </app-themed-button>
+              
+              <div class="content-wrapper">
+                <!-- Empty State -->
+                @if (!isLoading && totalItems === 0) {
+                  <app-empty-state
+                    [icon]="preset.icon || 'inventory_2'"
+                    [title]="nlpService.getEmptyStateTitle(preset.name)"
+                    [message]="'Add your first ' + preset.name.toLowerCase() + ' entry to get started!'"
+                    [actions]="emptyStateActions">
+                  </app-empty-state>
+                }
 
-            <!-- Items Grid/List View -->
-            @if (!isLoading && allItems.length > 0) {
-              <app-wall-items-grid
-                [items]="allItems"
-                [preset]="preset"
-                [viewMode]="largeView ? 'grid' : 'list'"
-                [selectedItems]="selection"
-                [pageSize]="pageSize"
-                [pageIndex]="pageIndex"
-                [isSelectionMode]="isSelectionMode"
-                (itemClick)="onItemClick($event)"
-                (viewItem)="onItemView($event)"
-                (editItem)="onEditItem($event)"
-                (selectionToggle)="onItemSelectionToggle($event)"
-                (startSelectionMode)="onStartSelectionMode($event)">
-              </app-wall-items-grid>
-            }
+                <!-- Items Grid/List View -->
+                @if (!isLoading && allItems.length > 0) {
+                  <app-wall-items-grid
+                    [items]="allItems"
+                    [preset]="preset"
+                    [viewMode]="largeView ? 'grid' : 'list'"
+                    [selectedItems]="selection"
+                    [pageSize]="pageSize"
+                    [pageIndex]="pageIndex"
+                    [isSelectionMode]="isSelectionMode"
+                    (itemClick)="onItemClick($event)"
+                    (viewItem)="onItemView($event)"
+                    (editItem)="onEditItem($event)"
+                    (selectionToggle)="onItemSelectionToggle($event)"
+                    (startSelectionMode)="onStartSelectionMode($event)">
+                  </app-wall-items-grid>
+                }
+                <!-- Floating Add Button -->
+                <button 
+                  class="floating-add-button"
+                  (click)="navigateToAdd()">
+                  <mat-icon [icon]="'add'"></mat-icon>
+                  <span>{{ nlpService.getAddButtonText(preset.name) }}</span>
+                </button>
+              </div>
+              
+              <app-themed-button
+                [variant]="'icon'"
+                [icon]="'navigate_next'"
+                [disabled]="pageIndex >= getMaxPage()"
+                class="page-nav-arrow page-nav-right"
+                (buttonClick)="changePage(pageIndex + 1)">
+              </app-themed-button>
+            </div>
           </div>
-          
-          <!-- Floating Add Button -->
-          <app-themed-button
-            [variant]="'raised'"
-            [color]="'primary'"
-            [icon]="'add'"
-            [label]="nlpService.getAddButtonText(preset.name)"
-            class="floating-add-button"
-            (buttonClick)="navigateToAdd()">
-          </app-themed-button>
           
       </div>
     </div>
@@ -257,45 +275,6 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
       gap: 12px;
     }
 
-    /* Floating Add Button */
-    .floating-add-button {
-      position: absolute;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      height: 56px;
-      padding: 0 24px;
-      border-radius: 28px;
-      border: none;
-      background: var(--md-sys-color-primary);
-      color: var(--md-sys-color-on-primary);
-      box-shadow: var(--md-sys-elevation-3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-      z-index: 100;
-      font-size: 16px;
-      font-weight: 500;
-      font-family: 'Google Sans', 'Roboto', sans-serif;
-    }
-
-    .floating-add-button:hover {
-      box-shadow: var(--md-sys-elevation-4);
-      transform: translateX(-50%) scale(1.05);
-    }
-
-    .floating-add-button:active {
-      transform: translateX(-50%) scale(0.95);
-    }
-
-    .floating-add-button mat-icon {
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
-    }
 
     /* View Toggle */
     .view-toggle {
@@ -470,6 +449,113 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
     }
 
 
+    /* Page Navigation */
+    .page-nav-container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .content-wrapper {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Only show side navigation arrows on wide screens */
+    .page-nav-arrow {
+      display: none;
+      position: sticky;
+      top: 50%;
+      transform: translateY(-50%);
+      align-self: flex-start;
+      margin: 0 16px;
+      z-index: 10;
+    }
+
+    .page-nav-left {
+      order: -1;
+    }
+
+    .page-nav-right {
+      order: 1;
+    }
+
+    @media (min-width: 1280px) {
+      .page-nav-arrow {
+        display: flex;
+      }
+
+      .content-wrapper {
+        padding: 0 48px;
+        max-width: 1440px;
+        margin: 0 auto;
+        width: 100%;
+      }
+    }
+
+    @media (min-width: 1600px) {
+      .content-wrapper {
+        padding: 0 96px;
+        max-width: 1600px;
+      }
+    }
+
+    /* Floating Add Button */
+    .floating-add-button {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 56px;
+      padding: 0 24px;
+      border-radius: 28px;
+      border: none;
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      box-shadow: var(--md-sys-elevation-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 100;
+      font-size: 16px;
+      font-weight: 500;
+      font-family: 'Google Sans', 'Roboto', sans-serif;
+      opacity: 1;
+    }
+
+    .floating-add-button:hover {
+      box-shadow: var(--md-sys-elevation-4);
+      transform: translateX(-50%) scale(1.05);
+      background: var(--md-sys-color-primary) !important;
+      color: var(--md-sys-color-on-primary) !important;
+      opacity: 1 !important;
+    }
+    
+    .floating-add-button:hover span,
+    .floating-add-button:hover mat-icon {
+      color: var(--md-sys-color-on-primary) !important;
+    }
+
+    .floating-add-button:active {
+      transform: translateX(-50%) scale(0.95);
+      background: var(--md-sys-color-primary);
+      opacity: 1;
+    }
+
+    .floating-add-button mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+
     /* Responsive Design */
     @media (max-width: 768px) {
       .page-title {
@@ -502,14 +588,7 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
   pageIndex = 0;
   pageSize = 50;
 
-  emptyStateActions: EmptyStateAction[] = [
-    {
-      label: 'Add First Item',
-      icon: 'add',
-      primary: true,
-      action: () => this.navigateToAdd()
-    }
-  ];
+  emptyStateActions: EmptyStateAction[] = [];
 
   viewToggleItems: ButtonGroupItem[] = [
     {

@@ -66,6 +66,8 @@
   font-size: 14px;
   min-height: 20px;
   word-break: break-word;
+  white-space: pre-wrap; /* Preserve line breaks in readonly mode */
+  line-height: 1.5;
 }
 
 .field-value.empty {
@@ -549,8 +551,12 @@
   font-family: var(--md-sys-typescale-body-large-font-family-name, inherit);
   color: var(--md-sys-color-on-surface);
   caret-color: var(--md-sys-color-primary);
-  min-height: 24px;
+  min-height: 60px; /* Increased minimum height for better text area feel */
   line-height: 1.5;
+  resize: vertical; /* Allow vertical resizing */
+  word-wrap: break-word; /* Ensure text wraps */
+  white-space: pre-wrap; /* Preserve line breaks and wrap text */
+  overflow-wrap: break-word; /* Break long words if needed */
 }
 
 .material-input::placeholder,
@@ -579,10 +585,19 @@
   color: var(--md-sys-color-on-surface-variant);
 }
 
-/* Textarea Auto-resize */
-textarea {
+/* Textarea Auto-resize and Styling */
+textarea.material-textarea {
   resize: vertical;
   min-height: 60px;
+  overflow: hidden; /* Hide scrollbar until needed */
+  overflow-y: auto; /* Show scrollbar when content exceeds max-height */
+  max-height: 200px; /* Limit maximum height */
+  transition: height 0.2s ease; /* Smooth height transition */
+}
+
+/* Auto-expand behavior - will be handled by component if needed */
+textarea.material-textarea:focus {
+  min-height: 80px; /* Slightly expand on focus */
 }
 
 /* Responsive Design */

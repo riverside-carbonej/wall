@@ -59,7 +59,7 @@ export type PageMode = 'create' | 'view' | 'edit';
                       [images]="[]"
                       [preset]="preset"
                       [objectFit]="'cover'"
-                      [fallbackColor]="getPresetColor()">
+                      [uniqueId]="item?.id || preset?.id">
                     </app-wall-item-image>
                     @if (mode !== 'view') {
                       <div class="add-image-overlay">
@@ -80,7 +80,7 @@ export type PageMode = 'create' | 'view' | 'edit';
                         [primaryImageIndex]="primaryImageIndex"
                         [preset]="preset"
                         [objectFit]="'cover'"
-                        [fallbackColor]="getPresetColor()">
+                          [uniqueId]="item?.id || preset?.id">
                       </app-wall-item-image>
                       @if (mode !== 'view') {
                         <div class="image-overlay">

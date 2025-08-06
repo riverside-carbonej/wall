@@ -47,12 +47,12 @@
             @if (getFieldIcon()) {
               <mat-icon class="prefix-icon" [icon]="getFieldIcon()"></mat-icon>
             }
-            <input 
-              class="material-input" 
-              [type]="getTextInputType()"
+            <textarea 
+              class="material-textarea" 
               [formControlName]="field.id"
               [placeholder]="field.placeholder || ''"
-              [required]="field.required">
+              [required]="field.required"
+              rows="1"></textarea>
           </div>
           @if (formControl?.invalid && formControl?.touched) {
             <div class="field-error">
@@ -113,12 +113,12 @@
           </label>
           <div class="input-container" [class.error]="formControl?.invalid && formControl?.touched">
             <mat-icon class="prefix-icon" [icon]="'calendar_today'"></mat-icon>
-            <input 
-              class="material-input" 
-              type="text"
+            <textarea 
+              class="material-textarea" 
               [formControlName]="field.id"
               [placeholder]="field.placeholder || 'Enter date (e.g., MM/DD/YYYY, Month DD, YYYY)'"
-              [required]="field.required">
+              [required]="field.required"
+              rows="1"></textarea>
           </div>
           @if (formControl?.invalid && formControl?.touched) {
             <div class="field-error">

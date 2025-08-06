@@ -185,15 +185,6 @@ import { InactivityService } from './shared/services/inactivity.service';
         </main>
       </div>
 
-      <!-- Mobile FAB -->
-      <button 
-        *ngIf="canShowMobileFAB()" 
-        class="mobile-fab" 
-        [class.hidden]="navigationService.isMenuOpen"
-        (click)="handleMobileFABClick()"
-        [attr.aria-label]="navigationService.getAddButtonText()">
-        <span class="material-icons md-24">add</span>
-      </button>
 
     </div>
   `,
@@ -610,49 +601,6 @@ import { InactivityService } from './shared/services/inactivity.service';
 
     }
 
-    /* Mobile FAB */
-    .mobile-fab {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      background: var(--md-sys-color-primary);
-      color: var(--md-sys-color-on-primary);
-      border: none;
-      box-shadow: var(--md-sys-elevation-3);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
-      z-index: 1000;
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .mobile-fab.hidden {
-      opacity: 0;
-      pointer-events: none;
-      transform: scale(0.8);
-    }
-
-    .mobile-fab:hover {
-      transform: scale(1.1);
-      box-shadow: var(--md-sys-elevation-4);
-    }
-
-    .mobile-fab:active {
-      transform: scale(0.95);
-      box-shadow: var(--md-sys-elevation-2);
-    }
-
-    @media (max-width: 800px) {
-      .mobile-fab {
-        display: flex;
-      }
-    }
-
     /* Animation for mobile search */
     @keyframes slideDown {
       from {
@@ -896,24 +844,5 @@ export class App implements OnInit {
     console.log('Apps menu clicked');
   }
 
-  // Mobile FAB methods
-  canShowMobileFAB(): boolean {
-    // Only show on mobile and when navigation service allows adding
-    // Don't show on walls list page (/walls)
-    const currentUrl = this.currentRoute();
-    if (currentUrl === '/walls' || currentUrl === '/') {
-      return false;
-    }
-    return this.navigationService.canAdd();
-  }
-
-  handleMobileFABClick(): void {
-    if (this.currentWall() && this.currentWall()!.objectTypes.length === 1) {
-      // Auto-select single object type
-      this.navigationService.navigateToAddPage(this.currentWall()!.objectTypes[0].id);
-    } else {
-      this.navigationService.navigateToAddPage();
-    }
-  }
 
 }

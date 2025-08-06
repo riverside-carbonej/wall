@@ -374,10 +374,6 @@ export class WallTemplatesService {
           showOnMap: false,
           cardLayout: 'detailed' as 'compact' | 'detailed' | 'timeline'
         },
-        defaultImage: {
-          url: '/assets/veteran-placeholder.png',
-          altText: 'Veteran placeholder'
-        },
         isActive: true,
         sortOrder: 0,
         createdAt: new Date(),
@@ -521,10 +517,6 @@ export class WallTemplatesService {
           imageField: 'photos',
           showOnMap: false,
           cardLayout: 'detailed' as 'compact' | 'detailed' | 'timeline'
-        },
-        defaultImage: {
-          url: '/assets/alumni-placeholder.png',
-          altText: 'Alumni placeholder'
         },
         isActive: true,
         sortOrder: 0,

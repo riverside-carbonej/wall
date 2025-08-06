@@ -21,7 +21,7 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
     SideButtonComponent
   ],
   template: `
-    <div class="navigation-menu" [class.open]="isMenuOpen" [class.closed]="!isMenuOpen">
+    <div class="navigation-menu" [class.open]="isMenuOpen()" [class.closed]="!isMenuOpen()">
       <div class="menu-content" #menuContent (scroll)="onScroll()">
         
 

@@ -13,6 +13,7 @@ import { Wall, WallItem, WallObjectType } from '../../../../shared/models/wall.m
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/components/empty-state/empty-state.component';
 import { CardComponent, CardAction, CardMenuItem } from '../../../../shared/components/card/card.component';
+import { WallItemImageComponent } from '../../../../shared/components/wall-item-image/wall-item-image.component';
 
 @Component({
   selector: 'app-wall-item-list',
@@ -25,7 +26,8 @@ import { CardComponent, CardAction, CardMenuItem } from '../../../../shared/comp
     TooltipComponent,
     LoadingStateComponent,
     EmptyStateComponent,
-    CardComponent
+    CardComponent,
+    WallItemImageComponent
   ],
   template: `
     <div class="wall-item-list" 
@@ -104,13 +106,21 @@ import { CardComponent, CardAction, CardMenuItem } from '../../../../shared/comp
                   [title]="getItemTitle(item)"
                   [subtitle]="getItemSubtitle(item) || undefined"
                   [avatarIcon]="getObjectTypeIcon(item)"
-                  [imageUrl]="getPrimaryImage(item)?.url"
-                  [imageAlt]="getPrimaryImage(item)?.altText || getItemTitle(item)"
+                  [imageSlot]="true"
                   [metadata]="getMetadata(item)"
                   [actions]="!isBackgroundMode ? getActions(item) : []"
                   [clickable]="!isBackgroundMode"
                   [class.background-card]="isBackgroundMode"
                   class="wall-item-card">
+                  
+                  <!-- Card Image -->
+                  <app-wall-item-image 
+                    slot="media"
+                    [images]="item.images || []"
+                    [primaryImageIndex]="item.primaryImageIndex || 0"
+                    [preset]="getObjectType(item) || null"
+                    [uniqueId]="item.id">
+                  </app-wall-item-image>
                   
                   <!-- Object Type Badge -->
                   @if (!isBackgroundMode) {
@@ -208,6 +218,12 @@ import { CardComponent, CardAction, CardMenuItem } from '../../../../shared/comp
 
     .wall-item-card {
       height: 100%;
+    }
+
+    .wall-item-card app-wall-item-image {
+      width: 100%;
+      height: 200px;
+      display: block;
     }
 
     .background-card {

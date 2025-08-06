@@ -1,14 +1,15 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WallItemImage, WallObjectType } from '../../models/wall.model';
 import { MaterialIconComponent } from '../material-icon/material-icon.component';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-wall-item-image',
   standalone: true,
   imports: [CommonModule, MaterialIconComponent],
   template: `
-    <div class="wall-item-image" [class.has-image]="displayImage" [style.--fallback-color]="fallbackColor">
+    <div class="wall-item-image" [class.has-image]="displayImage" [style.--fallback-color]="fallbackColor || generatedFallbackColor">
       @if (displayImage) {
         <img 
           [src]="displayImage.url" 
@@ -126,16 +127,23 @@ export class WallItemImageComponent implements OnInit, OnChanges {
   @Input() objectFit: 'cover' | 'contain' = 'cover';
   @Input() showTitle: boolean = false;
   @Input() fallbackColor?: string;
+  @Input() uniqueId?: string; // Optional unique ID for consistent randomness
 
+  private themeService = inject(ThemeService);
   displayImage: WallItemImage | null = null;
+  generatedFallbackColor?: string;
 
   ngOnInit() {
     this.updateDisplayImage();
+    this.generateRandomAccentColor();
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['images'] || changes['primaryImageIndex'] || changes['preset']) {
       this.updateDisplayImage();
+    }
+    if (changes['uniqueId'] && !this.fallbackColor) {
+      this.generateRandomAccentColor();
     }
   }
 
@@ -175,5 +183,56 @@ export class WallItemImageComponent implements OnInit, OnChanges {
 
     // Priority 5: No image available - will show placeholder with card color
     this.displayImage = null;
+  }
+
+  private generateRandomAccentColor() {
+    // Skip if a fallback color is already provided
+    if (this.fallbackColor) {
+      return;
+    }
+
+    // Get the current theme
+    const currentTheme = this.themeService.getCurrentThemeSync();
+    
+    // Use the accent color from the wall theme if available, otherwise use primary color
+    let baseColor = '#6750A4'; // Default Material You primary color
+    
+    if (currentTheme.isWallTheme && currentTheme.wallTheme) {
+      // Prefer accent color, fall back to primary
+      baseColor = currentTheme.wallTheme.accentColor || currentTheme.wallTheme.primaryColor;
+    }
+
+    // Generate a random transparency between 0.08 and 0.20 for subtle variation
+    const minOpacity = 0.08;
+    const maxOpacity = 0.20;
+    
+    // Use uniqueId as seed for consistent randomness per item
+    let randomValue = Math.random();
+    if (this.uniqueId) {
+      // Simple hash function to generate consistent random value from uniqueId
+      let hash = 0;
+      for (let i = 0; i < this.uniqueId.length; i++) {
+        hash = ((hash << 5) - hash) + this.uniqueId.charCodeAt(i);
+        hash = hash & hash; // Convert to 32-bit integer
+      }
+      randomValue = Math.abs(hash) / 2147483647; // Normalize to 0-1
+    }
+    
+    const opacity = minOpacity + (randomValue * (maxOpacity - minOpacity));
+    
+    // Convert hex to rgba with the random opacity
+    this.generatedFallbackColor = this.hexToRgba(baseColor, opacity);
+  }
+
+  private hexToRgba(hex: string, alpha: number): string {
+    // Remove # if present
+    hex = hex.replace('#', '');
+    
+    // Parse hex values
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 }

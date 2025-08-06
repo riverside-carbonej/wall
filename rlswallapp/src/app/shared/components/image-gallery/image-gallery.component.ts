@@ -42,7 +42,7 @@ import { WallItemImageComponent } from '../wall-item-image/wall-item-image.compo
                 [primaryImageIndex]="0"
                 [preset]="preset"
                 [objectFit]="'contain'"
-                [fallbackColor]="preset?.color">
+                [uniqueId]="images[currentImageIndex]?.id">
               </app-wall-item-image>
               
               <!-- Navigation Arrows -->
@@ -126,7 +126,8 @@ import { WallItemImageComponent } from '../wall-item-image/wall-item-image.compo
                     [images]="[image]"
                     [primaryImageIndex]="0"
                     [preset]="preset"
-                    [objectFit]="'cover'">
+                    [objectFit]="'cover'"
+                    [uniqueId]="image.id">
                   </app-wall-item-image>
                   @if ($index === primaryImageIndex) {
                     <div class="primary-badge">

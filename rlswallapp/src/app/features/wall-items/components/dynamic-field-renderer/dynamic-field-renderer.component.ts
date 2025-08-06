@@ -11,6 +11,7 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
 import { FieldDefinition, Wall, WallObjectType } from '../../../../shared/models/wall.model';
 import { LocationPickerComponent } from '../../../maps/components/location-picker/location-picker.component';
 import { WallItemService } from '../../services/wall-item.service';
+import { NlpService } from '../../../../shared/services/nlp.service';
 import { FormFieldComponent } from '../../../../shared/components/form-field/form-field.component';
 import { MaterialTextInputComponent } from '../../../../shared/components/material-text-input/material-text-input.component';
 import { MaterialSelectComponent, SelectOption } from '../../../../shared/components/material-select/material-select.component';
@@ -47,6 +48,7 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   @Input() wall: Wall | null = null; // Add wall context for relationship fields
 
   private wallItemService = inject(WallItemService);
+  private nlpService = inject(NlpService);
 
   get formControl(): FormControl {
     return this.formGroup?.get(this.field.id) as FormControl;
@@ -418,19 +420,19 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
 
   // Relationship field methods
   getRelationshipTypeName(): string {
-    if (!this.field.relationshipConfig) return 'items';
+    if (!this.field.relationshipConfig || !this.wall) return 'Items';
     
-    // Get the target object type name - this would need to be passed from parent component
-    // For now, return a generic name based on the field configuration
-    const targetType = this.field.relationshipConfig.targetObjectTypeId;
+    // Find the actual object type from the wall
+    const targetType = this.wall.objectTypes?.find(
+      ot => ot.id === this.field.relationshipConfig!.targetObjectTypeId
+    );
     
-    // Capitalize and make it user-friendly
-    switch (targetType) {
-      case 'branch': return 'Branches';
-      case 'deployment': return 'Deployments';
-      case 'award': return 'Awards';
-      default: return 'Items';
+    if (targetType) {
+      return this.nlpService.getPlural(targetType.name);
     }
+    
+    // Fallback to pluralizing the ID
+    return this.nlpService.getPlural(this.field.relationshipConfig.targetObjectTypeId);
   }
 
   onRelationshipSearch(event: Event) {

@@ -44,12 +44,6 @@ import { ThemedButtonComponent } from '../themed-button/themed-button.component'
           </div>
         }
 
-        <!-- Dropdown Arrow -->
-        <mat-icon 
-          class="dropdown-arrow" 
-          [class.rotated]="isMenuOpen"
-          [icon]="'keyboard_arrow_down'">
-        </mat-icon>
       </button>
 
       <!-- Dropdown Menu -->
@@ -138,17 +132,17 @@ import { ThemedButtonComponent } from '../themed-button/themed-button.component'
     .user-avatar-button {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 12px 6px 6px;
+      justify-content: center;
+      padding: 4px;
       border: none;
-      border-radius: 50px;
-      background: var(--md-sys-color-surface-container-low);
+      border-radius: 50%;
+      background: transparent;
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
       position: relative;
-      min-height: 48px;
+      width: 40px;
+      height: 40px;
       box-sizing: border-box;
-      border: 1px solid var(--md-sys-color-outline-variant);
     }
 
     .user-avatar-button:hover {
@@ -349,10 +343,8 @@ import { ThemedButtonComponent } from '../themed-button/themed-button.component'
     /* Responsive */
     @media (max-width: 480px) {
       .account-dropdown {
-        right: -16px;
-        left: -16px;
-        width: auto;
-        min-width: unset;
+        right: 16px;
+        min-width: min(280px, calc(100vw - 32px));
         max-width: calc(100vw - 32px);
       }
       
