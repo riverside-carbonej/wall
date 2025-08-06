@@ -344,7 +344,7 @@ export class WallItemsGridComponent {
     const primaryField = this.preset.displaySettings?.primaryField;
     
     if (primaryField && item.fieldData[primaryField]) {
-      return String(item.fieldData[primaryField]);
+      return this.formatFieldValue(item.fieldData[primaryField]);
     }
     
     // Fallback to first text field
@@ -352,7 +352,7 @@ export class WallItemsGridComponent {
       typeof item.fieldData[key] === 'string' && item.fieldData[key].trim()
     );
     
-    return firstTextField ? String(item.fieldData[firstTextField]) : 'Untitled Item';
+    return firstTextField ? this.formatFieldValue(item.fieldData[firstTextField]) : 'Untitled Item';
   }
 
   getItemSubtitle(item: WallItem): string | null {
@@ -365,18 +365,14 @@ export class WallItemsGridComponent {
     
     // Add secondary field if present
     if (secondaryField && item.fieldData[secondaryField]) {
-      subtitleParts.push(String(item.fieldData[secondaryField]));
+      const secondaryValue = item.fieldData[secondaryField];
+      subtitleParts.push(this.formatFieldValue(secondaryValue));
     }
     
     // Add tertiary field if present
     if (tertiaryField && item.fieldData[tertiaryField]) {
       const tertiaryValue = item.fieldData[tertiaryField];
-      // Format graduation year specifically 
-      if (tertiaryField === 'graduationYear' && tertiaryValue) {
-        subtitleParts.push(`Class of ${tertiaryValue}`);
-      } else {
-        subtitleParts.push(String(tertiaryValue));
-      }
+      subtitleParts.push(this.formatFieldValue(tertiaryValue));
     }
     
     return subtitleParts.length > 0 ? subtitleParts.join(' • ') : null;
@@ -401,7 +397,7 @@ export class WallItemsGridComponent {
           const field = this.preset?.fields.find(f => f.id === fieldId);
           
           if (field && fieldValue && metadata.length < 3) { // Limit to 3 metadata items
-            let displayValue = String(fieldValue);
+            let displayValue = '';
             
             // Format specific field types
             if (field.type === 'date') {
@@ -410,13 +406,35 @@ export class WallItemsGridComponent {
               displayValue = fieldValue ? 'Yes' : 'No';
             } else if (field.type === 'multiselect' && Array.isArray(fieldValue)) {
               displayValue = fieldValue.join(', ');
+            } else if (field.type === 'location' && fieldValue && typeof fieldValue === 'object') {
+              if (fieldValue.address) {
+                displayValue = fieldValue.address;
+              } else if (fieldValue.lat && fieldValue.lng) {
+                displayValue = `${fieldValue.lat.toFixed(4)}, ${fieldValue.lng.toFixed(4)}`;
+              } else {
+                displayValue = '';
+              }
+            } else if (fieldValue && typeof fieldValue === 'object') {
+              // Handle other objects that might show as [object Object]
+              if (fieldValue.address) {
+                displayValue = fieldValue.address;
+              } else if (fieldValue.lat && fieldValue.lng) {
+                displayValue = `${fieldValue.lat.toFixed(4)}, ${fieldValue.lng.toFixed(4)}`;
+              } else {
+                displayValue = '';
+              }
+            } else {
+              displayValue = String(fieldValue);
             }
             
-            metadata.push({
-              key: fieldId,
-              value: displayValue,
-              icon: this.getFieldIcon(field.type)
-            });
+            // Only add to metadata if displayValue has meaningful content
+            if (displayValue && displayValue.trim()) {
+              metadata.push({
+                key: fieldId,
+                value: displayValue,
+                icon: this.getFieldIcon(field.type)
+              });
+            }
           }
         }
       });
@@ -425,6 +443,25 @@ export class WallItemsGridComponent {
     return metadata;
   }
   
+  private formatFieldValue(value: any): string {
+    if (!value) return '';
+    
+    // Handle location objects
+    if (value && typeof value === 'object') {
+      if (value.address) {
+        return value.address;
+      } else if (value.lat && value.lng) {
+        return `${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}`;
+      } else if (Array.isArray(value)) {
+        return value.join(', ');
+      } else {
+        return '';
+      }
+    }
+    
+    return String(value);
+  }
+
   private getFieldIcon(fieldType: string): string {
     switch (fieldType) {
       case 'email': return 'email';

@@ -139,7 +139,7 @@ export class EditPresetComponent implements OnInit, OnDestroy {
                           wall.objectTypes?.some(ot => ['veteran', 'deployment', 'branch'].includes(ot.id));
 
     if (isVeteransWall) {
-      baseConfig.allowedFieldTypes = ['text', 'date', 'color', 'location'];
+      baseConfig.allowedFieldTypes = ['text', 'date', 'color', 'location', 'entity', 'boolean'];
     }
 
     return baseConfig;

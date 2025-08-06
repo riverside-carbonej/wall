@@ -1068,13 +1068,11 @@ export class ObjectTypeBuilderComponent implements OnInit, OnDestroy {
 
   private allFieldTypeOptions = [
     { value: 'text', label: 'Text', icon: 'text_fields' },
-    { value: 'textarea', label: 'Long Text', icon: 'notes' },
-    { value: 'number', label: 'Number', icon: 'numbers' },
     { value: 'date', label: 'Date', icon: 'calendar_today' },
-    { value: 'email', label: 'Email', icon: 'email' },
-    { value: 'url', label: 'Website URL', icon: 'link' },
     { value: 'color', label: 'Color', icon: 'palette' },
-    { value: 'location', label: 'Map Location', icon: 'place' }
+    { value: 'location', label: 'Map Location', icon: 'place' },
+    { value: 'entity', label: 'Entity Association', icon: 'link' },
+    { value: 'boolean', label: 'Checkbox', icon: 'check_box' }
   ];
 
   get fieldTypeOptions() {

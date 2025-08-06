@@ -221,7 +221,7 @@ export class PresetItemEditComponent implements OnInit, OnDestroy {
     const primaryField = preset.displaySettings?.primaryField;
     
     if (primaryField && item.fieldData[primaryField]) {
-      return String(item.fieldData[primaryField]);
+      return this.formatFieldValue(item.fieldData[primaryField]);
     }
     
     // Fallback to first text field
@@ -229,6 +229,25 @@ export class PresetItemEditComponent implements OnInit, OnDestroy {
       typeof item.fieldData[key] === 'string' && item.fieldData[key].trim()
     );
     
-    return firstTextField ? String(item.fieldData[firstTextField]) : 'Untitled Item';
+    return firstTextField ? this.formatFieldValue(item.fieldData[firstTextField]) : 'Untitled Item';
+  }
+
+  private formatFieldValue(value: any): string {
+    if (!value) return '';
+    
+    // Handle location objects
+    if (value && typeof value === 'object') {
+      if (value.address) {
+        return value.address;
+      } else if (value.lat && value.lng) {
+        return `${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}`;
+      } else if (Array.isArray(value)) {
+        return value.join(', ');
+      } else {
+        return '';
+      }
+    }
+    
+    return String(value);
   }
 }

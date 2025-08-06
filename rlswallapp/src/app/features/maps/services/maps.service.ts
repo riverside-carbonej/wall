@@ -139,9 +139,9 @@ export class MapsService {
     const customIcon = L.divIcon({
       html: iconHtml,
       className: 'custom-marker-container',
-      iconSize: [48, 64],
-      iconAnchor: [24, 64],
-      popupAnchor: [0, -64]
+      iconSize: [32, 44],
+      iconAnchor: [16, 44],
+      popupAnchor: [0, -44]
     });
 
     const marker = L.marker([coordinates.lat, coordinates.lng], { icon: customIcon });

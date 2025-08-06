@@ -189,6 +189,13 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
       if (Array.isArray(value)) {
         return value.join(', ');
       }
+      // Handle location objects even when field type isn't 'location'
+      if (value.address) {
+        return value.address;
+      }
+      if (value.lat && value.lng) {
+        return `${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}`;
+      }
       // For other objects, return empty string instead of [object Object]
       return '';
     }
@@ -378,19 +385,19 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
           let subtitle = '';
 
           if (primaryField && item.fieldData[primaryField]) {
-            name = String(item.fieldData[primaryField]);
+            name = this.formatFieldValue(item.fieldData[primaryField]);
           } else {
             // Find first non-empty text field
             const firstTextField = targetObjectType.fields.find((f: any) => 
               f.type === 'text' && item.fieldData[f.id]
             );
             if (firstTextField && item.fieldData[firstTextField.id]) {
-              name = String(item.fieldData[firstTextField.id]);
+              name = this.formatFieldValue(item.fieldData[firstTextField.id]);
             }
           }
 
           if (secondaryField && item.fieldData[secondaryField]) {
-            subtitle = String(item.fieldData[secondaryField]);
+            subtitle = this.formatFieldValue(item.fieldData[secondaryField]);
           }
 
           return {
@@ -429,11 +436,11 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
           let subtitle = '';
 
           if (primaryField && item.fieldData[primaryField]) {
-            name = String(item.fieldData[primaryField]);
+            name = this.formatFieldValue(item.fieldData[primaryField]);
           }
 
           if (secondaryField && item.fieldData[secondaryField]) {
-            subtitle = String(item.fieldData[secondaryField]);
+            subtitle = this.formatFieldValue(item.fieldData[secondaryField]);
           }
 
           // Only add if not already in the list
@@ -447,5 +454,24 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
         }
       });
     });
+  }
+
+  private formatFieldValue(value: any): string {
+    if (!value) return '';
+    
+    // Handle location objects
+    if (value && typeof value === 'object') {
+      if (value.address) {
+        return value.address;
+      } else if (value.lat && value.lng) {
+        return `${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}`;
+      } else if (Array.isArray(value)) {
+        return value.join(', ');
+      } else {
+        return '';
+      }
+    }
+    
+    return String(value);
   }
 }

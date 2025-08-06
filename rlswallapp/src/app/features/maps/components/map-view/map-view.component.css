@@ -165,6 +165,39 @@
   height: 20px;
 }
 
+/* Metadata Styles for Map Popup */
+:host ::ng-deep .map-popup-card .popup-subtitle {
+  margin: 0 0 12px 0;
+  font-size: var(--md-sys-typescale-body-medium-size, 14px);
+  color: var(--md-sys-color-on-surface-variant);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+:host ::ng-deep .map-popup-card .popup-metadata {
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+:host ::ng-deep .map-popup-card .metadata-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--md-sys-typescale-body-small-size, 12px);
+  color: var(--md-sys-color-on-surface-variant);
+  line-height: 1.3;
+}
+
+:host ::ng-deep .map-popup-card .metadata-item .material-icons {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--md-sys-color-outline);
+  flex-shrink: 0;
+}
+
 .map-view {
   display: flex;
   flex-direction: column;
@@ -203,7 +236,7 @@
 
 /* Map Controls - Material Design 3 */
 .map-controls {
-  background: var(--md-sys-color-surface-container);
+  background: var(--wall-background, var(--md-sys-color-surface-container));
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: var(--md-sys-shape-corner-large);
   padding: var(--md-sys-spacing-lg);
@@ -225,15 +258,32 @@
 
 /* Material Form Field Overrides */
 .control-field .mat-mdc-form-field-flex {
-  background: var(--md-sys-color-surface);
+  background: var(--wall-surface, var(--md-sys-color-surface));
 }
 
 .control-field .mat-mdc-select-value {
   color: var(--md-sys-color-on-surface);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .control-field .mat-mdc-form-field-label {
   color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Ensure icons in select options are visible */
+.control-field mat-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-field mat-option mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .action-buttons {
@@ -380,7 +430,7 @@
 }
 
 .stats-chip {
-  background: var(--md-sys-color-surface-container-high);
+  background: var(--wall-surface, var(--md-sys-color-surface-container-high));
   border: 1px solid var(--wall-primary, var(--md-sys-color-outline-variant));
   border-radius: var(--md-sys-shape-corner-full);
   padding: 8px 16px;
@@ -390,7 +440,7 @@
   font-family: var(--md-sys-typescale-label-medium-font-family);
   font-size: var(--md-sys-typescale-label-medium-font-size);
   font-weight: var(--md-sys-typescale-label-medium-font-weight);
-  color: var(--md-sys-color-on-surface);
+  color: var(--wall-on-surface, var(--md-sys-color-on-surface));
   box-shadow: var(--md-sys-elevation-level1);
 }
 
@@ -398,6 +448,7 @@
   font-size: 16px;
   width: 16px;
   height: 16px;
+  color: var(--wall-primary, var(--md-sys-color-primary));
 }
 
 /* Legend - Material Design 3 */
@@ -504,6 +555,20 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Fix select option icons visibility */
+:host ::ng-deep .mat-mdc-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+:host ::ng-deep .mat-mdc-option mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 /* Custom Map Popup Styles (Global) */

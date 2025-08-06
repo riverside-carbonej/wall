@@ -6,7 +6,7 @@ import { MaterialIconComponent } from '../../../../shared/components/material-ic
 import { SelectComponent } from '../../../../shared/components/select/select.component';
 import { TooltipDirective } from '../../../../shared/components/tooltip/tooltip.component';
 import { ProgressSpinnerComponent } from '../../../../shared/components/progress-spinner/progress-spinner.component';
-import { MatFormField, MatLabel, MatSelect, MatOption } from '../../../../shared/components/material-stubs';
+import { MatFormField, MatLabel, MatSelect, MatOption, MatIcon } from '../../../../shared/components/material-stubs';
 import { Observable, Subject, combineLatest, takeUntil } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import * as L from 'leaflet';
@@ -17,6 +17,7 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
 import { WallService } from '../../../walls/services/wall.service';
 import { WallItemService } from '../../../wall-items/services/wall-item.service';
 import { ThemeService } from '../../../../shared/services/theme.service';
+import { WallItemsGridComponent } from '../../../wall-items/components/wall-items-grid/wall-items-grid.component';
 
 export interface MapViewSettings {
   tileProvider: 'openstreetmap' | 'satellite';
@@ -45,7 +46,9 @@ export interface MapItemClickEvent {
     EmptyStateComponent,
     MatFormField,
     MatLabel,
-    MatOption
+    MatSelect,
+    MatOption,
+    MatIcon
   ],
   templateUrl: './map-view.component.html',
   styleUrls: ['./map-view.component.css']
@@ -241,21 +244,11 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
         coordinates = item.fieldData['location'];
       }
       
-      // Use wall theme colors if available, otherwise use object type colors
+      // Use wall accent color if available, otherwise use object type colors
       let markerColor = objectType?.color || '#4285f4';
       if (this.wallThemeColors) {
-        // Use theme colors based on object type index for variety
-        const objectTypeIndex = this.objectTypes.findIndex(type => type.id === item.objectTypeId);
-        if (objectTypeIndex === 0) {
-          markerColor = this.wallThemeColors.primary;
-        } else if (objectTypeIndex === 1) {
-          markerColor = this.wallThemeColors.secondary;
-        } else if (objectTypeIndex === 2) {
-          markerColor = this.wallThemeColors.accent;
-        } else {
-          // For additional object types, alternate between primary and secondary
-          markerColor = objectTypeIndex % 2 === 0 ? this.wallThemeColors.primary : this.wallThemeColors.secondary;
-        }
+        // Always use accent color for consistent theming
+        markerColor = this.wallThemeColors.accent;
       }
       
       return {
@@ -286,29 +279,8 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
       const wallItem = this.wallItems.find(item => item.id === markerData.wallItemId);
       const objectType = this.objectTypes.find(ot => ot.id === markerData.objectTypeId);
       
-      // Create enhanced popup content with view button
-      // Apply theme color to the view button if available
-      const buttonStyle = this.wallThemeColors ? 
-        `style="background: ${this.wallThemeColors.primary}; color: white;"` : '';
-      
-      const popupContent = `
-        <div class="map-popup-card">
-          <div class="popup-header">
-            <h4 class="popup-title">${markerData.title}</h4>
-            <button class="popup-close-btn" onclick="this.closest('.leaflet-popup').querySelector('.leaflet-popup-close-button').click()">
-              <span class="material-icons">close</span>
-            </button>
-          </div>
-          <p class="popup-content">${markerData.content}</p>
-          ${markerData.coordinates.address ? `<p class="popup-address"><small>${markerData.coordinates.address}</small></p>` : ''}
-          <div class="popup-actions">
-            <button class="view-item-btn" ${buttonStyle} data-wall-id="${this.currentWallId}" data-object-type="${markerData.objectTypeId}" data-item-id="${markerData.wallItemId}">
-              <span class="material-icons">open_in_new</span>
-              <span>View Details</span>
-            </button>
-          </div>
-        </div>
-      `;
+      // Create popup content using wall item card logic
+      const popupContent = this.createWallItemCardPopup(wallItem!, objectType!);
       
       const marker = this.mapsService.createCustomMarker(markerData.coordinates, {
         title: markerData.title,
@@ -562,5 +534,180 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   
   getTotalItemsCount(): number {
     return this.wallItems.length;
+  }
+
+  private createWallItemCardPopup(wallItem: WallItem, objectType: WallObjectType): string {
+    const title = this.getItemTitle(wallItem, objectType);
+    const subtitle = this.getItemSubtitle(wallItem, objectType);
+    const metadata = this.getMetadata(wallItem, objectType);
+    
+    // Apply theme color to the view button if available  
+    const buttonStyle = this.wallThemeColors ? 
+      `style="background: ${this.wallThemeColors.primary}; color: white;"` : '';
+    
+    let metadataHtml = '';
+    if (metadata.length > 0) {
+      metadataHtml = '<div class="popup-metadata">';
+      metadata.forEach(meta => {
+        metadataHtml += `
+          <div class="metadata-item">
+            <span class="material-icons">${meta.icon || 'info'}</span>
+            <span>${meta.value}</span>
+          </div>
+        `;
+      });
+      metadataHtml += '</div>';
+    }
+    
+    return `
+      <div class="map-popup-card">
+        <div class="popup-header">
+          <h4 class="popup-title">${title}</h4>
+          <button class="popup-close-btn" onclick="this.closest('.leaflet-popup').querySelector('.leaflet-popup-close-button').click()">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        ${subtitle ? `<p class="popup-subtitle">${subtitle}</p>` : ''}
+        ${metadataHtml}
+        ${wallItem.coordinates?.address ? `<p class="popup-address"><small>${wallItem.coordinates.address}</small></p>` : ''}
+        <div class="popup-actions">
+          <button class="view-item-btn" ${buttonStyle} data-wall-id="${this.currentWallId}" data-object-type="${objectType.id}" data-item-id="${wallItem.id}">
+            <span class="material-icons">open_in_new</span>
+            <span>View Details</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  private getItemTitle(item: WallItem, preset: WallObjectType): string {
+    const primaryField = preset.displaySettings?.primaryField;
+    
+    if (primaryField && item.fieldData[primaryField]) {
+      return this.formatFieldValue(item.fieldData[primaryField]);
+    }
+    
+    // Fallback to first text field
+    const firstTextField = Object.keys(item.fieldData).find(key => 
+      typeof item.fieldData[key] === 'string' && item.fieldData[key].trim()
+    );
+    
+    return firstTextField ? this.formatFieldValue(item.fieldData[firstTextField]) : 'Untitled Item';
+  }
+
+  private getItemSubtitle(item: WallItem, preset: WallObjectType): string | null {
+    const secondaryField = preset.displaySettings?.secondaryField;
+    const tertiaryField = preset.displaySettings?.tertiaryField;
+    
+    const subtitleParts: string[] = [];
+    
+    // Add secondary field if present
+    if (secondaryField && item.fieldData[secondaryField]) {
+      const secondaryValue = item.fieldData[secondaryField];
+      subtitleParts.push(this.formatFieldValue(secondaryValue));
+    }
+    
+    // Add tertiary field if present
+    if (tertiaryField && item.fieldData[tertiaryField]) {
+      const tertiaryValue = item.fieldData[tertiaryField];
+      subtitleParts.push(this.formatFieldValue(tertiaryValue));
+    }
+    
+    return subtitleParts.length > 0 ? subtitleParts.join(' • ') : null;
+  }
+
+  private getMetadata(item: WallItem, preset: WallObjectType): Array<{key: string; value: string; icon?: string}> {
+    const metadata: Array<{key: string; value: string; icon?: string}> = [];
+    
+    // Add additional relevant field data if available and not already in subtitle
+    const displaySettings = preset.displaySettings;
+    const usedFields = [
+      displaySettings.primaryField,
+      displaySettings.secondaryField,
+      displaySettings.tertiaryField
+    ].filter(Boolean);
+    
+    // Find other meaningful fields to display
+    Object.keys(item.fieldData).forEach(fieldId => {
+      if (!usedFields.includes(fieldId) && item.fieldData[fieldId]) {
+        const fieldValue = item.fieldData[fieldId];
+        const field = preset.fields.find(f => f.id === fieldId);
+        
+        if (field && fieldValue && metadata.length < 3) { // Limit to 3 metadata items
+          let displayValue = '';
+          
+          // Format specific field types
+          if (field.type === 'date') {
+            displayValue = new Date(fieldValue).toLocaleDateString();
+          } else if (field.type === 'boolean') {
+            displayValue = fieldValue ? 'Yes' : 'No';
+          } else if (field.type === 'multiselect' && Array.isArray(fieldValue)) {
+            displayValue = fieldValue.join(', ');
+          } else if (field.type === 'location' && fieldValue && typeof fieldValue === 'object') {
+            if (fieldValue.address) {
+              displayValue = fieldValue.address;
+            } else if (fieldValue.lat && fieldValue.lng) {
+              displayValue = `${fieldValue.lat.toFixed(4)}, ${fieldValue.lng.toFixed(4)}`;
+            } else {
+              displayValue = '';
+            }
+          } else if (fieldValue && typeof fieldValue === 'object') {
+            // Handle other objects that might show as [object Object]
+            if (fieldValue.address) {
+              displayValue = fieldValue.address;
+            } else if (fieldValue.lat && fieldValue.lng) {
+              displayValue = `${fieldValue.lat.toFixed(4)}, ${fieldValue.lng.toFixed(4)}`;
+            } else {
+              displayValue = '';
+            }
+          } else {
+            displayValue = String(fieldValue);
+          }
+          
+          // Only add to metadata if displayValue has meaningful content
+          if (displayValue && displayValue.trim()) {
+            metadata.push({
+              key: fieldId,
+              value: displayValue,
+              icon: this.getFieldIcon(field.type)
+            });
+          }
+        }
+      }
+    });
+    
+    return metadata;
+  }
+
+  private formatFieldValue(value: any): string {
+    if (!value) return '';
+    
+    // Handle location objects
+    if (value && typeof value === 'object') {
+      if (value.address) {
+        return value.address;
+      } else if (value.lat && value.lng) {
+        return `${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}`;
+      } else if (Array.isArray(value)) {
+        return value.join(', ');
+      } else {
+        return '';
+      }
+    }
+    
+    return String(value);
+  }
+  
+  private getFieldIcon(fieldType: string): string {
+    switch (fieldType) {
+      case 'email': return 'email';
+      case 'url': return 'link';
+      case 'date': return 'event';
+      case 'location': return 'place';
+      case 'boolean': return 'check_circle';
+      case 'multiselect': return 'list';
+      case 'number': return 'numbers';
+      default: return 'info';
+    }
   }
 }

@@ -1012,7 +1012,7 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
     
     const primaryField = this.preset.displaySettings?.primaryField;
     if (primaryField && this.item.fieldData[primaryField]) {
-      return String(this.item.fieldData[primaryField]);
+      return this.formatFieldValue(this.item.fieldData[primaryField]);
     }
     
     // Fallback to first text field
@@ -1020,7 +1020,26 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
       typeof this.item!.fieldData[key] === 'string' && this.item!.fieldData[key].trim()
     );
     
-    return firstTextField ? String(this.item.fieldData[firstTextField]) : 'Untitled Item';
+    return firstTextField ? this.formatFieldValue(this.item.fieldData[firstTextField]) : 'Untitled Item';
+  }
+
+  private formatFieldValue(value: any): string {
+    if (!value) return '';
+    
+    // Handle location objects
+    if (value && typeof value === 'object') {
+      if (value.address) {
+        return value.address;
+      } else if (value.lat && value.lng) {
+        return `${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}`;
+      } else if (Array.isArray(value)) {
+        return value.join(', ');
+      } else {
+        return '';
+      }
+    }
+    
+    return String(value);
   }
 
   getCapitalizedPresetName(): string {
