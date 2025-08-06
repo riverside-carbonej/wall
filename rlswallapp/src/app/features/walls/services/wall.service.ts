@@ -15,7 +15,8 @@ import {
   limit,
   serverTimestamp,
   Timestamp,
-  onSnapshot
+  onSnapshot,
+  runTransaction
 } from '@angular/fire/firestore';
 import { Wall, WallObjectType, FieldDefinition } from '../../../shared/models/wall.model';
 import { AuthService } from '../../../core/services/auth.service';
@@ -631,28 +632,39 @@ export class WallService {
    * Add object type to existing wall
    */
   addObjectTypeToWall(wallId: string, objectType: Omit<WallObjectType, 'id'>): Observable<WallObjectType> {
-    return this.getWallById(wallId).pipe(
-      switchMap(wall => {
-        if (!wall) {
-          return throwError(() => new Error('Wall not found'));
-        }
+    // Generate a unique ID for the object type
+    const objectTypeId = `ot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newObjectType: WallObjectType = {
+      ...objectType,
+      id: objectTypeId,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
 
-
-        // Generate a unique ID for the object type
-        const objectTypeId = `ot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const newObjectType: WallObjectType = {
-          ...objectType,
-          id: objectTypeId,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-
-        const existingObjectTypes = wall.objectTypes || [];
-        const updatedObjectTypes = [...existingObjectTypes, newObjectType];
-
-        return this.updateWall(wallId, { objectTypes: updatedObjectTypes }).pipe(
-          map(() => newObjectType)
-        );
+    // Use a transaction to prevent race conditions
+    const wallDocRef = doc(this.firestore, this.collectionName, wallId);
+    
+    return from(runTransaction(this.firestore, async (transaction) => {
+      const wallDoc = await transaction.get(wallDocRef);
+      
+      if (!wallDoc.exists()) {
+        throw new Error('Wall not found');
+      }
+      
+      const wallData = wallDoc.data() as Wall;
+      const existingObjectTypes = wallData.objectTypes || [];
+      const updatedObjectTypes = [...existingObjectTypes, newObjectType];
+      
+      transaction.update(wallDocRef, { 
+        objectTypes: updatedObjectTypes,
+        updatedAt: serverTimestamp()
+      });
+      
+      return newObjectType;
+    })).pipe(
+      catchError(error => {
+        console.error('Error adding object type to wall:', error);
+        return throwError(() => error);
       })
     );
   }

@@ -1051,6 +1051,7 @@ export class ObjectTypeBuilderComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   formState$!: Observable<FormState>;
   private initialFormData: any = null;
+  private isSaving = false;
 
   iconOptions = [
     { value: 'person', label: 'Person' },
@@ -1321,8 +1322,9 @@ export class ObjectTypeBuilderComponent implements OnInit, OnDestroy {
 
   onSave(): void {
     const formState = this.formStateService.getFormState('object-type-form');
-    if (!formState?.canSave) return;
+    if (!formState?.canSave || this.isSaving) return;
 
+    this.isSaving = true;
     this.formStateService.setSavingState('object-type-form', true);
 
     const formValue = this.objectTypeForm.value;

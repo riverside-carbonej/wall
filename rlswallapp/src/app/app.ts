@@ -211,7 +211,7 @@ import { InactivityService } from './shared/services/inactivity.service';
     .header-content {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       padding: var(--md-sys-spacing-4) var(--md-sys-spacing-6);
       min-height: 80px;
       gap: var(--md-sys-spacing-4);
@@ -222,10 +222,10 @@ import { InactivityService } from './shared/services/inactivity.service';
     .header-start {
       display: flex;
       align-items: center;
-      flex-shrink: 0;
+      flex: 0 1 auto;
       min-width: 0;
-      max-width: 60%;
       position: relative;
+      overflow: hidden;
     }
 
     /* Separate container for content that should overflow (like button hover) */
@@ -273,6 +273,7 @@ import { InactivityService } from './shared/services/inactivity.service';
       flex: 1;
       min-width: 0;
       overflow: hidden;
+      max-width: 100%;
     }
 
     .wall-logo-icon {
@@ -282,6 +283,7 @@ import { InactivityService } from './shared/services/inactivity.service';
       height: auto;
       border-radius: var(--md-sys-shape-corner-small);
       object-fit: contain;
+      flex-shrink: 0;
     }
 
     .back-button {
@@ -295,6 +297,7 @@ import { InactivityService } from './shared/services/inactivity.service';
       min-width: 0;
       flex: 1;
       overflow: hidden;
+      max-width: 100%;
     }
 
     .wall-title {
@@ -311,26 +314,28 @@ import { InactivityService } from './shared/services/inactivity.service';
       min-width: 0;
     }
 
+    @media (max-width: 600px) {
+      .wall-title {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        line-height: 1.3;
+      }
+    }
+
     @media (max-width: 768px) {
       .wall-title {
         font-size: 1.25rem;
       }
-
-      .header-start {
-        max-width: 50%;
-      }
     }
 
-    /* Adaptive search section - centered to viewport */
+    /* Adaptive search section */
     .header-center {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
+      flex: 0 1 600px;
       max-width: 600px;
-      width: 40%;
-      min-width: 300px;
+      min-width: 200px;
+      margin: 0 auto;
       transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-      z-index: 1;
     }
 
     .search-container {
@@ -390,7 +395,7 @@ import { InactivityService } from './shared/services/inactivity.service';
       display: flex;
       align-items: center;
       gap: var(--md-sys-spacing-2);
-      flex-shrink: 0;
+      flex: 0 0 auto;
     }
 
     .header-action-button {
@@ -569,15 +574,13 @@ import { InactivityService } from './shared/services/inactivity.service';
     /* Adjust search width on medium screens to avoid overlap */
     @media (max-width: 1200px) {
       .header-center {
-        width: 35%;
-        min-width: 250px;
+        flex: 0 1 450px;
       }
     }
 
     @media (max-width: 900px) {
       .header-center {
-        width: 30%;
-        min-width: 200px;
+        flex: 0 1 350px;
       }
     }
 

@@ -246,7 +246,7 @@ export class WallTemplatesService {
       {
         id: 'graduationYear',
         name: 'Graduation Year',
-        type: 'number',
+        type: 'text',
         required: false,
         placeholder: 'Year of graduation (e.g., 2010)'
       },
@@ -296,7 +296,7 @@ export class WallTemplatesService {
       {
         id: 'description',
         name: 'Service Description',
-        type: 'richtext',
+        type: 'text',
         required: false,
         placeholder: 'Share your service story and experiences'
       }
@@ -334,7 +334,7 @@ export class WallTemplatesService {
       {
         id: 'description',
         name: 'Description',
-        type: 'longtext',
+        type: 'text',
         required: false,
         placeholder: 'Describe the deployment mission'
       }

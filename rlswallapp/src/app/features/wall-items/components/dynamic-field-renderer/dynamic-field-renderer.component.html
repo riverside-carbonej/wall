@@ -49,7 +49,7 @@
             }
             <textarea 
               class="material-textarea" 
-              [formControlName]="field.id"
+              [formControl]="formControl"
               [placeholder]="field.placeholder || ''"
               [required]="field.required"
               rows="1"></textarea>
@@ -75,11 +75,10 @@
           spacing="comfortable">
           <textarea 
             matInput 
-            [formControlName]="field.id"
+            [formControl]="formControl"
             [placeholder]="field.placeholder || ''"
             [required]="field.required"
-            rows="4">
-          </textarea>
+            rows="4"></textarea>
         </app-form-field>
       }
 
@@ -96,7 +95,7 @@
           <input 
             matInput 
             type="number"
-            [formControlName]="field.id"
+            [formControl]="formControl"
             [placeholder]="field.placeholder || ''"
             [required]="field.required">
         </app-form-field>
@@ -115,7 +114,7 @@
             <mat-icon class="prefix-icon" [icon]="'calendar_today'"></mat-icon>
             <textarea 
               class="material-textarea" 
-              [formControlName]="field.id"
+              [formControl]="formControl"
               [placeholder]="field.placeholder || 'Enter date (e.g., MM/DD/YYYY, Month DD, YYYY)'"
               [required]="field.required"
               rows="1"></textarea>
@@ -270,7 +269,7 @@
             <input 
               matInput 
               type="color"
-              [formControlName]="field.id"
+              [formControl]="formControl"
               [required]="field.required">
           </app-form-field>
           <div class="color-preview">

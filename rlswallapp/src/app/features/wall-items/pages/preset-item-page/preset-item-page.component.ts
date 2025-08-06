@@ -170,9 +170,11 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
       });
     }
 
-    // If in view mode, disable the form
+    // If in view mode, disable the form; otherwise ensure it's enabled
     if (this.currentMode === 'view') {
       this.itemForm.disable();
+    } else {
+      this.itemForm.enable();
     }
     
     // Force change detection after form initialization
@@ -250,6 +252,9 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
       
       // Now it's safe to change mode
       this.currentMode = 'edit';
+      
+      // Ensure the form is enabled for editing
+      this.itemForm.enable();
       
       // Register form state after mode change
       this.formState$ = this.formStateService.registerForm('preset-item-edit-form', {

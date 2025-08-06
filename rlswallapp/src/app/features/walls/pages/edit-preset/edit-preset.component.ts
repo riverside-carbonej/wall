@@ -91,12 +91,17 @@ export class EditPresetComponent implements OnInit, OnDestroy {
   }
 
   onObjectTypeSaved(objectType: WallObjectType) {
-    this.route.paramMap.pipe(
-      switchMap(params => {
-        const wallId = params.get('id')!;
-        const presetId = params.get('presetId')!;
-        return this.wallService.updateObjectTypeInWall(wallId, presetId, objectType);
-      }),
+    // Get the IDs from the route snapshot instead of using the reactive stream
+    const wallId = this.route.snapshot.paramMap.get('id');
+    const presetId = this.route.snapshot.paramMap.get('presetId');
+    
+    if (!wallId || !presetId) {
+      console.error('Missing wall ID or preset ID in route');
+      alert('Failed to update preset. Please try again.');
+      return;
+    }
+
+    this.wallService.updateObjectTypeInWall(wallId, presetId, objectType).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: () => {

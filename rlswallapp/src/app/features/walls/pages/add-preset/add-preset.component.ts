@@ -74,21 +74,22 @@ export class AddPresetComponent implements OnInit, OnDestroy {
   }
 
   onObjectTypeSaved(objectType: WallObjectType) {
-    this.wall$.pipe(
-      switchMap(wall => {
-        if (!wall) throw new Error('Wall not found');
-        return this.wallService.addObjectTypeToWall(wall.id, objectType);
-      }),
+    // Get the current wall ID from the route instead of using the reactive stream
+    const wallId = this.route.snapshot.paramMap.get('id');
+    if (!wallId) {
+      console.error('No wall ID found in route');
+      alert('Failed to save preset. Please try again.');
+      return;
+    }
+
+    // Save the object type
+    this.wallService.addObjectTypeToWall(wallId, objectType).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (savedObjectType) => {
         console.log('Object type saved successfully');
-        // Navigate to the created preset's edit page instead of going back
-        this.wall$.pipe(takeUntil(this.destroy$)).subscribe(wall => {
-          if (wall) {
-            this.router.navigate(['/walls', wall.id, 'presets', savedObjectType.id, 'edit']);
-          }
-        });
+        // Navigate to the created preset's edit page
+        this.router.navigate(['/walls', wallId, 'presets', savedObjectType.id, 'edit']);
       },
       error: (error) => {
         console.error('Error saving object type:', error);

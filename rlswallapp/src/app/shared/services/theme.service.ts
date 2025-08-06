@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { WallTheme } from '../models/wall.model';
+import { ColorHarmonyService } from './color-harmony.service';
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
 
@@ -25,6 +26,7 @@ export interface AppTheme {
 export class ThemeService {
   private readonly THEME_KEY = 'rls-wall-theme';
   private currentTheme$ = new BehaviorSubject<AppTheme>(this.getDefaultTheme());
+  private colorHarmony = inject(ColorHarmonyService);
 
   constructor() {
     this.loadTheme();
@@ -157,25 +159,46 @@ export class ThemeService {
     this.removeWallSpecificCSS();
     
     const currentMode = this.currentTheme$.value.mode;
-    const isDark = currentMode === 'dark';
+    const isDark = wallTheme.mode === 'dark' || (wallTheme.mode === 'auto' && currentMode === 'dark');
     
+    // Generate a harmonious palette based on the primary color
+    const palette = this.colorHarmony.generatePalette(wallTheme.primaryColor, {
+      mode: isDark ? 'dark' : 'light',
+      contrast: wallTheme.contrast || 'normal'
+    });
+    
+    // Create an adapted theme using the generated palette
     const adaptedTheme: AppTheme = {
       mode: currentMode,
-      primary: wallTheme.primaryColor,
-      secondary: wallTheme.secondaryColor,
-      surface: this.adjustColorForMode(wallTheme.surfaceColor, isDark),
-      background: this.adjustColorForMode(wallTheme.backgroundColor, isDark),
-      onSurface: wallTheme.bodyTextColor || wallTheme.textColor || '#2d2d2d',
-      onBackground: wallTheme.bodyTextColor || wallTheme.textColor || '#2d2d2d',
-      outline: this.generateOutlineColor(wallTheme.primaryColor, isDark),
-      surfaceVariant: this.generateSurfaceVariant(wallTheme.surfaceColor, isDark),
+      primary: palette.primary,
+      secondary: palette.secondary,
+      surface: palette.surface,
+      background: palette.background,
+      onSurface: palette.textColor,
+      onBackground: palette.textColor,
+      outline: this.generateOutlineColor(palette.primary, isDark),
+      surfaceVariant: this.generateSurfaceVariant(palette.surface, isDark),
       isWallTheme: true,
-      wallTheme
+      wallTheme: {
+        ...wallTheme,
+        // Update the wall theme with the generated palette
+        primaryColor: palette.primary,
+        secondaryColor: palette.secondary,
+        accentColor: palette.accent,
+        backgroundColor: palette.background,
+        surfaceColor: palette.surface,
+        cardColor: palette.cardColor,
+        textColor: palette.textColor,
+        titleColor: palette.titleColor,
+        errorColor: palette.errorColor,
+        warningColor: palette.warningColor,
+        successColor: palette.successColor
+      }
     };
     
     this.currentTheme$.next(adaptedTheme);
     this.applyThemeToDocument(adaptedTheme);
-    this.applyWallSpecificCSS(wallTheme);
+    this.applyWallSpecificCSS(adaptedTheme.wallTheme);
   }
   
   // Clear wall theme and return to app default
@@ -311,23 +334,29 @@ export class ThemeService {
   
   // Generate a default wall theme if none exists
   generateDefaultWallTheme(primaryColor: string = '#d4af37'): WallTheme {
+    // Generate a complete harmonious palette from the primary color
+    const palette = this.colorHarmony.generatePalette(primaryColor, {
+      mode: 'light',
+      contrast: 'normal'
+    });
+    
     return {
       id: 'default',
       name: 'Default',
       description: 'Default wall theme',
-      primaryColor,
-      secondaryColor: '#6b7280',
-      tertiaryColor: '#059669',
-      backgroundColor: '#fafafa',
-      surfaceColor: '#ffffff',
-      cardColor: '#ffffff',
-      titleColor: '#202124',
-      bodyTextColor: '#374151',
-      secondaryTextColor: '#6b7280',
-      captionTextColor: '#9ca3af',
-      errorColor: '#ef4444',
-      warningColor: '#f59e0b',
-      successColor: '#10b981',
+      primaryColor: palette.primary,
+      secondaryColor: palette.secondary,
+      tertiaryColor: palette.accent,
+      backgroundColor: palette.background,
+      surfaceColor: palette.surface,
+      cardColor: palette.cardColor,
+      titleColor: palette.titleColor,
+      bodyTextColor: palette.textColor,
+      secondaryTextColor: this.lightenColor(palette.textColor, 0.3),
+      captionTextColor: this.lightenColor(palette.textColor, 0.5),
+      errorColor: palette.errorColor,
+      warningColor: palette.warningColor,
+      successColor: palette.successColor,
       cardStyle: 'elevated',
       layout: 'grid',
       spacing: 'comfortable',
@@ -337,6 +366,52 @@ export class ThemeService {
       textScale: 1,
       contrast: 'normal',
       animations: true,
+      customCss: ''
+    };
+  }
+
+  /**
+   * Generate a complete wall theme from a user-selected color
+   * This ensures all theme colors are harmonious and accessible
+   */
+  generateWallThemeFromColor(baseColor: string, mode: 'light' | 'dark' | 'auto' = 'auto'): WallTheme {
+    const isDark = mode === 'dark' || (mode === 'auto' && this.currentTheme$.value.mode === 'dark');
+    
+    const palette = this.colorHarmony.generatePalette(baseColor, {
+      mode: isDark ? 'dark' : 'light',
+      contrast: 'normal'
+    });
+    
+    return {
+      id: `custom-${Date.now()}`,
+      name: 'Custom Theme',
+      description: 'Custom color theme',
+      mode: mode,
+      primaryColor: palette.primary,
+      secondaryColor: palette.secondary,
+      tertiaryColor: palette.accent,
+      accentColor: palette.accent,
+      backgroundColor: palette.background,
+      surfaceColor: palette.surface,
+      cardColor: palette.cardColor,
+      textColor: palette.textColor,
+      titleColor: palette.titleColor,
+      bodyTextColor: palette.textColor,
+      secondaryTextColor: this.lightenColor(palette.textColor, isDark ? 0.2 : 0.3),
+      captionTextColor: this.lightenColor(palette.textColor, isDark ? 0.4 : 0.5),
+      errorColor: palette.errorColor,
+      warningColor: palette.warningColor,
+      successColor: palette.successColor,
+      cardStyle: 'elevated',
+      layout: 'grid',
+      spacing: 'comfortable',
+      cornerRadius: 'medium',
+      elevation: 'medium',
+      font: 'system',
+      textScale: 1,
+      contrast: 'normal',
+      animations: true,
+      isCustom: true,
       customCss: ''
     };
   }

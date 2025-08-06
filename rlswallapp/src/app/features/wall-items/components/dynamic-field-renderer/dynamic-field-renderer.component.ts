@@ -51,7 +51,12 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   private nlpService = inject(NlpService);
 
   get formControl(): FormControl {
-    return this.formGroup?.get(this.field.id) as FormControl;
+    const control = this.formGroup?.get(this.field.id) as FormControl;
+    if (!control && this.formGroup && this.field) {
+      console.warn(`Form control not found for field: ${this.field.id} (${this.field.name})`);
+      console.log('Available controls:', Object.keys(this.formGroup.controls));
+    }
+    return control;
   }
 
   // For multiselect fields
@@ -65,6 +70,14 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   allRelationshipItems: Array<{id: string; name: string; subtitle?: string}> = [];
   
   ngOnInit() {
+    console.log('DynamicFieldRenderer ngOnInit:', {
+      fieldId: this.field?.id,
+      fieldName: this.field?.name,
+      fieldType: this.field?.type,
+      hasFormGroup: !!this.formGroup,
+      formGroupControls: this.formGroup ? Object.keys(this.formGroup.controls) : [],
+      readonly: this.readonly
+    });
     this.initializeFieldData();
   }
 
@@ -81,6 +94,12 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   private initializeFieldData() {
     // Ensure we have a valid form control before proceeding
     if (!this.formControl || !this.field) {
+      console.log('initializeFieldData early return:', {
+        hasFormControl: !!this.formControl,
+        hasField: !!this.field,
+        fieldId: this.field?.id,
+        fieldType: this.field?.type
+      });
       return;
     }
     
@@ -119,11 +138,33 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   }
 
   isTextarea(): boolean {
-    return this.field.type === 'longtext' || this.field.type === 'richtext';
+    const isTextareaType = this.field.type === 'longtext' || this.field.type === 'richtext';
+    if (isTextareaType && !this.readonly) {
+      console.log('Textarea field detected:', {
+        fieldId: this.field.id,
+        fieldName: this.field.name,
+        fieldType: this.field.type,
+        hasFormControl: !!this.formControl,
+        formControlValue: this.formControl?.value,
+        formControlDisabled: this.formControl?.disabled
+      });
+    }
+    return isTextareaType;
   }
 
   isNumber(): boolean {
-    return this.field.type === 'number';
+    const isNumberType = this.field.type === 'number';
+    if (isNumberType && !this.readonly) {
+      console.log('Number field detected:', {
+        fieldId: this.field.id,
+        fieldName: this.field.name,
+        fieldType: this.field.type,
+        hasFormControl: !!this.formControl,
+        formControlValue: this.formControl?.value,
+        formControlDisabled: this.formControl?.disabled
+      });
+    }
+    return isNumberType;
   }
 
   isDate(): boolean {
