@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angula
 import { MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions } from '../../../../shared/components/material-stubs';
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
-import { MatExpansionPanel, MatExpansionPanelHeader, MatPanelTitle, MatAccordion } from '../../../../shared/components/material-stubs';
+import { MatExpansionPanel, MatExpansionPanelHeader, MatPanelTitle, MatAccordion, MatTabGroup, MatTab } from '../../../../shared/components/material-stubs';
 import { MatFormField, MatLabel, MatError } from '../../../../shared/components/material-stubs';
 import { ProgressSpinnerComponent } from '../../../../shared/components/progress-spinner/progress-spinner.component';
 // Dialog functionality simplified to use native confirmations
@@ -35,7 +35,7 @@ import { FormStateService, FormState } from '../../../../shared/services/form-st
     MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardActions,
     ThemedButtonComponent,
     MaterialIconComponent,
-    MatExpansionPanel, MatExpansionPanelHeader, MatPanelTitle, MatAccordion,
+    MatExpansionPanel, MatExpansionPanelHeader, MatPanelTitle, MatAccordion, MatTabGroup, MatTab,
     MatFormField, MatLabel, MatError,
     ProgressSpinnerComponent,
     ItemImageGalleryComponent,
@@ -57,6 +57,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   
   wall$!: Observable<Wall | null>;
+  wall: Wall | null = null; // Store wall reference for related items
   wallItem: WallItem = this.createNewWallItem();
   objectType: WallObjectType | null = null;
   
@@ -78,6 +79,13 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   
   // Accordion state
   currentPanelIndex = 0;
+  
+  // Tab state
+  selectedTabIndex = 0;
+  
+  // Related items (reverse entity lookups)
+  relatedItems: { [objectTypeId: string]: WallItem[] } = {};
+  loadingRelatedItems = false;
   
   // Form state management
   formState$!: Observable<FormState>;
@@ -229,8 +237,13 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(wall => {
       if (wall) {
+        this.wall = wall; // Store wall reference for related items
         this.objectType = wall.objectTypes.find(ot => ot.id === objectTypeId) || null;
         this.setupDynamicForm();
+        // Load related items if this is an existing item
+        if (!this.isNewItem) {
+          this.loadRelatedItems();
+        }
       }
     });
   }
@@ -371,7 +384,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     };
   }
   
-  private getItemDisplayName(item: WallItem): string {
+  getItemDisplayName(item: WallItem): string {
     if (!this.objectType) return 'Item';
     
     // Try to get display name from primary field
@@ -677,6 +690,93 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
       field.type !== 'date' &&
       field.type !== 'location'
     );
+  }
+
+  // Related items methods
+  hasRelatedItems(): boolean {
+    return this.getRelatedObjectTypes().length > 0;
+  }
+
+  getRelatedObjectTypes(): { objectType: WallObjectType; fieldName: string }[] {
+    if (!this.wall) return [];
+    
+    const relatedTypes: { objectType: WallObjectType; fieldName: string }[] = [];
+    
+    // Find all object types that have entity fields pointing to this object type
+    this.wall.objectTypes?.forEach((otherObjectType: WallObjectType) => {
+      if (otherObjectType.id === this.objectType?.id) return; // Skip self
+      
+      otherObjectType.fields.forEach((field: FieldDefinition) => {
+        if (field.type === 'entity' && 
+            field.entityConfig?.targetObjectTypeId === this.objectType?.id) {
+          relatedTypes.push({ 
+            objectType: otherObjectType, 
+            fieldName: field.name 
+          });
+        }
+      });
+    });
+    
+    return relatedTypes;
+  }
+
+  async loadRelatedItems() {
+    if (!this.itemId || !this.wall) return;
+    
+    this.loadingRelatedItems = true;
+    this.relatedItems = {};
+    
+    try {
+      const relatedTypes = this.getRelatedObjectTypes();
+      
+      for (const { objectType, fieldName } of relatedTypes) {
+        // Find all items of this object type that reference the current item
+        const allItems = await firstValueFrom(
+          this.wallItemService.getWallItems(this.wallId)
+        );
+        
+        const relatedItemsForType = allItems.filter(item => {
+          if (item.objectTypeId !== objectType.id) return false;
+          
+          // Check if this item's entity fields contain reference to current item
+          const entityFields = objectType.fields.filter(f => f.type === 'entity');
+          
+          return entityFields.some(field => {
+            const fieldValue = item.fieldData[field.id];
+            if (Array.isArray(fieldValue)) {
+              return fieldValue.includes(this.itemId);
+            }
+            return fieldValue === this.itemId;
+          });
+        });
+        
+        if (relatedItemsForType.length > 0) {
+          this.relatedItems[objectType.id] = relatedItemsForType;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading related items:', error);
+    } finally {
+      this.loadingRelatedItems = false;
+    }
+  }
+
+  getRelatedItemsForType(objectTypeId: string): WallItem[] {
+    return this.relatedItems[objectTypeId] || [];
+  }
+
+  navigateToRelatedItem(item: WallItem) {
+    this.router.navigate(['/walls', this.wallId, 'preset', item.objectTypeId, 'items', item.id]);
+  }
+
+  getItemSummary(item: WallItem): string {
+    // Get first few non-empty field values for summary
+    const fieldData = item.fieldData || {};
+    const values = Object.values(fieldData)
+      .filter(value => value && typeof value === 'string' && value.trim())
+      .slice(0, 2) as string[];
+    
+    return values.join(' • ') || 'No additional details';
   }
 
   // Navigation methods (onBackClick already defined above)

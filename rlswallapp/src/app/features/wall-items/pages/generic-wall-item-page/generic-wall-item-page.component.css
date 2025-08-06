@@ -297,6 +297,113 @@
   min-width: 44px;
 }
 
+/* Related Items Tab Styles */
+.related-items-section {
+  padding: 24px 0;
+}
+
+.related-type-section {
+  margin-bottom: 32px;
+}
+
+.related-type-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+}
+
+.related-type-title .item-count {
+  color: var(--md-sys-color-on-surface-variant);
+  font-weight: 400;
+  font-size: 14px;
+}
+
+.related-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.related-item-card {
+  background: var(--md-sys-color-surface-container);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large);
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.related-item-card:hover {
+  background: var(--md-sys-color-surface-container-high);
+  box-shadow: var(--md-sys-elevation-level1);
+  transform: translateY(-2px);
+}
+
+.related-item-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.related-item-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+}
+
+.related-item-summary {
+  margin: 0;
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface-variant);
+  line-height: 1.4;
+}
+
+.no-related-items,
+.no-relationships {
+  text-align: center;
+  padding: 32px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.no-relationships {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.no-relationships mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: var(--md-sys-color-outline);
+}
+
+/* Tab Styles */
+.item-tabs {
+  margin-top: 16px;
+}
+
+.item-tabs .mat-mdc-tab-body-content {
+  padding-top: 16px;
+}
+
+@media (max-width: 768px) {
+  .related-items-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .related-items-section {
+    padding: 16px 0;
+  }
+}
+
 /* Focus States */
 .action-button:focus,
 .upload-button:focus {

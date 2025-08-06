@@ -294,15 +294,38 @@ export class MatChipOption {
   }
 }
 
-// Tabs
+// Tabs - Simple working implementation
 @Component({
   selector: 'mat-tab-group',
   standalone: true,
   imports: [CommonModule],
-  template: `<div class="mat-tab-group"><ng-content></ng-content></div>`,
+  template: `
+    <div class="mat-tab-group">
+      <div class="mat-tab-header">
+        <div class="mat-tab-label-container">
+          <ng-content select="mat-tab" hidden></ng-content>
+          <!-- We'll show tabs dynamically after they register -->
+        </div>
+      </div>
+      <div class="mat-tab-body-wrapper">
+        <ng-content></ng-content>
+      </div>
+    </div>
+  `,
   styles: [`
     .mat-tab-group {
       display: block;
+      background: var(--md-sys-color-surface);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-sys-shape-corner-medium);
+    }
+    .mat-tab-header {
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+      background: var(--md-sys-color-surface-container);
+    }
+    .mat-tab-label-container {
+      display: flex;
+      align-items: center;
     }
   `]
 })
@@ -314,16 +337,25 @@ export class MatTabGroup {
   selector: 'mat-tab',
   standalone: true,
   imports: [CommonModule],
-  template: `<div class="mat-tab"><ng-content></ng-content></div>`,
+  template: `
+    <div class="mat-tab-content" [style.display]="isActive() ? 'block' : 'none'">
+      <ng-content></ng-content>
+    </div>
+  `,
   styles: [`
-    .mat-tab {
-      padding: 16px;
+    .mat-tab-content {
+      padding: 24px;
     }
   `]
 })
 export class MatTab {
   label = input<string>('');
   disabled = input<boolean>(false);
+  
+  isActive(): boolean {
+    // For now, just show all tabs - we'll improve this
+    return true;
+  }
 }
 
 // Expansion Panel

@@ -47,10 +47,15 @@
     <!-- Form Section -->
     <div class="form-section">
       @if (objectType) {
-        <form [formGroup]="itemForm" class="item-form">
-        
-        <!-- Field Groups using Accordion -->
-        <mat-accordion multi="false">
+        <!-- Tab Groups -->
+        <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="item-tabs">
+          
+          <!-- Details Tab -->
+          <mat-tab label="Details">
+            <form [formGroup]="itemForm" class="item-form">
+              
+              <!-- Field Groups using Accordion -->
+              <mat-accordion multi="false">
           
           <!-- Basic Information Panel -->
           <mat-expansion-panel 
@@ -68,9 +73,10 @@
               @for (field of getBasicFields(); track field.id) {
                 <app-dynamic-field-renderer
                   [field]="field"
-                  [formControl]="getFormControl(field.id)"
+                  [formGroup]="itemForm"
                   [readonly]="!editing"
-                  [value]="wallItem.fieldData[field.id]">
+                  [value]="wallItem.fieldData[field.id]"
+                  [wall]="wall">
                 </app-dynamic-field-renderer>
               }
             </div>
@@ -94,9 +100,10 @@
                 @for (field of getLocationFields(); track field.id) {
                   <app-dynamic-field-renderer
                     [field]="field"
-                    [formControl]="getFormControl(field.id)"
+                    [formGroup]="itemForm"
                     [readonly]="!editing"
-                    [value]="wallItem.fieldData[field.id]">
+                    [value]="wallItem.fieldData[field.id]"
+                    [wall]="wall">
                   </app-dynamic-field-renderer>
                 }
               </div>
@@ -121,9 +128,10 @@
               @for (field of getCustomFields(); track field.id) {
                 <app-dynamic-field-renderer
                   [field]="field"
-                  [formControl]="getFormControl(field.id)"
+                  [formGroup]="itemForm"
                   [readonly]="!editing"
-                  [value]="wallItem.fieldData[field.id]">
+                  [value]="wallItem.fieldData[field.id]"
+                  [wall]="wall">
                 </app-dynamic-field-renderer>
               }
             </div>
@@ -150,8 +158,63 @@
             </mat-expansion-panel>
           }
 
-        </mat-accordion>
-        </form>
+              </mat-accordion>
+            </form>
+          </mat-tab>
+          
+          <!-- Related Items Tab (only show for existing items with relationships) -->
+          @if (!isNewItem && hasRelatedItems()) {
+            <mat-tab label="Related Items">
+              <div class="related-items-section">
+                @if (loadingRelatedItems) {
+                  <app-loading-state 
+                    type="spinner" 
+                    message="Loading related items..."
+                    [spinnerSize]="40">
+                  </app-loading-state>
+                } @else {
+                  
+                  @for (relatedType of getRelatedObjectTypes(); track relatedType.objectType.id) {
+                    <div class="related-type-section">
+                      <h3 class="related-type-title">
+                        <mat-icon [style.color]="relatedType.objectType.color">{{ relatedType.objectType.icon || 'circle' }}</mat-icon>
+                        {{ relatedType.objectType.name }}
+                        <span class="item-count">({{ getRelatedItemsForType(relatedType.objectType.id).length }})</span>
+                      </h3>
+                      
+                      @if (getRelatedItemsForType(relatedType.objectType.id).length > 0) {
+                        <div class="related-items-grid">
+                          @for (item of getRelatedItemsForType(relatedType.objectType.id); track item.id) {
+                            <div class="related-item-card" (click)="navigateToRelatedItem(item)">
+                              <div class="related-item-header">
+                                <mat-icon [style.color]="relatedType.objectType.color">{{ relatedType.objectType.icon || 'circle' }}</mat-icon>
+                                <h4>{{ getItemDisplayName(item) }}</h4>
+                              </div>
+                              <p class="related-item-summary">
+                                {{ getItemSummary(item) }}
+                              </p>
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <p class="no-related-items">No {{ relatedType.objectType.name.toLowerCase() }} are linked to this {{ objectType?.name?.toLowerCase() || 'item' }}.</p>
+                      }
+                    </div>
+                  }
+                  
+                  @if (getRelatedObjectTypes().length === 0) {
+                    <div class="no-relationships">
+                      <mat-icon>link_off</mat-icon>
+                      <p>No related items found for this {{ objectType?.name?.toLowerCase() || 'item' }}.</p>
+                    </div>
+                  }
+                  
+                }
+              </div>
+            </mat-tab>
+          }
+          
+        </mat-tab-group>
       }
     </div>
   </div>

@@ -20,13 +20,6 @@
         </div>
       }
       
-      <!-- Special display for file fields -->
-      @if (isFile() && formControl?.value) {
-        <div class="file-info">
-          <mat-icon>attachment</mat-icon>
-          <span>{{ getFileDisplayName() }}</span>
-        </div>
-      }
     </div>
   }
 
@@ -34,8 +27,8 @@
   @if (!readonly && formGroup) {
     <div class="edit-field" [formGroup]="formGroup">
       
-      <!-- Text Input Fields (text, email, url) -->
-      @if (isTextInput()) {
+      <!-- Text Input Field -->
+      @if (isText()) {
         <div class="form-field">
           <label class="field-label">
             {{ field.name }}
@@ -44,9 +37,6 @@
             }
           </label>
           <div class="input-container" [class.error]="formControl?.invalid && formControl?.touched">
-            @if (getFieldIcon()) {
-              <mat-icon class="prefix-icon" [icon]="getFieldIcon()"></mat-icon>
-            }
             <textarea 
               class="material-textarea" 
               [formControl]="formControl"
@@ -63,43 +53,6 @@
         </div>
       }
 
-      <!-- Textarea Fields (longtext, richtext) -->
-      @if (isTextarea()) {
-        <app-form-field
-          [label]="field.name"
-          [required]="field.required"
-          [suffixIcon]="getFieldIcon()"
-          [error]="formControl?.invalid && formControl?.touched ? getErrorMessage() : undefined"
-          [hint]="field.placeholder"
-          appearance="outline"
-          spacing="comfortable">
-          <textarea 
-            matInput 
-            [formControl]="formControl"
-            [placeholder]="field.placeholder || ''"
-            [required]="field.required"
-            rows="4"></textarea>
-        </app-form-field>
-      }
-
-      <!-- Number Input -->
-      @if (isNumber()) {
-        <app-form-field
-          [label]="field.name"
-          [required]="field.required"
-          [suffixIcon]="getFieldIcon()"
-          [error]="formControl?.invalid && formControl?.touched ? getErrorMessage() : undefined"
-          [hint]="field.placeholder"
-          appearance="outline"
-          spacing="comfortable">
-          <input 
-            matInput 
-            type="number"
-            [formControl]="formControl"
-            [placeholder]="field.placeholder || ''"
-            [required]="field.required">
-        </app-form-field>
-      }
 
       <!-- Date Input -->
       @if (isDate()) {
@@ -123,132 +76,6 @@
         </div>
       }
 
-      <!-- Date Range Input -->
-      @if (isDateRange()) {
-        <div class="daterange-field">
-          <div class="field-label">
-            {{ field.name }}
-            @if (field.required) {
-              <span class="required-indicator">*</span>
-            }
-          </div>
-          
-          <div class="daterange-inputs">
-            <app-form-field
-              label="Start Date"
-              [suffixIcon]="'calendar_today'"
-              appearance="outline"
-              spacing="comfortable"
-              class="daterange-start">
-              <input 
-                matInput
-                type="date"
-                [value]="formControl?.value?.start || ''"
-                (change)="onDateRangeStartChange($event)"
-                [required]="field.required">
-            </app-form-field>
-            
-            <div class="daterange-separator">to</div>
-            
-            <app-form-field
-              label="End Date"
-              [suffixIcon]="'calendar_today'"
-              appearance="outline"
-              spacing="comfortable"
-              class="daterange-end">
-              <input 
-                matInput
-                type="date"
-                [value]="formControl?.value?.end || ''"
-                (change)="onDateRangeEndChange($event)">
-            </app-form-field>
-          </div>
-          
-          @if (formControl?.invalid && formControl?.touched) {
-            <div class="field-error">
-              <mat-icon [icon]="'error'"></mat-icon>
-              {{ getErrorMessage() }}
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Number Range Input -->
-      @if (isNumberRange()) {
-        <div class="numberrange-field">
-          <div class="field-label">
-            {{ field.name }}
-            @if (field.required) {
-              <span class="required-indicator">*</span>
-            }
-          </div>
-          
-          <div class="numberrange-inputs">
-            <app-form-field
-              label="Minimum"
-              [suffixIcon]="'numbers'"
-              appearance="outline"
-              spacing="comfortable"
-              class="numberrange-min">
-              <input 
-                matInput
-                type="number"
-                [value]="formControl?.value?.min || ''"
-                (change)="onNumberRangeMinChange($event)"
-                [placeholder]="'Min value'"
-                [required]="field.required">
-            </app-form-field>
-            
-            <div class="numberrange-separator">to</div>
-            
-            <app-form-field
-              label="Maximum"
-              [suffixIcon]="'numbers'"
-              appearance="outline"
-              spacing="comfortable"
-              class="numberrange-max">
-              <input 
-                matInput
-                type="number"
-                [value]="formControl?.value?.max || ''"
-                (change)="onNumberRangeMaxChange($event)"
-                [placeholder]="'Max value'">
-            </app-form-field>
-          </div>
-          
-          @if (formControl?.invalid && formControl?.touched) {
-            <div class="field-error">
-              <mat-icon [icon]="'error'"></mat-icon>
-              {{ getErrorMessage() }}
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Boolean/Switch -->
-      @if (isBoolean()) {
-        <div class="boolean-field">
-          <div class="field-label">
-            {{ field.name }}
-            @if (field.required) {
-              <span class="required-indicator">*</span>
-            }
-          </div>
-          
-          <app-material-switch
-            [formControl]="formControl"
-            [label]="field.placeholder || (field.required ? 'Required' : 'Optional')"
-            [disabled]="readonly">
-          </app-material-switch>
-          
-          @if (formControl?.invalid && formControl?.touched) {
-            <div class="field-error">
-              <mat-icon [icon]="'error'"></mat-icon>
-              {{ getErrorMessage() }}
-            </div>
-          }
-        </div>
-      }
 
       <!-- Color Input -->
       @if (isColor()) {
@@ -273,9 +100,9 @@
         </div>
       }
 
-      <!-- Multiselect -->
-      @if (isMultiselect()) {
-        <div class="multiselect-field">
+      <!-- Boolean/Checkbox Field -->
+      @if (isBoolean()) {
+        <div class="boolean-field">
           <div class="field-label">
             {{ field.name }}
             @if (field.required) {
@@ -283,88 +110,21 @@
             }
           </div>
           
-          @if (field.multiselectConfig?.options) {
-            <div class="multiselect-options">
-              @for (option of field.multiselectConfig?.options || []; track option) {
-                <mat-checkbox 
-                  [checked]="isOptionSelected(option)"
-                  (change)="onMultiselectChange(option, $event)"
-                  class="multiselect-option">
-                  {{ option }}
-                </mat-checkbox>
-              }
-            </div>
-          }
-          
-          <!-- Custom option input (if allowed) -->
-          @if (field.multiselectConfig?.allowCustom) {
-            <app-form-field
-              label="Add custom option"
-              appearance="outline"
-              spacing="comfortable"
-              class="custom-option-input">
-              <input matInput #customInput>
-              <button 
-                matSuffix 
-                mat-icon-button 
-                (click)="addCustomOption(customInput.value); customInput.value = ''">
-                <mat-icon>add</mat-icon>
-              </button>
-            </app-form-field>
-          }
+          <app-material-switch
+            [formControl]="formControl"
+            [label]="field.placeholder || (field.required ? 'Required' : 'Optional')"
+            [disabled]="readonly">
+          </app-material-switch>
           
           @if (formControl?.invalid && formControl?.touched) {
             <div class="field-error">
+              <mat-icon [icon]="'error'"></mat-icon>
               {{ getErrorMessage() }}
             </div>
           }
         </div>
       }
 
-      <!-- File Upload -->
-      @if (isFile()) {
-        <div class="file-field">
-          <div class="field-label">
-            {{ field.name }}
-            @if (field.required) {
-              <span class="required-indicator">*</span>
-            }
-          </div>
-          
-          <div class="file-upload-area">
-            <input 
-              #fileInput
-              type="file" 
-              [accept]="field.fileConfig?.allowedTypes?.join(',') || '*'"
-              [multiple]="field.fileConfig?.multiple || false"
-              (change)="onFileChange($event)"
-              style="display: none;">
-            
-            <button 
-              mat-outlined-button 
-              (click)="fileInput.click()"
-              class="file-upload-button">
-              <mat-icon>cloud_upload</mat-icon>
-              Choose {{ field.fileConfig?.multiple ? 'Files' : 'File' }}
-            </button>
-            
-            @if (formControl?.value) {
-              <div class="selected-files">
-                <div class="file-info">
-                  <mat-icon>attachment</mat-icon>
-                  <span>{{ getFileDisplayName() }}</span>
-                </div>
-              </div>
-            }
-          </div>
-          
-          @if (formControl?.invalid && formControl?.touched) {
-            <div class="field-error">
-              {{ getErrorMessage() }}
-            </div>
-          }
-        </div>
-      }
 
       <!-- Location Field -->
       @if (isLocation()) {
@@ -423,84 +183,6 @@
         </div>
       }
 
-      <!-- Relationship Field -->
-      @if (isRelationship()) {
-        <div class="relationship-field">
-          <div class="field-label">
-            {{ field.name }}
-            @if (field.required) {
-              <span class="required-indicator">*</span>
-            }
-          </div>
-          
-          <!-- Selected Relationships Display -->
-          @if (selectedRelationships && selectedRelationships.length > 0) {
-            <div class="selected-relationships">
-              @for (relationship of selectedRelationships; track relationship.id) {
-                <div class="relationship-chip">
-                  <span class="relationship-name">{{ relationship.name }}</span>
-                  <button 
-                    type="button"
-                    class="remove-relationship"
-                    (click)="removeRelationship(relationship)"
-                    title="Remove">
-                    <mat-icon [icon]="'close'"></mat-icon>
-                  </button>
-                </div>
-              }
-            </div>
-          }
-          
-          <!-- Add Relationship Interface -->
-          <div class="add-relationship">
-            <div class="search-container">
-              <input 
-                type="text"
-                class="relationship-search"
-                [(ngModel)]="relationshipSearchTerm"
-                [ngModelOptions]="{standalone: true}"
-                (input)="onRelationshipSearch($event)"
-                (focus)="showRelationshipSuggestions = true"
-                (blur)="hideRelationshipSuggestions()"
-                placeholder="Search {{ getRelationshipTypeName() }}..."
-                [disabled]="!field.relationshipConfig?.allowMultiple && selectedRelationships && selectedRelationships.length > 0">
-              
-              <!-- Search Results Dropdown -->
-              @if (showRelationshipSuggestions && filteredRelationships && filteredRelationships.length > 0) {
-                <div class="relationship-suggestions">
-                  @for (item of filteredRelationships; track item.id) {
-                    <div class="relationship-suggestion"
-                         (mousedown)="selectRelationship(item)">
-                      <div class="suggestion-content">
-                        <div class="suggestion-name">{{ item.name }}</div>
-                        @if (item.subtitle) {
-                          <div class="suggestion-subtitle">{{ item.subtitle }}</div>
-                        }
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-              
-              @if (showRelationshipSuggestions && relationshipSearchTerm && (!filteredRelationships || filteredRelationships.length === 0)) {
-                <div class="relationship-suggestions">
-                  <div class="no-results">
-                    <mat-icon [icon]="'search_off'"></mat-icon>
-                    <span>No {{ getRelationshipTypeName() }} found</span>
-                  </div>
-                </div>
-              }
-            </div>
-          </div>
-          
-          @if (formControl?.invalid && formControl?.touched) {
-            <div class="field-error">
-              <mat-icon [icon]="'error'"></mat-icon>
-              {{ getErrorMessage() }}
-            </div>
-          }
-        </div>
-      }
       
       <!-- Entity Association Field -->
       @if (isEntity()) {
@@ -542,7 +224,7 @@
                 [(ngModel)]="entitySearchTerm"
                 [ngModelOptions]="{standalone: true}"
                 (input)="onEntitySearch($event)"
-                (focus)="showEntitySuggestions = true"
+                (focus)="onEntityFocus()"
                 (blur)="hideEntitySuggestions()"
                 placeholder="Search {{ getEntityTypeName() }}..."
                 [disabled]="!field.entityConfig?.allowMultiple && selectedEntities && selectedEntities.length > 0">

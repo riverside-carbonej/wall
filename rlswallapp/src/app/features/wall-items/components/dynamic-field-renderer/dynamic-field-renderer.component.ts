@@ -61,15 +61,6 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     return control;
   }
 
-  // For multiselect fields
-  selectedOptions: string[] = [];
-  
-  // For relationship fields
-  selectedRelationships: Array<{id: string; name: string; subtitle?: string}> = [];
-  filteredRelationships: Array<{id: string; name: string; subtitle?: string}> = [];
-  relationshipSearchTerm: string = '';
-  showRelationshipSuggestions: boolean = false;
-  allRelationshipItems: Array<{id: string; name: string; subtitle?: string}> = [];
   
   // For entity fields
   selectedEntities: Array<{id: string; name: string; subtitle?: string}> = [];
@@ -79,14 +70,6 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   allEntityItems: Array<{id: string; name: string; subtitle?: string}> = [];
   
   ngOnInit() {
-    console.log('DynamicFieldRenderer ngOnInit:', {
-      fieldId: this.field?.id,
-      fieldName: this.field?.name,
-      fieldType: this.field?.type,
-      hasFormGroup: !!this.formGroup,
-      formGroupControls: this.formGroup ? Object.keys(this.formGroup.controls) : [],
-      readonly: this.readonly
-    });
     this.initializeFieldData();
   }
 
@@ -103,12 +86,6 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   private initializeFieldData() {
     // Ensure we have a valid form control before proceeding
     if (!this.formControl || !this.field) {
-      console.log('initializeFieldData early return:', {
-        hasFormControl: !!this.formControl,
-        hasField: !!this.field,
-        fieldId: this.field?.id,
-        fieldType: this.field?.type
-      });
       return;
     }
     
@@ -124,27 +101,6 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
       initialValue = isoString;
     }
     
-    if (this.field.type === 'multiselect' && initialValue) {
-      this.selectedOptions = Array.isArray(initialValue) ? initialValue : [];
-    }
-    
-    if (this.field.type === 'relationship') {
-      this.loadRelationshipItems();
-      
-      // Initialize selected relationships from current value
-      if (initialValue) {
-        // Handle both single and multiple relationship values
-        const relationshipIds = Array.isArray(initialValue) ? initialValue : [initialValue];
-        
-        // TODO: In real implementation, this would fetch the actual relationship objects
-        // For now, create placeholder objects
-        this.selectedRelationships = relationshipIds.map(id => ({
-          id: String(id),
-          name: `Item ${id}`,
-          subtitle: 'Selected item'
-        }));
-      }
-    }
     
     if (this.field.type === 'entity') {
       this.loadEntityItems();
@@ -160,108 +116,31 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     }
   }
 
-  // Helper methods for template
-  isTextInput(): boolean {
-    return ['text', 'email', 'url'].includes(this.field.type);
-  }
-
-  isTextarea(): boolean {
-    const isTextareaType = this.field.type === 'longtext' || this.field.type === 'richtext';
-    if (isTextareaType && !this.readonly) {
-      console.log('Textarea field detected:', {
-        fieldId: this.field.id,
-        fieldName: this.field.name,
-        fieldType: this.field.type,
-        hasFormControl: !!this.formControl,
-        formControlValue: this.formControl?.value,
-        formControlDisabled: this.formControl?.disabled
-      });
-    }
-    return isTextareaType;
-  }
-
-  isNumber(): boolean {
-    const isNumberType = this.field.type === 'number';
-    if (isNumberType && !this.readonly) {
-      console.log('Number field detected:', {
-        fieldId: this.field.id,
-        fieldName: this.field.name,
-        fieldType: this.field.type,
-        hasFormControl: !!this.formControl,
-        formControlValue: this.formControl?.value,
-        formControlDisabled: this.formControl?.disabled
-      });
-    }
-    return isNumberType;
+  // Helper methods for template - the 6 field types you use
+  isText(): boolean {
+    return this.field.type === 'text';
   }
 
   isDate(): boolean {
     return this.field.type === 'date';
   }
 
-  isDateRange(): boolean {
-    return this.field.type === 'daterange';
-  }
-
-  isNumberRange(): boolean {
-    return this.field.type === 'numberrange';
-  }
-
-  isBoolean(): boolean {
-    return this.field.type === 'boolean';
-  }
-
   isColor(): boolean {
     return this.field.type === 'color';
   }
 
-  isMultiselect(): boolean {
-    return this.field.type === 'multiselect';
-  }
-
-  isFile(): boolean {
-    return this.field.type === 'file';
-  }
-
   isLocation(): boolean {
     return this.field.type === 'location';
-  }
-
-  isRelationship(): boolean {
-    return this.field.type === 'relationship';
   }
   
   isEntity(): boolean {
     return this.field.type === 'entity';
   }
 
-  getInputType(): string {
-    switch (this.field.type) {
-      case 'email':
-        return 'email';
-      case 'url':
-        return 'url';
-      case 'number':
-        return 'number';
-      case 'color':
-        return 'color';
-      default:
-        return 'text';
-    }
+  isBoolean(): boolean {
+    return this.field.type === 'boolean';
   }
 
-  getTextInputType(): 'text' | 'email' | 'url' | 'password' | 'number' | 'textarea' {
-    switch (this.field.type) {
-      case 'email':
-        return 'email';
-      case 'url':
-        return 'url';
-      case 'number':
-        return 'number';
-      default:
-        return 'text';
-    }
-  }
 
   getDisplayValue(): string {
     // Get value from form control instead of input property
@@ -271,42 +150,25 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     if (this.field.type === 'date') {
       return new Date(value).toLocaleDateString();
     }
-    
-    if (this.field.type === 'daterange') {
-      if (value && value.start && value.end) {
-        const startDate = new Date(value.start).toLocaleDateString();
-        const endDate = new Date(value.end).toLocaleDateString();
-        return `${startDate} - ${endDate}`;
-      }
-      if (value && value.start) {
-        return `From ${new Date(value.start).toLocaleDateString()}`;
-      }
-      return '';
-    }
-    
-    if (this.field.type === 'numberrange') {
-      if (value && typeof value === 'object') {
-        const min = value.min !== undefined ? value.min : '';
-        const max = value.max !== undefined ? value.max : '';
-        if (min && max) {
-          return `${min} - ${max}`;
-        }
-        if (min) {
-          return `From ${min}`;
-        }
-        if (max) {
-          return `Up to ${max}`;
-        }
-      }
-      return '';
-    }
-    
+
     if (this.field.type === 'boolean') {
       return value ? 'Yes' : 'No';
     }
-    
-    if (this.field.type === 'multiselect') {
-      return Array.isArray(value) ? value.join(', ') : '';
+
+    if (this.field.type === 'entity') {
+      // For entity fields, show the entity names instead of IDs
+      if (Array.isArray(value)) {
+        // Multiple entity selection
+        const names = value.map(id => {
+          const entity = this.selectedEntities.find(e => e.id === id);
+          return entity ? entity.name : id;
+        });
+        return names.join(', ');
+      } else {
+        // Single entity selection
+        const entity = this.selectedEntities.find(e => e.id === value);
+        return entity ? entity.name : value;
+      }
     }
     
     if (this.field.type === 'location') {
@@ -334,34 +196,6 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     return value.toString();
   }
 
-  // Multiselect handlers
-  onMultiselectChange(option: string, checked: boolean) {
-    if (checked) {
-      if (!this.selectedOptions.includes(option)) {
-        this.selectedOptions.push(option);
-      }
-    } else {
-      this.selectedOptions = this.selectedOptions.filter(o => o !== option);
-    }
-    
-    this.formControl?.setValue([...this.selectedOptions]);
-  }
-
-  isOptionSelected(option: string): boolean {
-    return this.selectedOptions.includes(option);
-  }
-
-  // File upload handler
-  onFileChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      if (this.field.fileConfig?.multiple) {
-        this.formControl?.setValue(Array.from(input.files));
-      } else {
-        this.formControl?.setValue(input.files[0]);
-      }
-    }
-  }
 
   // Validation helper
   getErrorMessage(): string {
@@ -396,55 +230,6 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     return 'Invalid value';
   }
 
-  // Template helper methods
-  getFieldIcon(): string {
-    switch (this.field.type) {
-      case 'email':
-        return 'email';
-      case 'url':
-        return 'link';
-      case 'location':
-        return 'place';
-      case 'color':
-        return 'palette';
-      case 'file':
-        return 'attach_file';
-      case 'date':
-        return 'event';
-      case 'daterange':
-        return 'date_range';
-      case 'relationship':
-        return 'link';
-      case 'multiselect':
-        return 'checklist';
-      case 'boolean':
-        return 'check_box';
-      default:
-        return '';
-    }
-  }
-
-  getFileDisplayName(): string {
-    const value = this.formControl?.value || this.value;
-    if (!value) return '';
-    
-    if (value instanceof File) {
-      return value.name;
-    }
-    
-    if (Array.isArray(value)) {
-      return `${value.length} file(s) selected`;
-    }
-    
-    return 'File selected';
-  }
-
-  addCustomOption(option: string) {
-    if (option && option.trim() && !this.selectedOptions.includes(option.trim())) {
-      this.selectedOptions.push(option.trim());
-      this.formControl?.setValue([...this.selectedOptions]);
-    }
-  }
 
   // Location handlers
   onLocationSelected(result: any) {
@@ -468,179 +253,6 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     }
   }
 
-  // Helper method to get select options for multiselect and other select-based fields
-  getSelectOptions(): SelectOption[] {
-    if (this.field.multiselectConfig?.options) {
-      return this.field.multiselectConfig.options.map(option => ({
-        value: option,
-        label: option
-      }));
-    }
-    return [];
-  }
-
-  // Date range handlers
-  onDateRangeStartChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const currentValue = this.formControl?.value || {};
-    this.formControl?.setValue({
-      ...currentValue,
-      start: input.value
-    });
-  }
-
-  onDateRangeEndChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const currentValue = this.formControl?.value || {};
-    this.formControl?.setValue({
-      ...currentValue,
-      end: input.value
-    });
-  }
-
-  // Number range handlers
-  onNumberRangeMinChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const currentValue = this.formControl?.value || {};
-    this.formControl?.setValue({
-      ...currentValue,
-      min: input.value ? parseFloat(input.value) : undefined
-    });
-  }
-
-  onNumberRangeMaxChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const currentValue = this.formControl?.value || {};
-    this.formControl?.setValue({
-      ...currentValue,
-      max: input.value ? parseFloat(input.value) : undefined
-    });
-  }
-
-  // Relationship field methods
-  getRelationshipTypeName(): string {
-    if (!this.field.relationshipConfig || !this.wall) return 'Items';
-    
-    // Find the actual object type from the wall
-    const targetType = this.wall.objectTypes?.find(
-      ot => ot.id === this.field.relationshipConfig!.targetObjectTypeId
-    );
-    
-    if (targetType) {
-      return this.nlpService.getPlural(targetType.name);
-    }
-    
-    // Fallback to pluralizing the ID
-    return this.nlpService.getPlural(this.field.relationshipConfig.targetObjectTypeId);
-  }
-
-  onRelationshipSearch(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.relationshipSearchTerm = input.value;
-    this.updateFilteredRelationships();
-    this.showRelationshipSuggestions = true;
-  }
-
-  private updateFilteredRelationships() {
-    if (!this.relationshipSearchTerm.trim()) {
-      this.filteredRelationships = this.allRelationshipItems.filter(item => 
-        !this.selectedRelationships.some(selected => selected.id === item.id)
-      );
-      return;
-    }
-
-    const searchTerm = this.relationshipSearchTerm.toLowerCase();
-    this.filteredRelationships = this.allRelationshipItems.filter(item => 
-      !this.selectedRelationships.some(selected => selected.id === item.id) &&
-      (item.name.toLowerCase().includes(searchTerm) || 
-       (item.subtitle && item.subtitle.toLowerCase().includes(searchTerm)))
-    );
-  }
-
-  selectRelationship(item: {id: string; name: string; subtitle?: string}) {
-    if (!this.field.relationshipConfig?.allowMultiple) {
-      this.selectedRelationships = [item];
-    } else {
-      if (!this.selectedRelationships.some(selected => selected.id === item.id)) {
-        this.selectedRelationships.push(item);
-      }
-    }
-    
-    this.updateFormControlValue();
-    this.relationshipSearchTerm = '';
-    this.showRelationshipSuggestions = false;
-    this.updateFilteredRelationships();
-  }
-
-  removeRelationship(item: {id: string; name: string; subtitle?: string}) {
-    this.selectedRelationships = this.selectedRelationships.filter(
-      selected => selected.id !== item.id
-    );
-    this.updateFormControlValue();
-    this.updateFilteredRelationships();
-  }
-
-  private updateFormControlValue() {
-    if (!this.field.relationshipConfig?.allowMultiple) {
-      this.formControl?.setValue(this.selectedRelationships[0]?.id || null);
-    } else {
-      this.formControl?.setValue(this.selectedRelationships.map(item => item.id));
-    }
-  }
-
-  hideRelationshipSuggestions() {
-    setTimeout(() => {
-      this.showRelationshipSuggestions = false;
-    }, 200);
-  }
-
-  private loadRelationshipItems() {
-    if (!this.field.relationshipConfig || !this.wall) return;
-    
-    const targetObjectTypeId = this.field.relationshipConfig.targetObjectTypeId;
-    if (!targetObjectTypeId) return;
-
-    // Find the target object type definition to get display field names
-    const targetObjectType = this.wall.objectTypes?.find(ot => ot.id === targetObjectTypeId);
-    if (!targetObjectType) return;
-
-    // Get items of the target object type from the same wall
-    this.wallItemService.getWallItemsByObjectType(this.wall.id!, targetObjectTypeId).subscribe(items => {
-      this.allRelationshipItems = items.map(item => {
-        // Use the primary display field or fall back to first text field
-        const primaryField = targetObjectType.displaySettings?.primaryField;
-        const secondaryField = targetObjectType.displaySettings?.secondaryField;
-        
-        let name = 'Untitled';
-        let subtitle = '';
-
-        if (primaryField && item.fieldData[primaryField]) {
-          name = String(item.fieldData[primaryField]);
-        } else {
-          // Find first non-empty text field
-          const firstTextField = Object.keys(item.fieldData).find(key => 
-            typeof item.fieldData[key] === 'string' && 
-            String(item.fieldData[key]).trim()
-          );
-          if (firstTextField) {
-            name = String(item.fieldData[firstTextField]);
-          }
-        }
-
-        if (secondaryField && item.fieldData[secondaryField]) {
-          subtitle = String(item.fieldData[secondaryField]);
-        }
-
-        return {
-          id: item.id!,
-          name: name,
-          subtitle: subtitle
-        };
-      });
-      
-      this.updateFilteredRelationships();
-    });
-  }
   
   // Entity field methods
   getEntityTypeName(): string {
@@ -659,6 +271,11 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     return this.nlpService.getPlural(this.field.entityConfig.targetObjectTypeId);
   }
   
+  onEntityFocus() {
+    this.showEntitySuggestions = true;
+    this.updateFilteredEntities();
+  }
+
   onEntitySearch(event: Event) {
     const input = event.target as HTMLInputElement;
     this.entitySearchTerm = input.value;
@@ -668,10 +285,10 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   
   private updateFilteredEntities() {
     if (!this.entitySearchTerm.trim()) {
-      // Show first 10 items when no search term
+      // Show first 5 items when no search term
       this.filteredEntities = this.allEntityItems
         .filter(item => !this.selectedEntities.some(selected => selected.id === item.id))
-        .slice(0, 10);
+        .slice(0, 5);
       return;
     }
 
@@ -721,51 +338,73 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   }
   
   private loadEntityItems() {
-    if (!this.field.entityConfig || !this.wall) return;
+    if (!this.field.entityConfig || !this.wall) {
+      return;
+    }
     
     const targetObjectTypeId = this.field.entityConfig.targetObjectTypeId;
-    if (!targetObjectTypeId) return;
+    if (!targetObjectTypeId) {
+      return;
+    }
 
     // Find the target object type definition to get display field names
     const targetObjectType = this.wall.objectTypes?.find(ot => ot.id === targetObjectTypeId);
-    if (!targetObjectType) return;
+    
+    if (!targetObjectType) {
+      // Try to find by name as fallback
+      const targetByName = this.wall.objectTypes?.find(ot => 
+        ot.name.toLowerCase() === targetObjectTypeId.toLowerCase()
+      );
+      if (targetByName) {
+        this.loadEntityItemsForType(targetByName);
+        return;
+      }
+      return;
+    }
 
+    this.loadEntityItemsForType(targetObjectType);
+  }
+
+  private loadEntityItemsForType(targetObjectType: any) {
     // Get items of the target object type from the same wall
-    this.wallItemService.getWallItemsByObjectType(this.wall.id!, targetObjectTypeId).subscribe(items => {
-      console.log(`Loaded ${items.length} items for entity field ${this.field.name} (type: ${targetObjectTypeId})`);
-      
-      this.allEntityItems = items.map(item => {
-        // Use the primary display field or fall back to first text field
-        const primaryField = targetObjectType.displaySettings?.primaryField;
-        const secondaryField = targetObjectType.displaySettings?.secondaryField;
-        
-        let name = 'Untitled';
-        let subtitle = '';
+    this.wallItemService.getWallItemsByObjectType(this.wall!.id!, targetObjectType.id).subscribe({
+      next: (items) => {
+        this.allEntityItems = items.map(item => {
+          // Use the primary display field or fall back to first text field
+          const primaryField = targetObjectType.displaySettings?.primaryField;
+          const secondaryField = targetObjectType.displaySettings?.secondaryField;
+          
+          let name = 'Untitled';
+          let subtitle = '';
 
-        if (primaryField && item.fieldData[primaryField]) {
-          name = String(item.fieldData[primaryField]);
-        } else {
-          // Find first non-empty text field
-          const firstTextField = targetObjectType.fields.find(f => 
-            f.type === 'text' && item.fieldData[f.id]
-          );
-          if (firstTextField && item.fieldData[firstTextField.id]) {
-            name = String(item.fieldData[firstTextField.id]);
+          if (primaryField && item.fieldData[primaryField]) {
+            name = String(item.fieldData[primaryField]);
+          } else {
+            // Find first non-empty text field
+            const firstTextField = targetObjectType.fields.find((f: any) => 
+              f.type === 'text' && item.fieldData[f.id]
+            );
+            if (firstTextField && item.fieldData[firstTextField.id]) {
+              name = String(item.fieldData[firstTextField.id]);
+            }
           }
-        }
 
-        if (secondaryField && item.fieldData[secondaryField]) {
-          subtitle = String(item.fieldData[secondaryField]);
-        }
+          if (secondaryField && item.fieldData[secondaryField]) {
+            subtitle = String(item.fieldData[secondaryField]);
+          }
 
-        return {
-          id: item.id!,
-          name: name,
-          subtitle: subtitle
-        };
-      });
-      
-      this.updateFilteredEntities();
+          return {
+            id: item.id!,
+            name: name,
+            subtitle: subtitle
+          };
+        });
+        
+        this.updateFilteredEntities();
+      },
+      error: (error) => {
+        console.error('Error loading entity items:', error);
+      }
     });
   }
   

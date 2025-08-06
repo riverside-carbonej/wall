@@ -1,9 +1,10 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, takeUntil, firstValueFrom } from 'rxjs';
+import { Router } from '@angular/router';
 
-import { Wall, WallObjectType, WallItem, WallItemImage } from '../../../../shared/models/wall.model';
+import { Wall, WallObjectType, WallItem, WallItemImage, FieldDefinition } from '../../../../shared/models/wall.model';
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { DynamicFieldRendererComponent } from '../dynamic-field-renderer/dynamic-field-renderer.component';
@@ -12,6 +13,8 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
 import { WallItemImageComponent } from '../../../../shared/components/wall-item-image/wall-item-image.component';
 import { ImageGalleryComponent } from '../../../../shared/components/image-gallery/image-gallery.component';
 import { ThemeService } from '../../../../shared/services/theme.service';
+import { WallItemService } from '../../services/wall-item.service';
+import { MatTabGroup, MatTab } from '../../../../shared/components/material-stubs';
 
 export type PageMode = 'create' | 'view' | 'edit';
 
@@ -28,7 +31,9 @@ export type PageMode = 'create' | 'view' | 'edit';
     MaterialIconComponent,
     ThemedButtonComponent,
     WallItemImageComponent,
-    ImageGalleryComponent
+    ImageGalleryComponent,
+    MatTabGroup,
+    MatTab
   ],
   template: `
     <div *ngIf="wall && preset">
@@ -175,18 +180,78 @@ export type PageMode = 'create' | 'view' | 'edit';
                 </div>
                 
                 @if (itemForm && preset && preset.fields) {
-                  <form [formGroup]="itemForm" class="item-form" [class.view-mode]="mode === 'view'">
-                    @for (field of preset.fields; track field.id) {
-                      <div class="form-field">
-                        <app-dynamic-field-renderer
-                          [field]="field"
-                          [formGroup]="itemForm"
-                          [readonly]="mode === 'view'"
-                          [wall]="wall">
-                        </app-dynamic-field-renderer>
-                      </div>
+                  <!-- Tab Groups -->
+                  <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="item-tabs">
+                    
+                    <!-- Details Tab -->
+                    <mat-tab label="Details">
+                      <form [formGroup]="itemForm" class="item-form" [class.view-mode]="mode === 'view'">
+                        @for (field of preset.fields; track field.id) {
+                          <div class="form-field">
+                            <app-dynamic-field-renderer
+                              [field]="field"
+                              [formGroup]="itemForm"
+                              [readonly]="mode === 'view'"
+                              [wall]="wall">
+                            </app-dynamic-field-renderer>
+                          </div>
+                        }
+                      </form>
+                    </mat-tab>
+                    
+                    <!-- Related Items Tab (only show for existing items with relationships) -->
+                    @if (mode === 'view' && item && hasRelatedItems()) {
+                      <mat-tab label="Related Items">
+                        <div class="related-items-section">
+                          @if (loadingRelatedItems) {
+                            <app-loading-state 
+                              type="spinner" 
+                              message="Loading related items..."
+                              [spinnerSize]="40">
+                            </app-loading-state>
+                          } @else {
+                            
+                            @for (relatedType of getRelatedObjectTypes(); track relatedType.objectType.id) {
+                              <div class="related-type-section">
+                                <h3 class="related-type-title">
+                                  <mat-icon [style.color]="relatedType.objectType.color">{{ relatedType.objectType.icon || 'circle' }}</mat-icon>
+                                  {{ relatedType.objectType.name }}
+                                  <span class="item-count">({{ getRelatedItemsForType(relatedType.objectType.id).length }})</span>
+                                </h3>
+                                
+                                @if (getRelatedItemsForType(relatedType.objectType.id).length > 0) {
+                                  <div class="related-items-grid">
+                                    @for (item of getRelatedItemsForType(relatedType.objectType.id); track item.id) {
+                                      <div class="related-item-card" (click)="navigateToRelatedItem(item)">
+                                        <div class="related-item-header">
+                                          <mat-icon [style.color]="relatedType.objectType.color">{{ relatedType.objectType.icon || 'circle' }}</mat-icon>
+                                          <h4>{{ getItemDisplayName(item) }}</h4>
+                                        </div>
+                                        <p class="related-item-summary">
+                                          {{ getItemSummary(item) }}
+                                        </p>
+                                      </div>
+                                    }
+                                  </div>
+                                } @else {
+                                  <p class="no-related-items">No {{ relatedType.objectType.name.toLowerCase() }} are linked to this {{ preset?.name?.toLowerCase() || 'item' }}.</p>
+                                }
+                              </div>
+                            }
+                            
+                            @if (getRelatedObjectTypes().length === 0) {
+                              <div class="no-relationships">
+                                <mat-icon>link_off</mat-icon>
+                                <p>No related items found for this {{ preset?.name?.toLowerCase() || 'item' }}.</p>
+                              </div>
+                            }
+                            
+                          }
+                        </div>
+                      </mat-tab>
                     }
-                  </form>
+                    
+                  </mat-tab-group>
                 }
 
                 <!-- Form Actions (only shown in edit/create modes) -->
@@ -720,6 +785,103 @@ export type PageMode = 'create' | 'view' | 'edit';
       outline-offset: 2px;
     }
 
+    /* Tab Styles */
+    .item-tabs {
+      margin-top: 16px;
+    }
+
+    .item-tabs .mat-mdc-tab-body-content {
+      padding-top: 16px;
+    }
+
+    /* Related Items Tab Styles */
+    .related-items-section {
+      padding: 24px 0;
+    }
+
+    .related-type-section {
+      margin-bottom: 32px;
+    }
+
+    .related-type-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .related-type-title .item-count {
+      color: var(--md-sys-color-on-surface-variant);
+      font-weight: 400;
+      font-size: 14px;
+    }
+
+    .related-items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .related-item-card {
+      background: var(--md-sys-color-surface-container);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-sys-shape-corner-large);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .related-item-card:hover {
+      background: var(--md-sys-color-surface-container-high);
+      box-shadow: var(--md-sys-elevation-level1);
+      transform: translateY(-2px);
+    }
+
+    .related-item-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .related-item-header h4 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .related-item-summary {
+      margin: 0;
+      font-size: 14px;
+      color: var(--md-sys-color-on-surface-variant);
+      line-height: 1.4;
+    }
+
+    .no-related-items,
+    .no-relationships {
+      text-align: center;
+      padding: 32px;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .no-relationships {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .no-relationships mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      color: var(--md-sys-color-outline);
+    }
+
     /* High Contrast Mode */
     @media (prefers-contrast: high) {
       .image-gallery-container,
@@ -733,7 +895,7 @@ export type PageMode = 'create' | 'view' | 'edit';
     }
   `]
 })
-export class PresetItemBasePageComponent {
+export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges {
   @Input() wall: Wall | null = null;
   @Input() preset: WallObjectType | null = null;
   @Input() item: WallItem | null = null;
@@ -749,7 +911,17 @@ export class PresetItemBasePageComponent {
   // Gallery state
   showGallery = false;
   
+  // Tab state
+  selectedTabIndex = 0;
+  
+  // Related items (reverse entity lookups)
+  relatedItems: { [objectTypeId: string]: WallItem[] } = {};
+  loadingRelatedItems = false;
+  
+  private destroy$ = new Subject<void>();
   private themeService = inject(ThemeService);
+  private wallItemService = inject(WallItemService);
+  private router = inject(Router);
 
   @Output() backClick = new EventEmitter<void>();
   @Output() addImage = new EventEmitter<void>();
@@ -759,6 +931,31 @@ export class PresetItemBasePageComponent {
   @Output() save = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
   @Output() edit = new EventEmitter<void>();
+
+  ngOnInit() {
+    // Initial check for related items
+    this.checkAndLoadRelatedItems();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Check if relevant inputs have changed
+    if (changes['mode'] || changes['item'] || changes['wall'] || changes['preset']) {
+      this.checkAndLoadRelatedItems();
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private checkAndLoadRelatedItems() {
+    // Load related items if this is an existing item in view mode and we have all required data
+    if (this.mode === 'view' && this.item && this.wall && this.preset) {
+      console.log('Loading related items for:', this.item.id, 'preset:', this.preset.name);
+      this.loadRelatedItems();
+    }
+  }
 
   getPageTitle(): string {
     if (!this.preset) return '';
@@ -901,5 +1098,122 @@ export class PresetItemBasePageComponent {
 
   onCloseGallery() {
     this.showGallery = false;
+  }
+
+  // Related items methods
+  hasRelatedItems(): boolean {
+    const relatedTypes = this.getRelatedObjectTypes();
+    return relatedTypes.length > 0;
+  }
+
+  getRelatedObjectTypes(): { objectType: WallObjectType; fieldName: string }[] {
+    if (!this.wall || !this.preset) {
+      return [];
+    }
+    
+    const relatedTypes: { objectType: WallObjectType; fieldName: string }[] = [];
+    
+    // Find all object types that have entity fields pointing to this object type
+    this.wall.objectTypes?.forEach((otherObjectType: WallObjectType) => {
+      if (otherObjectType.id === this.preset?.id) return; // Skip self
+      
+      otherObjectType.fields.forEach((field: FieldDefinition) => {
+        const targetId = field.entityConfig?.targetObjectTypeId;
+        const isMatch = targetId === this.preset?.id || 
+                       targetId === this.preset?.name?.toLowerCase() ||
+                       (targetId === 'deployment' && this.preset?.name?.toLowerCase() === 'deployment');
+        
+        if (field.type === 'entity' && isMatch) {
+          relatedTypes.push({ 
+            objectType: otherObjectType, 
+            fieldName: field.name 
+          });
+        }
+      });
+    });
+    
+    return relatedTypes;
+  }
+
+  async loadRelatedItems() {
+    if (!this.item?.id || !this.wall) return;
+    
+    this.loadingRelatedItems = true;
+    this.relatedItems = {};
+    
+    try {
+      const relatedTypes = this.getRelatedObjectTypes();
+      
+      for (const { objectType, fieldName } of relatedTypes) {
+        // Find all items of this object type that reference the current item
+        const allItems = await firstValueFrom(
+          this.wallItemService.getWallItems(this.wall.id!)
+        );
+        
+        const relatedItemsForType = allItems.filter(item => {
+          if (item.objectTypeId !== objectType.id) return false;
+          
+          // Check if this item's entity fields contain reference to current item
+          const entityFields = objectType.fields.filter(f => f.type === 'entity');
+          
+          return entityFields.some(field => {
+            const fieldValue = item.fieldData[field.id];
+            if (Array.isArray(fieldValue)) {
+              return fieldValue.includes(this.item!.id);
+            }
+            return fieldValue === this.item!.id;
+          });
+        });
+        
+        if (relatedItemsForType.length > 0) {
+          this.relatedItems[objectType.id] = relatedItemsForType;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading related items:', error);
+    } finally {
+      this.loadingRelatedItems = false;
+    }
+  }
+
+  getRelatedItemsForType(objectTypeId: string): WallItem[] {
+    return this.relatedItems[objectTypeId] || [];
+  }
+
+  navigateToRelatedItem(item: WallItem) {
+    this.router.navigate(['/walls', this.wall?.id, 'preset', item.objectTypeId, 'items', item.id]);
+  }
+
+  getItemDisplayName(item: WallItem): string {
+    if (!this.wall) return 'Item';
+    
+    // Find the object type for this item
+    const objectType = this.wall.objectTypes?.find(ot => ot.id === item.objectTypeId);
+    if (!objectType) return 'Item';
+    
+    // Try to get display name from primary field
+    const primaryField = objectType.displaySettings?.primaryField;
+    if (primaryField && item.fieldData[primaryField]) {
+      return item.fieldData[primaryField];
+    }
+    
+    // Fall back to first text field
+    for (const field of objectType.fields) {
+      if ((field.type === 'text' || field.type === 'longtext') && item.fieldData[field.id]) {
+        return item.fieldData[field.id];
+      }
+    }
+    
+    return objectType.name;
+  }
+
+  getItemSummary(item: WallItem): string {
+    // Get first few non-empty field values for summary
+    const fieldData = item.fieldData || {};
+    const values = Object.values(fieldData)
+      .filter(value => value && typeof value === 'string' && value.trim())
+      .slice(0, 2) as string[];
+    
+    return values.join(' • ') || 'No additional details';
   }
 }
