@@ -45,7 +45,6 @@ export interface MapItemClickEvent {
     EmptyStateComponent,
     MatFormField,
     MatLabel,
-    MatSelect,
     MatOption
   ],
   templateUrl: './map-view.component.html',
@@ -95,6 +94,18 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     // Apply initial settings
     this.settings = { ...this.settings, ...this.initialSettings };
+    
+    // Get current wall ID from route if not set
+    if (!this.currentWallId) {
+      const routeParams = this.route.snapshot.params;
+      this.currentWallId = routeParams['wallId'] || routeParams['id'];
+      
+      // If still not found, try parent route
+      if (!this.currentWallId && this.route.parent) {
+        const parentParams = this.route.parent.snapshot.params;
+        this.currentWallId = parentParams['wallId'] || parentParams['id'];
+      }
+    }
     
     // Subscribe to theme changes
     this.themeService.getCurrentTheme()
@@ -324,9 +335,20 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
               const wallId = viewBtn.getAttribute('data-wall-id');
               const objectTypeId = viewBtn.getAttribute('data-object-type');
               const itemId = viewBtn.getAttribute('data-item-id');
+              
+              console.log('Map navigation debug:', {
+                wallId,
+                objectTypeId,
+                itemId,
+                currentWallId: this.currentWallId,
+                routePath: ['/walls', wallId, 'preset', objectTypeId, 'items', itemId]
+              });
+              
               if (wallId && objectTypeId && itemId) {
                 // Navigate to the correct preset/items path
-                this.router.navigate(['/walls', wallId, 'presets', objectTypeId, 'items', itemId]);
+                this.router.navigate(['/walls', wallId, 'preset', objectTypeId, 'items', itemId]);
+              } else {
+                console.error('Missing navigation data - will not navigate');
               }
             });
           }

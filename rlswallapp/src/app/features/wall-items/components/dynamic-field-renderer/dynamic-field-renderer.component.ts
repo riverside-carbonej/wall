@@ -310,9 +310,24 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     }
     
     if (this.field.type === 'location') {
-      if (value && value.lat && value.lng) {
-        return `${value.lat.toFixed(6)}, ${value.lng.toFixed(6)}`;
+      if (value && typeof value === 'object') {
+        if (value.address) {
+          return value.address;
+        }
+        if (value.lat && value.lng) {
+          return `${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}`;
+        }
       }
+      return '';
+    }
+    
+    // Handle other complex objects safely
+    if (value && typeof value === 'object') {
+      // If it's a complex object, try to find a meaningful display value
+      if (Array.isArray(value)) {
+        return value.join(', ');
+      }
+      // For other objects, return empty string instead of [object Object]
       return '';
     }
     
