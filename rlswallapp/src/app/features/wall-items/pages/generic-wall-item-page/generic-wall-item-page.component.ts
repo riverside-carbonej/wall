@@ -389,6 +389,9 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
         const url = URL.createObjectURL(file);
         this.imagePreviewUrls.push(url);
       });
+      
+      // Mark form as dirty when images are selected
+      this.markFormAsDirty();
     }
   }
   
@@ -404,18 +407,32 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   
   onImageAdded(item: WallItem) {
     this.imageInput.nativeElement.click();
+    // Mark form as dirty to enable save button
+    this.markFormAsDirty();
   }
   
   onImageEdited(event: any, item: WallItem) {
     // Handle image editing
+    this.markFormAsDirty();
   }
   
   onImageDeleted(event: any, item: WallItem) {
     // Handle image deletion
+    this.markFormAsDirty();
   }
   
   onPrimaryImageChanged(event: any, item: WallItem) {
     // Handle primary image change
+    this.markFormAsDirty();
+  }
+  
+  private markFormAsDirty() {
+    // Mark the form as dirty even if no form fields changed
+    if (this.itemForm) {
+      this.itemForm.markAsDirty();
+      // Trigger change detection to update form state
+      this.cdr.detectChanges();
+    }
   }
   
   async onSaveItem() {

@@ -208,7 +208,7 @@ export class ColorHarmonyService {
       }
     }
     
-    return { h: h * 360, s, l };
+    return { h: (h || 0) * 360, s, l };
   }
 
   /**

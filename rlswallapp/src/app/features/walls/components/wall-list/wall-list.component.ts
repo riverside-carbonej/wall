@@ -138,7 +138,6 @@ import { NavigationService } from '../../../../shared/services/navigation.servic
                       <div class="menu-dropdown" (click)="$event.stopPropagation()">
                         <button (click)="openWall(wall.id!)">Open</button>
                         <button (click)="editWall(wall.id!)">Edit</button>
-                        <button (click)="duplicateWall(wall.id!)">Make a copy</button>
                         <button (click)="deleteWall(wall.id!)" class="delete-option">Delete</button>
                       </div>
                     }
@@ -1007,11 +1006,6 @@ export class WallListComponent implements OnInit {
 
   editWall(id: string): void {
     this.router.navigate(['/walls', id, 'edit']);
-  }
-
-  duplicateWall(id: string): void {
-    // TODO: Implement duplication
-    console.log('Duplicate wall:', id);
   }
 
   toggleMenu(wallId: string, event: Event): void {

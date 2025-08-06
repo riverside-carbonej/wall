@@ -7,6 +7,7 @@ import { WallDataService } from '../../services/wall-data.service';
 import { Wall, DEFAULT_THEMES, WallTheme } from '../../../../shared/models/wall.model';
 import { WallPermissionsService } from '../../../../core/services/wall-permissions.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ThemeService } from '../../../../shared/services/theme.service';
 import { ButtonGroupComponent, ButtonGroupItem } from '../../../../shared/components/button-group/button-group.component';
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 import { MaterialSwitchComponent } from '../../../../shared/components/material-switch/material-switch.component';
@@ -2486,7 +2487,8 @@ export class WallFormComponent implements OnInit, OnDestroy {
     private wallTemplatesService: WallTemplatesService,
     private navigationService: NavigationService,
     private formStateService: FormStateService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private themeService: ThemeService
   ) {
     this.initializeForm();
   }
@@ -2525,6 +2527,9 @@ export class WallFormComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.formStateService.unregisterForm('wall-form');
+    
+    // Clear theme preview when leaving the form
+    this.themeService.clearWallTheme();
   }
 
   private initializeFormState(): void {
@@ -2595,6 +2600,9 @@ export class WallFormComponent implements OnInit, OnDestroy {
         if (!themeExists) {
           this.availableThemes = [...this.availableThemes, template.theme];
         }
+        
+        // Apply theme preview immediately when loading template
+        this.applyThemeLive();
       }
 
       // Store object types to be used when creating the wall
@@ -2609,6 +2617,8 @@ export class WallFormComponent implements OnInit, OnDestroy {
       next: (wall) => {
         if (wall) {
           this.selectedTheme = wall.theme;
+          // Apply theme preview immediately when loading
+          this.applyThemeLive();
           this.currentLogoUrl = wall.organizationLogoUrl || '/assets/images/beaver-logo.png';
           this.wallForm.patchValue({
             name: wall.name,
@@ -2642,6 +2652,9 @@ export class WallFormComponent implements OnInit, OnDestroy {
       id: theme.id === this.selectedTheme.id ? this.selectedTheme.id : theme.id,
       isCustom: theme.id !== this.selectedTheme.id ? false : this.selectedTheme.isCustom
     };
+    
+    // Apply theme live for preview
+    this.applyThemeLive();
   }
 
   updateThemeColor(colorProperty: keyof WallTheme, event: Event): void {
@@ -2650,13 +2663,22 @@ export class WallFormComponent implements OnInit, OnDestroy {
     
     // Validate hex color format
     if (this.isValidHexColor(newColor)) {
-      // Create a new theme object with the updated color
-      this.selectedTheme = {
-        ...this.selectedTheme,
-        [colorProperty]: newColor,
-        isCustom: true,
-        id: this.selectedTheme.isCustom ? this.selectedTheme.id : this.generateCustomThemeId()
-      };
+      // If only primary color is being changed, generate a complete harmonious theme
+      if (colorProperty === 'primaryColor') {
+        this.selectedTheme = this.themeService.generateWallThemeFromColor(newColor, this.selectedTheme.mode);
+        this.selectedTheme.id = this.selectedTheme.isCustom ? this.selectedTheme.id : this.generateCustomThemeId();
+      } else {
+        // For other colors, just update the specific property
+        this.selectedTheme = {
+          ...this.selectedTheme,
+          [colorProperty]: newColor,
+          isCustom: true,
+          id: this.selectedTheme.isCustom ? this.selectedTheme.id : this.generateCustomThemeId()
+        };
+      }
+      
+      // Apply theme live for preview
+      this.applyThemeLive();
     }
   }
 
@@ -2667,6 +2689,11 @@ export class WallFormComponent implements OnInit, OnDestroy {
 
   private generateCustomThemeId(): string {
     return 'custom-' + Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  private applyThemeLive(): void {
+    // Apply the theme temporarily for live preview
+    this.themeService.applyWallTheme(this.selectedTheme);
   }
 
   getContrastColor(backgroundColor: string): string {
@@ -2684,6 +2711,11 @@ export class WallFormComponent implements OnInit, OnDestroy {
 
   setActiveTab(index: number): void {
     this.activeTab = index;
+    
+    // Keep theme preview active across all tabs
+    if (this.selectedTheme) {
+      this.applyThemeLive();
+    }
   }
 
   onTabChange(item: ButtonGroupItem): void {
@@ -2936,6 +2968,9 @@ export class WallFormComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
+    // Clear theme preview when canceling
+    this.themeService.clearWallTheme();
+    
     if (this.isEditMode && this.wallId) {
       // If editing, go back to the wall home page
       this.router.navigate(['/walls', this.wallId]);

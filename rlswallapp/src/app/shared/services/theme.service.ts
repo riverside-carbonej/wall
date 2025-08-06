@@ -161,44 +161,59 @@ export class ThemeService {
     const currentMode = this.currentTheme$.value.mode;
     const isDark = wallTheme.mode === 'dark' || (wallTheme.mode === 'auto' && currentMode === 'dark');
     
-    // Generate a harmonious palette based on the primary color
-    const palette = this.colorHarmony.generatePalette(wallTheme.primaryColor, {
-      mode: isDark ? 'dark' : 'light',
-      contrast: wallTheme.contrast || 'normal'
-    });
+    // Check if this is a template theme with pre-defined colors
+    const hasCompleteColors = wallTheme.backgroundColor && wallTheme.surfaceColor && 
+                            wallTheme.cardColor && wallTheme.textColor;
     
-    // Create an adapted theme using the generated palette
+    let finalWallTheme: WallTheme;
+    
+    if (hasCompleteColors) {
+      // This is a template theme with complete color definitions - use them as-is
+      finalWallTheme = wallTheme;
+    } else {
+      // This is a custom theme - generate a harmonious palette
+      const palette = this.colorHarmony.generatePalette(wallTheme.primaryColor, {
+        mode: isDark ? 'dark' : 'light',
+        contrast: (wallTheme.contrast || 'normal') as 'normal' | 'high'
+      });
+      
+      finalWallTheme = {
+        ...wallTheme,
+        // Update only undefined colors with the generated palette
+        primaryColor: wallTheme.primaryColor || palette.primary,
+        secondaryColor: wallTheme.secondaryColor || palette.secondary,
+        accentColor: wallTheme.accentColor || palette.accent,
+        backgroundColor: wallTheme.backgroundColor || palette.background,
+        surfaceColor: wallTheme.surfaceColor || palette.surface,
+        cardColor: wallTheme.cardColor || palette.cardColor,
+        textColor: wallTheme.textColor || palette.textColor,
+        titleColor: wallTheme.titleColor || palette.titleColor,
+        errorColor: wallTheme.errorColor || palette.errorColor,
+        warningColor: wallTheme.warningColor || palette.warningColor,
+        successColor: wallTheme.successColor || palette.successColor
+      };
+    }
+    
+    // Create an adapted theme using the final colors
     const adaptedTheme: AppTheme = {
       mode: currentMode,
-      primary: palette.primary,
-      secondary: palette.secondary,
-      surface: palette.surface,
-      background: palette.background,
-      onSurface: palette.textColor,
-      onBackground: palette.textColor,
-      outline: this.generateOutlineColor(palette.primary, isDark),
-      surfaceVariant: this.generateSurfaceVariant(palette.surface, isDark),
+      primary: finalWallTheme.primaryColor,
+      secondary: finalWallTheme.secondaryColor,
+      surface: finalWallTheme.surfaceColor,
+      background: finalWallTheme.backgroundColor,
+      onSurface: finalWallTheme.textColor || finalWallTheme.bodyTextColor || '#ffffff',
+      onBackground: finalWallTheme.textColor || finalWallTheme.bodyTextColor || '#ffffff',
+      outline: this.generateOutlineColor(finalWallTheme.primaryColor, isDark),
+      surfaceVariant: this.generateSurfaceVariant(finalWallTheme.surfaceColor, isDark),
       isWallTheme: true,
-      wallTheme: {
-        ...wallTheme,
-        // Update the wall theme with the generated palette
-        primaryColor: palette.primary,
-        secondaryColor: palette.secondary,
-        accentColor: palette.accent,
-        backgroundColor: palette.background,
-        surfaceColor: palette.surface,
-        cardColor: palette.cardColor,
-        textColor: palette.textColor,
-        titleColor: palette.titleColor,
-        errorColor: palette.errorColor,
-        warningColor: palette.warningColor,
-        successColor: palette.successColor
-      }
+      wallTheme: finalWallTheme
     };
     
     this.currentTheme$.next(adaptedTheme);
     this.applyThemeToDocument(adaptedTheme);
-    this.applyWallSpecificCSS(adaptedTheme.wallTheme);
+    if (adaptedTheme.wallTheme) {
+      this.applyWallSpecificCSS(adaptedTheme.wallTheme);
+    }
   }
   
   // Clear wall theme and return to app default

@@ -70,7 +70,7 @@ export interface WallTheme {
   id: string;
   name: string;
   description?: string;
-  mode?: 'light' | 'dark';
+  mode?: 'light' | 'dark' | 'auto';
   
   // Core brand colors (required)
   primaryColor: string;

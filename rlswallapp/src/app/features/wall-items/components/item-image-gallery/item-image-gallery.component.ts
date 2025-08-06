@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WallItemImage } from '../../../../shared/models/wall.model';
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
@@ -335,30 +335,46 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.95);
       z-index: 2000;
       display: flex;
       align-items: center;
       justify-content: center;
       animation: fadeIn var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-standard);
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
 
     .lightbox-container {
       position: relative;
       max-width: 90vw;
-      max-height: 90vh;
+      max-height: calc(90vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
       display: flex;
       flex-direction: column;
+      margin: var(--md-sys-spacing-lg);
     }
 
     .lightbox-close {
-      position: absolute;
+      position: fixed;
       top: var(--md-sys-spacing-lg);
       right: var(--md-sys-spacing-lg);
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.8);
       color: white;
       z-index: 2001;
       backdrop-filter: blur(4px);
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.2s ease;
+    }
+    
+    .lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+      border-color: rgba(255, 255, 255, 0.4);
     }
 
     .lightbox-image {
@@ -490,5 +506,27 @@ export class ItemImageGalleryComponent {
 
   trackByImageId(index: number, image: WallItemImage): string {
     return image.id;
+  }
+
+  // Keyboard support for lightbox
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (!this.selectedImage()) return;
+
+    switch (event.key) {
+      case 'Escape':
+        this.closeLightbox();
+        break;
+      case 'ArrowLeft':
+        if (this.images.length > 1) {
+          this.previousImage();
+        }
+        break;
+      case 'ArrowRight':
+        if (this.images.length > 1) {
+          this.nextImage();
+        }
+        break;
+    }
   }
 }
