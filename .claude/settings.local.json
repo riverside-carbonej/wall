@@ -18,7 +18,9 @@
       "Bash(git push:*)",
       "Bash(git reset:*)",
       "Bash(git rm:*)",
-      "Bash(npx ng:*)"
+      "Bash(npx ng:*)",
+      "Bash(node:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

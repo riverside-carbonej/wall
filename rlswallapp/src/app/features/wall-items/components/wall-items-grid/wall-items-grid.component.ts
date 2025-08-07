@@ -95,6 +95,7 @@ import { MaterialIconComponent } from '../../../../shared/components/material-ic
       width: 100%;
       height: 100%;
       overflow: auto;
+      padding-bottom: 7em;
     }
 
     /* Grid Layout */
