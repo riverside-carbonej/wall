@@ -23,6 +23,8 @@ migration/
 ├── upload-images-fixed.js      # Step 3: Upload images with proper ID mapping
 ├── update-ownership.js         # Step 4: Set wall permissions
 ├── cleanup-missing-images.js   # Step 5: Clean up missing image references
+├── establish-relationships.js  # Step 6: Link veterans to branches and deployments
+├── add-awards-object-type.js   # Step 7: Add military awards system
 ├── upload-images.js            # Legacy image upload (use upload-images-fixed.js instead)
 └── migration-output/           # Generated JSON data files
     └── wall-data.json          # Extracted SQLite data
@@ -92,6 +94,26 @@ node migration/cleanup-missing-images.js YOUR_WALL_ID
 - Removes broken image references
 - **Cleaned 349 veterans** to show placeholders instead
 
+#### 6. Establish Relationships
+```bash
+node migration/establish-relationships.js YOUR_WALL_ID
+```
+**What it does:**
+- Maps veteran UUIDs to Firebase branch and deployment IDs
+- Updates veteran records with proper entity relationships
+- Configures object types for entity field display
+- **Established 515 branch relationships + 34 deployment relationships**
+
+#### 7. Add Military Awards System
+```bash
+node migration/add-awards-object-type.js YOUR_WALL_ID
+```
+**What it does:**
+- Adds comprehensive Award object type with military decorations
+- Creates sample awards (Purple Heart, Bronze Star, Combat Action Ribbon, etc.)
+- Links veterans to their military awards and honors
+- **Created 8 common military awards** ready for assignment
+
 ## 🔧 Configuration Details
 
 ### Firebase Storage Bucket
@@ -105,9 +127,10 @@ const BRANCHES_IMAGES = 'C:\\Users\\jackc\\OneDrive\\Work\\Riverside\\Wall Of Ho
 ```
 
 ### Object Type Configuration
-- **Veterans**: Name, graduation year, rank, branches (relationship), entry/exit dates, deployments (relationship), description
+- **Veterans**: Name, graduation year, rank, branches (relationship), entry/exit dates, deployments (relationship), awards (relationship), description
 - **Branches**: Name, description
 - **Deployments**: Title, location, start/end dates, description
+- **Awards**: Name, category, date awarded, citation, awarding unit, theater of operations
 
 ## 🎨 UI Enhancements Applied
 
@@ -141,8 +164,11 @@ const BRANCHES_IMAGES = 'C:\\Users\\jackc\\OneDrive\\Work\\Riverside\\Wall Of Ho
 - **561 veterans** imported with complete data
 - **6 military branches** with logos
 - **15 deployment locations** mapped
+- **8 military awards** created and ready for assignment
 - **218 veteran photos** successfully linked
 - **349 veterans** with clean placeholder display
+- **515 branch relationships** established
+- **34 deployment relationships** established
 - **0 broken image references** remaining
 
 ## 🔗 Access Your Wall
