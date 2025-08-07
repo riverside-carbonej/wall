@@ -17,6 +17,7 @@ import { WallService } from '../../../walls/services/wall.service';
 import { WallItemService } from '../../services/wall-item.service';
 import { ImageUploadService } from '../../services/image-upload.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { WallPermissionsService } from '../../../../core/services/wall-permissions.service';
 import { ItemImageGalleryComponent } from '../../components/item-image-gallery/item-image-gallery.component';
 import { DynamicFieldRendererComponent } from '../../components/dynamic-field-renderer/dynamic-field-renderer.component';
 import { EntityAssociationManagerComponent } from '../../components/entity-association-manager/entity-association-manager.component';
@@ -104,6 +105,9 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   // Computed page actions that will react to state changes
   pageActions = computed(() => this.computePageActions());
   
+  // Wall permissions signal - initialize to false for security
+  canEditWall = signal(false);
+  
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -111,6 +115,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     private wallItemService: WallItemService,
     private imageUploadService: ImageUploadService,
     private authService: AuthService,
+    private wallPermissionsService: WallPermissionsService,
     private fb: FormBuilder,
     private formStateService: FormStateService,
     private cdr: ChangeDetectorRef,
@@ -139,6 +144,11 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     // Access reactive state to ensure change detection
     const hasChanges = this.hasImageChanges();
     const actions: PageAction[] = [];
+    
+    // CRITICAL: Only show actions if wall is loaded to prevent premature display
+    if (!this.wall) {
+      return actions;
+    }
     
     if (this.canEdit()) {
       if (!this.editing && !this.isNewItem) {
@@ -288,6 +298,14 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     ).subscribe(wall => {
       if (wall) {
         this.wall = wall; // Store wall reference for related items
+        
+        // Check wall edit permissions
+        this.wallPermissionsService.canEditWall(wall).pipe(
+          takeUntil(this.destroy$)
+        ).subscribe(canEdit => {
+          this.canEditWall.set(canEdit);
+        });
+        
         // Ensure we get a fresh object type reference to avoid stale data
         const newObjectType = wall.objectTypes.find(ot => ot.id === objectTypeId) || null;
         
@@ -780,13 +798,16 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   }
   
   canEdit(): boolean {
-    // TODO: Implement permission checking
-    return true;
+    // Only allow editing if we have the wall loaded and permissions confirmed
+    if (!this.wall) {
+      return false;
+    }
+    
+    return this.canEditWall();
   }
   
   canDelete(): boolean {
-    // TODO: Implement permission checking
-    return !this.isNewItem;
+    return this.canEdit() && !this.isNewItem;
   }
   
   canSave(): boolean {

@@ -58,6 +58,7 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
                 [selectedItems]="[]"
                 [pageSize]="200"
                 [pageIndex]="0"
+                [canEdit]="false"
                 style="contain: content; pointer-events: none;">
               </app-wall-items-grid>
             }
@@ -155,7 +156,7 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
         color-mix(in srgb, var(--md-sys-color-background) 25%, transparent) 55%, 
         color-mix(in srgb, var(--md-sys-color-background) 5%, transparent) 66%, 
         transparent 75%);
-      width: 2000px;
+      width: 800px;
       aspect-ratio: 1/1;
       position: absolute;
     }
@@ -217,7 +218,22 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
     /* Responsive adjustments for narrow screens */
     @media (max-width: 768px) {
       .title-wrapper {
-        font-size: 18px;
+        font-size: 24px;
+      }
+      
+      .organization-logo img {
+        width: 10em;
+        height: 10em;
+      }
+      
+      .wall-title {
+        font-size: 2.5em;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .title-wrapper {
+        font-size: 19.2px;
       }
       
       .organization-logo img {
@@ -228,24 +244,9 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
       .wall-title {
         font-size: 2em;
       }
-    }
-
-    @media (max-width: 480px) {
-      .title-wrapper {
-        font-size: 16px;
-      }
-      
-      .organization-logo img {
-        width: 6em;
-        height: 6em;
-      }
-      
-      .wall-title {
-        font-size: 1.75em;
-      }
       
       .organization-name {
-        font-size: 0.9em;
+        font-size: 0.8em;
       }
     }
 

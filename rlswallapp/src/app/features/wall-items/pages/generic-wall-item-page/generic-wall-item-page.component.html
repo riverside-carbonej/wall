@@ -235,8 +235,8 @@
                         [viewMode]="'grid'"
                         [isSelectionMode]="false"
                         [selectedItems]="[]"
-                        (viewItem)="navigateToRelatedItem($event)"
-                        (editItem)="navigateToRelatedItem($event)">
+                        [canEdit]="canEdit()"
+                        (itemClick)="navigateToRelatedItem($event)">
                       </app-wall-items-grid>
                     } @else {
                       <div class="no-related-items">

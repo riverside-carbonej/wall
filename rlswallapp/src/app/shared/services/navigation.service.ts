@@ -13,6 +13,7 @@ export class NavigationService {
   private _isMenuOpen = new BehaviorSubject<boolean>(this.getInitialMenuState());
   private _currentContext = new BehaviorSubject<WallNavigationContext | null>(null);
   private _currentAddMode = new BehaviorSubject<AddMode>(AddMode.None);
+  private _desktopMenuState: boolean = true; // Track desktop preference separately
 
   public isMenuOpen$ = this._isMenuOpen.asObservable();
   public currentContext$ = this._currentContext.asObservable();
@@ -32,6 +33,13 @@ export class NavigationService {
         this.updateAddMode();
       }
     });
+
+    // Listen to window resize events to manage menu state based on screen size
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', () => {
+        this.handleScreenSizeChange();
+      });
+    }
   }
 
   get isMenuOpen(): boolean {
@@ -40,7 +48,12 @@ export class NavigationService {
 
   set isMenuOpen(value: boolean) {
     this._isMenuOpen.next(value);
-    this.saveMenuState(value);
+    
+    // Only save state when in desktop mode
+    if (!this.isMobile()) {
+      this._desktopMenuState = value;
+      this.saveMenuState(value);
+    }
   }
 
   get currentContext(): WallNavigationContext | null {
@@ -343,15 +356,26 @@ export class NavigationService {
    * Get initial menu state from localStorage or default to true
    */
   private getInitialMenuState(): boolean {
+    // Always start closed on mobile
+    if (typeof window !== 'undefined' && window.innerWidth <= 800) {
+      return false;
+    }
+    
+    // Load desktop preference for large screens
     try {
       const saved = localStorage.getItem('riverside-wall-menu-open');
       if (saved !== null) {
-        return JSON.parse(saved);
+        const desktopState = JSON.parse(saved);
+        this._desktopMenuState = desktopState;
+        return desktopState;
       }
     } catch (error) {
       console.warn('Failed to load menu state from localStorage:', error);
     }
-    return true; // Default to open
+    
+    // Default desktop preference
+    this._desktopMenuState = true;
+    return true;
   }
 
   /**
@@ -362,6 +386,22 @@ export class NavigationService {
       localStorage.setItem('riverside-wall-menu-open', JSON.stringify(isOpen));
     } catch (error) {
       console.warn('Failed to save menu state to localStorage:', error);
+    }
+  }
+
+  /**
+   * Handle screen size changes between mobile and desktop
+   */
+  private handleScreenSizeChange(): void {
+    const isMobile = this.isMobile();
+    const currentlyOpen = this.isMenuOpen;
+    
+    if (isMobile && currentlyOpen) {
+      // Switch to mobile: close menu
+      this._isMenuOpen.next(false);
+    } else if (!isMobile && !currentlyOpen) {
+      // Switch to desktop: restore previous desktop state
+      this._isMenuOpen.next(this._desktopMenuState);
     }
   }
 

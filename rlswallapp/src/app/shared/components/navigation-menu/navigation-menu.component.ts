@@ -134,7 +134,7 @@ import { QrCodeComponent } from '../qr-code/qr-code.component';
       }
       
       .menu-content {
-        align-items: center;
+        align-items: stretch;
         width: 100%;
         padding: 24px;
         gap: 20px;
@@ -142,14 +142,14 @@ import { QrCodeComponent } from '../qr-code/qr-code.component';
       
       
       .menu-items {
-        align-items: center;
+        align-items: stretch;
         width: 100%;
         gap: 8px;
       }
       
       
       .admin-section {
-        align-items: center;
+        align-items: stretch;
         width: 100%;
         gap: 8px;
       }

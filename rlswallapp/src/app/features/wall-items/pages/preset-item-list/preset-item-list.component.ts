@@ -9,6 +9,7 @@ import { WallService } from '../../../walls/services/wall.service';
 import { WallItemService } from '../../services/wall-item.service';
 import { Wall, WallItem, WallObjectType } from '../../../../shared/models/wall.model';
 import { AuthService } from '../../../../core/services/auth.service';
+import { WallPermissionsService } from '../../../../core/services/wall-permissions.service';
 import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/components/empty-state/empty-state.component';
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 import { CardComponent, CardAction } from '../../../../shared/components/card/card.component';
@@ -91,7 +92,7 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
           </mat-spinner>
           
           <!-- Selection Bar -->
-          @if (selection.length > 0) {
+          @if (selection.length > 0 && (canEdit$ | async)) {
             <div class="selection-bar">
               <app-themed-button
                 [variant]="'icon'"
@@ -150,20 +151,21 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
                     [pageSize]="pageSize"
                     [pageIndex]="pageIndex"
                     [isSelectionMode]="isSelectionMode"
+                    [canEdit]="(canEdit$ | async) ?? false"
                     (itemClick)="onItemClick($event)"
-                    (viewItem)="onItemView($event)"
-                    (editItem)="onEditItem($event)"
                     (selectionToggle)="onItemSelectionToggle($event)"
                     (startSelectionMode)="onStartSelectionMode($event)">
                   </app-wall-items-grid>
                 }
                 <!-- Floating Add Button -->
-                <button 
-                  class="floating-add-button"
-                  (click)="navigateToAdd()">
-                  <mat-icon [icon]="'add'"></mat-icon>
-                  <span>{{ nlpService.getAddButtonText(preset.name) }}</span>
-                </button>
+                @if (canEdit$ | async) {
+                  <button 
+                    class="floating-add-button"
+                    (click)="navigateToAdd()">
+                    <mat-icon [icon]="'add'"></mat-icon>
+                    <span>{{ nlpService.getAddButtonText(preset.name) }}</span>
+                  </button>
+                }
               </div>
               
               <app-themed-button
@@ -575,6 +577,7 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
   wall$!: Observable<Wall | null>;
   preset$!: Observable<WallObjectType | null>;
   items$!: Observable<WallItem[]>;
+  canEdit$!: Observable<boolean>;
   
   // State management
   isLoading = true;
@@ -611,7 +614,8 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
     private wallItemService: WallItemService,
     private confirmationDialog: ConfirmationDialogService,
     public nlpService: NlpService,
-    private authService: AuthService
+    private authService: AuthService,
+    private wallPermissionsService: WallPermissionsService
   ) {}
 
   ngOnInit() {
@@ -649,6 +653,12 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
       switchMap(([{ wallId, presetId }]) => {
         return this.wallItemService.getWallItemsByObjectType(wallId, presetId);
       }),
+      takeUntil(this.destroy$)
+    );
+
+    // Set up permissions checking
+    this.canEdit$ = this.wall$.pipe(
+      switchMap(wall => wall ? this.wallPermissionsService.canEditWall(wall) : [false]),
       takeUntil(this.destroy$)
     );
 
@@ -728,7 +738,8 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
 
   // Selection Methods
   onItemClick(item: WallItem) {
-    // This is called from the card's main click - handled by the card component now
+    // Navigate to item view when card is clicked
+    this.onViewItem(item);
   }
 
   onItemView(item: WallItem) {

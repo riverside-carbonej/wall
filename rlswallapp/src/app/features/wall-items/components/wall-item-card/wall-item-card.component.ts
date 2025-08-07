@@ -52,25 +52,6 @@ import { WallItemImageComponent } from '../../../../shared/components/wall-item-
           </div>
         </div>
         
-        <!-- Actions -->
-        <div class="card-actions">
-          <app-themed-button
-            [variant]="'raised'"
-            [color]="'primary'"
-            [icon]="'visibility'"
-            class="action-button"
-            [attr.title]="'View'"
-            (buttonClick)="onView()">
-          </app-themed-button>
-          <app-themed-button
-            [variant]="'raised'"
-            [color]="'primary'"
-            [icon]="'edit'"
-            class="action-button"
-            [attr.title]="'Edit'"
-            (buttonClick)="onEdit()">
-          </app-themed-button>
-        </div>
       </div>
       
       <!-- Selection Indicator -->
@@ -216,24 +197,6 @@ import { WallItemImageComponent } from '../../../../shared/components/wall-item-
       height: 14px;
     }
 
-    /* Actions */
-    .card-actions {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      display: flex;
-      gap: 8px;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-    }
-
-    .item-card:hover .card-actions {
-      opacity: 1;
-    }
-
-    .action-button {
-      /* Let ThemedButtonComponent handle all styling */
-    }
 
     /* Selection Indicator */
     .selection-indicator {
@@ -287,9 +250,6 @@ import { WallItemImageComponent } from '../../../../shared/components/wall-item-
       cursor: pointer;
     }
 
-    .item-card.selection-mode .card-actions {
-      display: none;
-    }
 
     /* Responsive */
     @media (max-width: 480px) {
@@ -318,8 +278,6 @@ export class WallItemCardComponent {
   @Input() isSelectionMode = false;
 
   @Output() cardClick = new EventEmitter<WallItem>();
-  @Output() viewClick = new EventEmitter<WallItem>();
-  @Output() editClick = new EventEmitter<WallItem>();
   @Output() selectionToggle = new EventEmitter<WallItem>();
   @Output() startSelectionMode = new EventEmitter<WallItem>();
 
@@ -424,7 +382,7 @@ export class WallItemCardComponent {
       this.selectionToggle.emit(this.item);
     } else {
       // Normal mode - navigate to item view
-      this.viewClick.emit(this.item);
+      this.cardClick.emit(this.item);
     }
   }
 
@@ -462,17 +420,4 @@ export class WallItemCardComponent {
     }
   }
 
-  onView(event?: Event) {
-    if (event) {
-      event.stopPropagation();
-    }
-    this.viewClick.emit(this.item);
-  }
-
-  onEdit(event?: Event) {
-    if (event) {
-      event.stopPropagation();
-    }
-    this.editClick.emit(this.item);
-  }
 }

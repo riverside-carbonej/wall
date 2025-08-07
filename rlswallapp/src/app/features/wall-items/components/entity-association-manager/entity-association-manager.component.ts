@@ -133,8 +133,8 @@ interface SelectableItem {
               [viewMode]="'grid'"
               [isSelectionMode]="false"
               [selectedItems]="[]"
-              (viewItem)="onViewItem($event)"
-              (editItem)="onEditItem($event)">
+              [canEdit]="false"
+              (itemClick)="onViewItem($event)">
             </app-wall-items-grid>
           } @else if (canEdit && associatedItems.length > 0) {
             <app-wall-items-grid
@@ -143,8 +143,8 @@ interface SelectableItem {
               [viewMode]="'grid'"
               [isSelectionMode]="false"
               [selectedItems]="[]"
-              (viewItem)="onViewItem($event)"
-              (editItem)="onEditItem($event)">
+              [canEdit]="canEdit"
+              (itemClick)="onViewItem($event)">
             </app-wall-items-grid>
           } @else {
             <div class="no-items">

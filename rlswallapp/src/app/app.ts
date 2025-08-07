@@ -283,6 +283,12 @@ import { AuthService } from './core/services/auth.service';
       gap: var(--md-sys-spacing-4);
       position: relative;
     }
+    
+    @media (max-width: 768px) {
+      .header-content {
+        justify-content: space-between;
+      }
+    }
 
     /* Mobile-first logo section */
     .header-start {
@@ -382,9 +388,9 @@ import { AuthService } from './core/services/auth.service';
 
     @media (max-width: 600px) {
       .wall-title {
-        white-space: normal;
-        overflow: visible;
-        text-overflow: unset;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         line-height: 1.3;
       }
     }
@@ -750,13 +756,13 @@ import { AuthService } from './core/services/auth.service';
       }
 
       .logo-icon {
-        width: 32px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
       }
 
       .wall-logo-icon {
-        max-width: 32px;
-        max-height: 32px;
+        max-width: 40px;
+        max-height: 40px;
         width: auto;
         height: auto;
       }

@@ -24,11 +24,9 @@ import { MaterialIconComponent } from '../../../../shared/components/material-ic
             [subtitle]="getItemSubtitle(item) || ''"
             [metadata]="getMetadata(item)"
             [selected]="isSelected(item)"
-            [selectable]="true"
+            [selectable]="canEdit"
             [isSelectionMode]="isSelectionMode"
             (cardClick)="onItemClick(item)"
-            (viewClick)="onViewItem(item)"
-            (editClick)="onEditItem(item)"
             (selectionToggle)="onSelectionToggle(item)"
             (startSelectionMode)="onStartSelectionMode(item)">
           </app-wall-item-card>
@@ -77,12 +75,14 @@ import { MaterialIconComponent } from '../../../../shared/components/material-ic
                 title="View">
                 <mat-icon [icon]="'visibility'"></mat-icon>
               </button>
-              <button 
-                class="icon-button"
-                (click)="$event.stopPropagation(); onEditItem(item)"
-                title="Edit">
-                <mat-icon [icon]="'edit'"></mat-icon>
-              </button>
+              @if (canEdit) {
+                <button 
+                  class="icon-button"
+                  (click)="$event.stopPropagation(); onEditItem(item)"
+                  title="Edit">
+                  <mat-icon [icon]="'edit'"></mat-icon>
+                </button>
+              }
             </div>
           </div>
         }
@@ -291,6 +291,7 @@ export class WallItemsGridComponent {
   @Input() pageSize: number = 50;
   @Input() pageIndex: number = 0;
   @Input() isSelectionMode: boolean = false;
+  @Input() canEdit: boolean = true;
   
   @Output() itemClick = new EventEmitter<WallItem>();
   @Output() viewItem = new EventEmitter<WallItem>();

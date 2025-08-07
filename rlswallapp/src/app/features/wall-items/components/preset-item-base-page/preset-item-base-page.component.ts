@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges, inject, ChangeDetectorRef, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Observable, Subject, takeUntil, firstValueFrom } from 'rxjs';
@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { Wall, WallObjectType, WallItem, WallItemImage, FieldDefinition } from '../../../../shared/models/wall.model';
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
+import { WallPermissionsService } from '../../../../core/services/wall-permissions.service';
 import { DynamicFieldRendererComponent } from '../dynamic-field-renderer/dynamic-field-renderer.component';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
@@ -221,8 +222,8 @@ export type PageMode = 'create' | 'view' | 'edit';
                                   [viewMode]="'grid'"
                                   [isSelectionMode]="false"
                                   [selectedItems]="[]"
-                                  (viewItem)="navigateToRelatedItem($event)"
-                                  (editItem)="navigateToRelatedItem($event)">
+                                  [canEdit]="mode !== 'view'"
+                                  (itemClick)="navigateToRelatedItem($event)">
                                 </app-wall-items-grid>
                               } @else {
                                 <div class="no-related-items">
@@ -874,9 +875,13 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
   // Public property for template binding
   relatedTypes: { objectType: WallObjectType; fieldName: string }[] = [];
   
+  // Permission signal - initialize to false for security
+  private canEditWall = signal(false);
+  
   private destroy$ = new Subject<void>();
   private themeService = inject(ThemeService);
   private wallItemService = inject(WallItemService);
+  private wallPermissionsService = inject(WallPermissionsService);
   private router = inject(Router);
   private nlpService = inject(NlpService);
 
@@ -905,6 +910,15 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
         hasWall: !!changes['wall']?.currentValue,
         hasPreset: !!changes['preset']?.currentValue
       });
+      
+      // Check wall edit permissions when wall changes
+      if (changes['wall'] && this.wall) {
+        this.wallPermissionsService.canEditWall(this.wall).pipe(
+          takeUntil(this.destroy$)
+        ).subscribe(canEdit => {
+          this.canEditWall.set(canEdit);
+        });
+      }
       
       // Invalidate cache AND clear existing relatedTypes when inputs change
       this.cachedRelatedTypes = null;
@@ -1060,7 +1074,8 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
   }
 
   getPageActions(): PageAction[] {
-    if (this.mode === 'view') {
+    // Only show edit action if in view mode AND user has edit permissions AND wall is loaded
+    if (this.mode === 'view' && this.wall && this.canUserEdit()) {
       return [
         {
           label: 'Edit',
@@ -1072,6 +1087,11 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
       ];
     }
     return [];
+  }
+
+  private canUserEdit(): boolean {
+    if (!this.wall) return false;
+    return this.canEditWall();
   }
 
   onBackClick() {
