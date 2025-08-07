@@ -8,11 +8,11 @@ import { WallItemService } from '../../features/wall-items/services/wall-item.se
 import { NavigationService } from '../../shared/services/navigation.service';
 import { ThemeService } from '../../shared/services/theme.service';
 import { AuthService } from '../services/auth.service';
-import { WallPermissionHelper } from '../../shared/models/wall.model';
+import { WallPermissionHelper, Wall } from '../../shared/models/wall.model';
 
 /**
- * Public Wall Context Guard - Handles wall context for both public and authenticated users
- * Allows public wall access without authentication while maintaining context
+ * Public Wall Context Guard - Sets up wall context for both public and authenticated users
+ * Handles navigation context and theming based on wall access level
  */
 export const publicWallContextGuard: CanActivateFn = (
   route: ActivatedRouteSnapshot
@@ -25,137 +25,216 @@ export const publicWallContextGuard: CanActivateFn = (
   const router = inject(Router);
 
   const wallId = route.paramMap.get('id') || route.paramMap.get('wallId');
-  console.log(`publicWallContextGuard: route params:`, route.paramMap.keys.map(key => `${key}=${route.paramMap.get(key)}`));
-  console.log(`publicWallContextGuard: extracted wallId: ${wallId}`);
+  console.log(`publicWallContextGuard: Checking wall context for wallId: ${wallId}`);
   
   if (!wallId) {
-    console.warn('publicWallContextGuard: No wallId found in route params, redirecting to /walls');
+    console.warn('publicWallContextGuard: No wallId found in route params');
     router.navigate(['/walls']);
     return of(false);
   }
 
-  // First get the wall to check its visibility
-  return wallService.getWallById(wallId).pipe(
+  // Helper function to set wall context
+  const setWallContext = (wall: Wall, canEdit: boolean, canAdmin: boolean) => {
+    // Get wall items count
+    return wallItemService.getWallItems(wallId).pipe(
+      map(items => {
+        const itemCount = items?.length || 0;
+        navigationService.updateWallContext(wall, canEdit, canAdmin, itemCount);
+        
+        // Apply wall theme
+        if (wall.theme) {
+          themeService.applyWallTheme(wall.theme);
+        }
+        
+        return true;
+      }),
+      catchError(error => {
+        console.warn('publicWallContextGuard: Error loading items, continuing with 0 count', error);
+        navigationService.updateWallContext(wall, canEdit, canAdmin, 0);
+        
+        // Apply wall theme
+        if (wall.theme) {
+          themeService.applyWallTheme(wall.theme);
+        }
+        
+        return of(true);
+      })
+    );
+  };
+
+  // First try to get the wall without authentication
+  return wallService.getWallByIdPublic(wallId).pipe(
     take(1),
     switchMap(wall => {
-      console.log(`publicWallContextGuard: wallId=${wallId}, wall=${!!wall}`);
-      
-      if (!wall) {
-        console.warn('publicWallContextGuard: Wall not found, redirecting to /walls');
-        router.navigate(['/walls']);
-        return of(false);
-      }
-
-      // Check if wall is public
-      const isPublicWall = wall.visibility.isPublished && !wall.visibility.requiresLogin;
-      
-      // For public walls, we can proceed without authentication
-      if (isPublicWall) {
-        console.log('publicWallContextGuard: Public wall, proceeding without auth check');
+      if (wall) {
+        console.log('publicWallContextGuard: Wall fetched without auth');
         
-        // Get wall items count
-        return wallItemService.getWallItems(wallId).pipe(
-          map(items => {
-            const itemCount = items?.length || 0;
-            // Update navigation context for public viewing (no edit/admin permissions)
-            navigationService.updateWallContext(wall, false, false, itemCount);
+        // Check if this is a published external wall
+        if (wall.visibility?.isPublished && !wall.visibility?.requiresLogin) {
+          console.log('publicWallContextGuard: External wall, checking if user has permissions');
+          
+          // For public walls, always check auth state to see if user has edit permissions
+          return authService.authStateReady$.pipe(
+            take(1),
+            switchMap(ready => {
+              const user = authService.currentUser;
+              
+              if (!user) {
+                // No user - public read-only access
+                console.log('publicWallContextGuard: No authenticated user, setting public read-only context');
+                return setWallContext(wall, false, false);
+              }
+              
+              // User is authenticated - check permissions
+              const userProfile = {
+                uid: user.uid,
+                email: user.email || '',
+                displayName: user.displayName || '',
+                photoURL: user.photoURL || undefined,
+                department: undefined,
+                role: 'user' as const,
+                createdAt: new Date(),
+                lastLoginAt: new Date()
+              };
+              
+              const canEdit = WallPermissionHelper.canEditWall(wall, userProfile);
+              const canAdmin = wall.permissions.owner === user.uid || 
+                              (wall.permissions.managers?.includes(user.uid) ?? false);
+              
+              console.log('🔍 publicWallContextGuard: External wall with authenticated user:', {
+                wallId: wall.id,
+                userId: user.uid,
+                wallOwner: wall.permissions.owner,
+                isOwner: wall.permissions.owner === user.uid,
+                canEdit,
+                canAdmin
+              });
+              
+              return setWallContext(wall, canEdit, canAdmin);
+            })
+          );
+        }
 
-            // Apply wall theme
-            if (wall.theme) {
-              themeService.applyWallTheme(wall.theme);
+        // Wall needs authentication - check if user is logged in
+        return authService.authStateReady$.pipe(
+          filter(ready => ready),
+          take(1),
+          switchMap(() => {
+            const user = authService.currentUser;
+            
+            if (!user) {
+              // Wall requires auth but user not logged in
+              console.warn('publicWallContextGuard: Wall requires auth but no user');
+              router.navigate(['/login']);
+              return of(false);
             }
 
-            return true;
-          }),
-          catchError(itemError => {
-            console.warn('publicWallContextGuard: Error loading items, continuing with 0 count', itemError);
-            // Update navigation context with 0 items
-            navigationService.updateWallContext(wall, false, false, 0);
+            // Check user permissions
+            const userProfile = {
+              uid: user.uid,
+              email: user.email || '',
+              displayName: user.displayName || '',
+              photoURL: user.photoURL || undefined,
+              department: undefined,
+              role: 'user' as const,
+              createdAt: new Date(),
+              lastLoginAt: new Date()
+            };
 
-            // Apply wall theme
-            if (wall.theme) {
-              themeService.applyWallTheme(wall.theme);
+            const canView = WallPermissionHelper.canViewWall(wall, userProfile);
+            if (!canView) {
+              console.warn('publicWallContextGuard: User cannot view wall');
+              router.navigate(['/walls']);
+              return of(false);
             }
 
-            return of(true);
+            const canEdit = WallPermissionHelper.canEditWall(wall, userProfile);
+            const canAdmin = wall.permissions.owner === user.uid || 
+                            (wall.permissions.managers?.includes(user.uid) ?? false);
+
+            console.log('🔍 publicWallContextGuard: Setting context for authenticated user:', {
+              wallId: wall.id,
+              userId: user.uid,
+              wallOwner: wall.permissions.owner,
+              isOwner: wall.permissions.owner === user.uid,
+              editors: wall.permissions.editors,
+              isEditor: wall.permissions.editors?.includes(user.uid),
+              canEdit,
+              canAdmin
+            });
+
+            return setWallContext(wall, canEdit, canAdmin);
           })
         );
       }
 
-      // For non-public walls, wait for auth state and check permissions
+      // Could not fetch wall without auth - try with auth if available
+      console.log('publicWallContextGuard: Could not fetch wall without auth');
+      
       return authService.authStateReady$.pipe(
         filter(ready => ready),
         take(1),
-        switchMap(() => authService.currentUser$),
-        take(1),
-        switchMap(user => {
-          console.log(`publicWallContextGuard: Non-public wall, user=${!!user}`);
+        switchMap(() => {
+          const user = authService.currentUser;
           
           if (!user) {
-            // Non-public wall requires authentication
-            console.warn('publicWallContextGuard: Non-public wall requires authentication, redirecting to /login');
+            console.warn('publicWallContextGuard: No user and no public access');
             router.navigate(['/login']);
             return of(false);
           }
 
-          // Convert to UserProfile for permission checking
-          const userProfile = {
-            uid: user.uid,
-            email: user.email || '',
-            displayName: user.displayName || '',
-            photoURL: user.photoURL || undefined,
-            department: undefined,
-            role: 'user' as const,
-            createdAt: new Date(),
-            lastLoginAt: new Date()
-          };
-
-          // Check if user can view the wall
-          const canView = WallPermissionHelper.canViewWall(wall, userProfile);
-          
-          if (!canView) {
-            console.warn('publicWallContextGuard: User cannot view this wall, redirecting to /walls');
-            router.navigate(['/walls']);
-            return of(false);
-          }
-
-          // Check edit and admin permissions
-          const canEdit = WallPermissionHelper.canEditWall(wall, userProfile);
-          const canAdmin = wall.permissions.owner === user.uid || 
-                          (wall.permissions.managers && wall.permissions.managers.includes(user.uid));
-
-          // Get wall items count
-          return wallItemService.getWallItems(wallId).pipe(
-            map(items => {
-              const itemCount = items?.length || 0;
-              // Update navigation context with proper permissions
-              navigationService.updateWallContext(wall, canEdit, canAdmin, itemCount);
-
-              // Apply wall theme
-              if (wall.theme) {
-                themeService.applyWallTheme(wall.theme);
+          // Try to get wall with authentication
+          return wallService.getWallById(wallId).pipe(
+            take(1),
+            switchMap(authWall => {
+              if (!authWall) {
+                console.warn('publicWallContextGuard: Wall not found even with auth');
+                router.navigate(['/walls']);
+                return of(false);
               }
 
-              return true;
-            }),
-            catchError(itemError => {
-              console.warn('publicWallContextGuard: Error loading items, continuing with 0 count', itemError);
-              // Update navigation context with 0 items
-              navigationService.updateWallContext(wall, canEdit, canAdmin, 0);
+              // Check permissions
+              const userProfile = {
+                uid: user.uid,
+                email: user.email || '',
+                displayName: user.displayName || '',
+                photoURL: user.photoURL || undefined,
+                department: undefined,
+                role: 'user' as const,
+                createdAt: new Date(),
+                lastLoginAt: new Date()
+              };
 
-              // Apply wall theme
-              if (wall.theme) {
-                themeService.applyWallTheme(wall.theme);
+              const canView = WallPermissionHelper.canViewWall(authWall, userProfile);
+              if (!canView) {
+                console.warn('publicWallContextGuard: User cannot view wall');
+                router.navigate(['/walls']);
+                return of(false);
               }
 
-              return of(true);
+              const canEdit = WallPermissionHelper.canEditWall(authWall, userProfile);
+              const canAdmin = authWall.permissions.owner === user.uid || 
+                              (authWall.permissions.managers?.includes(user.uid) ?? false);
+
+              console.log('🔍 publicWallContextGuard: Setting context for authenticated user (retry):', {
+                wallId: authWall.id,
+                userId: user.uid,
+                wallOwner: authWall.permissions.owner,
+                isOwner: authWall.permissions.owner === user.uid,
+                editors: authWall.permissions.editors,
+                isEditor: authWall.permissions.editors?.includes(user.uid),
+                canEdit,
+                canAdmin
+              });
+
+              return setWallContext(authWall, canEdit, canAdmin);
             })
           );
         })
       );
     }),
     catchError(error => {
-      console.error('publicWallContextGuard: Error occurred, redirecting to /walls', error);
+      console.error('publicWallContextGuard: Error occurred', error);
       router.navigate(['/walls']);
       return of(false);
     })

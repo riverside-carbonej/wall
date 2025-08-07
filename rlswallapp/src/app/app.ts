@@ -14,6 +14,7 @@ import { NavigationService } from './shared/services/navigation.service';
 import { NavigationMenuComponent } from './shared/components/navigation-menu/navigation-menu.component';
 import { InactivityService } from './shared/services/inactivity.service';
 import { WallItemService } from './features/wall-items/services/wall-item.service';
+import { AuthService } from './core/services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -783,6 +784,7 @@ export class App implements OnInit, OnDestroy {
   private wallItemService = inject(WallItemService);
   public navigationService = inject(NavigationService);
   private inactivityService = inject(InactivityService);
+  private authService = inject(AuthService);
   protected currentTheme = signal(this.themeService.getCurrentThemeSync());
   
   // Route-aware navigation
@@ -860,7 +862,12 @@ export class App implements OnInit, OnDestroy {
         
         if (isWallRoute) {
           const wallId = wallMatch[1];
-          return this.wallService.getWallById(wallId).pipe(
+          // Use public method if not authenticated to avoid errors
+          const currentUser = this.authService.currentUser;
+          return (currentUser 
+            ? this.wallService.getWallById(wallId)
+            : this.wallService.getWallByIdPublic(wallId)
+          ).pipe(
             map(wall => ({ wall, wallId, currentUrl: event.url }))
           );
         } else {

@@ -7,6 +7,7 @@ import { switchMap, filter } from 'rxjs/operators';
 import { WallService } from '../../services/wall.service';
 import { NavigationService } from '../../../../shared/services/navigation.service';
 import { Wall } from '../../../../shared/models/wall.model';
+import { AuthService } from '../../../../core/services/auth.service';
 import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/components/empty-state/empty-state.component';
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
@@ -483,8 +484,8 @@ export class WallOverviewComponent implements OnInit, OnDestroy {
   wallId!: string;
   wall$!: Observable<Wall | null>;
   isLoading = true;
-  canEdit = true; // TODO: Get from auth service
-  totalItemCount = 0; // TODO: Get from wall items service
+  canEdit = false; // Will be set from navigation context
+  totalItemCount = 0; // Will be set from navigation context
 
   // Gallery state
   currentImageIndex = 0;
@@ -506,7 +507,8 @@ export class WallOverviewComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private wallService: WallService,
-    private navigationService: NavigationService
+    private navigationService: NavigationService,
+    private authService: AuthService
   ) {}
 
   getPageActions(): PageAction[] {
@@ -533,8 +535,12 @@ export class WallOverviewComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Load wall data - navigation context is already set by the guard
-    this.wall$ = this.wallService.getWallById(this.wallId).pipe(
+    // Load wall data - use public method if not authenticated
+    const currentUser = this.authService.currentUser;
+    this.wall$ = (currentUser 
+      ? this.wallService.getWallById(this.wallId)
+      : this.wallService.getWallByIdPublic(this.wallId)
+    ).pipe(
       filter(wall => wall !== null),
       takeUntil(this.destroy$)
     ) as Observable<Wall>;
@@ -543,8 +549,18 @@ export class WallOverviewComponent implements OnInit, OnDestroy {
     this.wall$.subscribe(wall => {
       if (wall) {
         this.currentWall = wall;
-        // TODO: Get actual permissions and item count
-        this.canEdit = true; // Already handled in guard
+        // Get permissions from navigation context set by the guard
+        const wallContext = this.navigationService.currentContext;
+        this.canEdit = wallContext?.canEdit ?? false;
+        this.totalItemCount = wallContext?.totalItemCount ?? 0;
+        
+        console.log('🔍 WallOverviewComponent: Permissions from context', {
+          wallId: this.wallId,
+          canEdit: this.canEdit,
+          canAdmin: wallContext?.canAdmin,
+          totalItemCount: this.totalItemCount,
+          wallContext
+        });
       }
       this.isLoading = false;
     });

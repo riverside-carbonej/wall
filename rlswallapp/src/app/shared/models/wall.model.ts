@@ -261,10 +261,37 @@ export class WallPermissionHelper {
   static canEditWall(wall: Wall, user: UserProfile): boolean {
     if (!user) return false;
     
+    // Detailed comparison logging
+    const ownerMatch = wall.permissions.owner === user.uid;
+    const ownerMatchDetails = {
+      wallOwner: wall.permissions.owner,
+      wallOwnerType: typeof wall.permissions.owner,
+      wallOwnerLength: wall.permissions.owner?.length,
+      userId: user.uid,
+      userIdType: typeof user.uid,
+      userIdLength: user.uid?.length,
+      exactMatch: ownerMatch,
+      trimmedMatch: wall.permissions.owner?.trim() === user.uid?.trim()
+    };
+    
+    console.log('🔍 WallPermissionHelper.canEditWall - Owner comparison:', ownerMatchDetails);
+    
+    console.log('🔍 WallPermissionHelper.canEditWall - Full check:', {
+      wallId: wall.id,
+      userId: user.uid,
+      isOwner: ownerMatch,
+      wallOwner: wall.permissions.owner,
+      editors: wall.permissions.editors,
+      isEditor: wall.permissions.editors?.includes(user.uid),
+      managers: wall.permissions.managers,
+      isManager: wall.permissions.managers?.includes(user.uid),
+      userRole: user.role
+    });
+    
     return (
       wall.permissions.owner === user.uid ||
-      wall.permissions.editors.includes(user.uid) ||
-      (wall.permissions.managers && wall.permissions.managers.includes(user.uid)) ||
+      (wall.permissions.editors?.includes(user.uid) ?? false) ||
+      (wall.permissions.managers?.includes(user.uid) ?? false) ||
       (wall.permissions.allowDepartmentEdit && 
        user.department && 
        wall.permissions.department === user.department) ||

@@ -13,6 +13,7 @@ import { Wall, WallItem, WallViewMode, FieldDefinition, WallItemImage, WallPermi
 import { ConfirmationDialogService } from '../../../../shared/services/confirmation-dialog.service';
 import { UserActivityService } from '../../../../shared/services/user-activity.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { NavigationService } from '../../../../shared/services/navigation.service';
 
 @Component({
   selector: 'app-wall-viewer',
@@ -744,7 +745,8 @@ export class WallViewerComponent implements OnInit {
     private confirmationDialog: ConfirmationDialogService,
     private fb: FormBuilder,
     private userActivityService: UserActivityService,
-    private authService: AuthService
+    private authService: AuthService,
+    private navigationService: NavigationService
   ) {}
 
   ngOnInit(): void {
@@ -762,7 +764,11 @@ export class WallViewerComponent implements OnInit {
       }
     });
 
-    this.wall$ = this.wallService.getWallById(this.wallId);
+    // Load wall data - use public method if not authenticated
+    const currentUser = this.authService.currentUser;
+    this.wall$ = currentUser 
+      ? this.wallService.getWallById(this.wallId)
+      : this.wallService.getWallByIdPublic(this.wallId);
     this.wallItems$ = this.wallItemService.getWallItems(this.wallId);
 
     this.wall$.subscribe({
@@ -1076,32 +1082,16 @@ export class WallViewerComponent implements OnInit {
    * Check if current user can edit the wall
    */
   canEditWall(wall: Wall): boolean {
-    if (!this.currentUser || !wall) {
-      console.log('❌ Permission check failed: No user or wall', { user: this.currentUser, wall: !!wall });
-      return false;
-    }
-
-    const userProfile: UserProfile = {
-      uid: this.currentUser.uid,
-      email: this.currentUser.email,
-      displayName: this.currentUser.displayName || this.currentUser.email,
-      photoURL: this.currentUser.photoURL,
-      role: this.currentUser.role || 'user',
-      department: this.currentUser.department,
-      createdAt: this.currentUser.createdAt || new Date(),
-      lastLoginAt: this.currentUser.lastLoginAt || new Date()
-    };
-
-    console.log('🔍 Permission check details:', {
-      userUID: userProfile.uid,
-      wallOwner: wall.permissions.owner,
-      editors: wall.permissions.editors,
-      managers: wall.permissions.managers,
-      userProfile
+    // Use navigation context for permissions
+    const wallContext = this.navigationService.currentContext;
+    const canEdit = wallContext?.canEdit ?? false;
+    
+    console.log('🔍 WallViewerComponent: Checking edit permissions:', {
+      wallId: wall?.id,
+      canEdit,
+      canAdmin: wallContext?.canAdmin,
+      contextWallId: wallContext?.wallId
     });
-
-    const canEdit = WallPermissionHelper.canEditWall(wall, userProfile);
-    console.log('🎯 Can edit result:', canEdit);
     
     return canEdit;
   }

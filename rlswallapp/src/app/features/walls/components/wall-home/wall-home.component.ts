@@ -6,6 +6,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { WallService } from '../../services/wall.service';
 import { WallItemService } from '../../../wall-items/services/wall-item.service';
 import { Wall, WallItem, WallObjectType } from '../../../../shared/models/wall.model';
+import { AuthService } from '../../../../core/services/auth.service';
 import { WallItemsGridComponent } from '../../../wall-items/components/wall-items-grid/wall-items-grid.component';
 
 @Component({
@@ -266,14 +267,19 @@ export class WallHomeComponent implements OnInit, OnDestroy {
     private wallService: WallService,
     private wallItemService: WallItemService,
     private elementRef: ElementRef,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
     this.wallId = this.route.snapshot.paramMap.get('id')!;
     
-    // Load wall data
-    this.wall$ = this.wallService.getWallById(this.wallId).pipe(
+    // Load wall data - use public method if not authenticated
+    const currentUser = this.authService.currentUser;
+    this.wall$ = (currentUser 
+      ? this.wallService.getWallById(this.wallId)
+      : this.wallService.getWallByIdPublic(this.wallId)
+    ).pipe(
       takeUntil(this.destroy$)
     );
 

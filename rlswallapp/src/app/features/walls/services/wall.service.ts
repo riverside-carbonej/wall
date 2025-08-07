@@ -259,6 +259,66 @@ export class WallService {
   }
 
   /**
+   * Get wall by ID without requiring authentication
+   * This allows checking public walls - Firebase security rules will determine access
+   */
+  getWallByIdPublic(id: string): Observable<Wall | null> {
+    return runInInjectionContext(this.injector, () => {
+      console.log('🔍 getWallByIdPublic - Attempting to fetch wall:', id);
+      const wallDoc = doc(this.firestore, this.collectionName, id);
+      return from(getDoc(wallDoc)).pipe(
+        map(docSnap => {
+          console.log('🔍 getWallByIdPublic - getDoc response:', {
+            exists: docSnap.exists(),
+            id: docSnap.id
+          });
+          
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            const wall = {
+              id: docSnap.id,
+              ...data,
+              createdAt: this.timestampToDate(data['createdAt']),
+              updatedAt: this.timestampToDate(data['updatedAt']),
+              deletedAt: data['deletedAt'] ? this.timestampToDate(data['deletedAt']) : undefined
+            } as Wall;
+            
+            console.log('🔍 getWallByIdPublic - Wall fetched successfully:', {
+              wallId: wall.id,
+              wallName: wall.name,
+              isPublished: wall.visibility?.isPublished,
+              requiresLogin: wall.visibility?.requiresLogin,
+              deletedAt: wall.deletedAt,
+              permissions: {
+                owner: wall.permissions?.owner,
+                editors: wall.permissions?.editors,
+                managers: wall.permissions?.managers
+              }
+            });
+            
+            return wall;
+          }
+          console.log('❌ getWallByIdPublic - Document does not exist:', id);
+          return null;
+        }),
+        catchError(error => {
+          console.error('❌ getWallByIdPublic - Error getting wall:', {
+            error,
+            code: error.code,
+            message: error.message,
+            wallId: id
+          });
+          // Firebase will throw permission-denied if user doesn't have access
+          if (error.code === 'permission-denied') {
+            console.log('🔒 Wall requires authentication or explicit access');
+          }
+          return of(null);
+        })
+      );
+    });
+  }
+
+  /**
    * Watch wall for real-time changes
    */
   watchWallById(id: string): Observable<Wall | null> {

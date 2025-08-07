@@ -13,34 +13,38 @@ service cloud.firestore {
     }
     
     function isWallOwner(wallData) {
-      return request.auth.uid == wallData.permissions.owner;
+      return request.auth != null && request.auth.uid == wallData.permissions.owner;
     }
     
     function isWallEditor(wallData) {
-      return request.auth.uid in wallData.permissions.editors;
+      return request.auth != null && request.auth.uid in wallData.permissions.editors;
     }
     
     function isWallViewer(wallData) {
-      return 'viewers' in wallData.permissions && 
+      return request.auth != null && 
+             'viewers' in wallData.permissions && 
              request.auth.uid in wallData.permissions.viewers;
     }
     
     function isWallManager(wallData) {
-      return 'managers' in wallData.permissions && 
+      return request.auth != null &&
+             'managers' in wallData.permissions && 
              request.auth.uid in wallData.permissions.managers;
     }
     
     function hasDepartmentAccess(wallData) {
-      return wallData.permissions.allowDepartmentEdit && 
+      return request.auth != null &&
+             wallData.permissions.allowDepartmentEdit && 
              request.auth.token.department != null &&
              request.auth.token.department == wallData.permissions.department;
     }
     
     function canEditWall(wallData) {
-      return isWallOwner(wallData) || 
+      return request.auth != null && (
+             isWallOwner(wallData) || 
              isWallEditor(wallData) || 
              isWallManager(wallData) ||
-             hasDepartmentAccess(wallData);
+             hasDepartmentAccess(wallData));
     }
     
     function canViewWall(wallData) {
