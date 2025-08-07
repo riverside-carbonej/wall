@@ -6,7 +6,12 @@
       "Bash(npm run build:*)",
       "Bash(ng build)",
       "Bash(grep:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(firebase deploy:*)",
+      "Bash(npx firebase deploy:*)",
+      "Bash(cat:*)",
+      "Bash(npm install:*)",
+      "Bash(npx firebase:*)"
     ],
     "deny": []
   }

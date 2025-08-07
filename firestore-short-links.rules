@@ -1,0 +1,12 @@
+// Add these rules to your existing firestore.rules file
+
+// Wall Short Links Collection - Read-only for everyone except super admin
+match /wall-short-links/{shortId} {
+  // Anyone can read short links (even unauthenticated users)
+  allow read: if true;
+  
+  // Only super admin can write
+  // Replace this UID with your actual Firebase user ID
+  allow write: if request.auth != null && 
+                  request.auth.uid == "YOUR_SUPER_ADMIN_UID_HERE";
+}

@@ -120,5 +120,10 @@ export const routes: Routes = [
     loadComponent: () => import('./shared/components/firebase-test.component').then(m => m.FirebaseTestComponent),
     canActivate: [AuthGuard]
   },
+  // Short link route - must be second to last to avoid catching other routes
+  {
+    path: ':shortId',
+    loadComponent: () => import('./core/components/short-link-redirect/short-link-redirect.component').then(m => m.ShortLinkRedirectComponent)
+  },
   { path: '**', redirectTo: '/walls' }
 ];
