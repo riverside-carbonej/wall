@@ -49,15 +49,18 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
       <div class="content-container" #container>
         @if ((wallItems$ | async); as items) {
           @if (items.length > 0) {
-            <app-wall-items-grid
-              [items]="items"
-              [preset]="null"
-              [viewMode]="'grid'"
-              [selectedItems]="[]"
-              [pageSize]="200"
-              [pageIndex]="0"
-              style="contain: content; pointer-events: none;">
-            </app-wall-items-grid>
+            @if ((wall$ | async); as wall) {
+              <app-wall-items-grid
+                [items]="items"
+                [wall]="wall"
+                [preset]="null"
+                [viewMode]="'grid'"
+                [selectedItems]="[]"
+                [pageSize]="200"
+                [pageIndex]="0"
+                style="contain: content; pointer-events: none;">
+              </app-wall-items-grid>
+            }
           } @else {
             <!-- Fallback when no items -->
             <div class="no-items-fallback">
@@ -77,7 +80,6 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
       display: block;
       width: 100%;
       height: 100%;
-      perspective: 1000px;
       pointer-events: none;
       contain: strict;
       border-radius: 25px;
@@ -87,14 +89,15 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
     }
 
     .content-container {
-      width: 100%;
-      height: 100%;
-      scale: 1.0;
-      position: relative;
+      width: 200%;
+      height: 300%;
+      position: absolute;
+      top: -50%;  /* Position to show upper-middle content */
+      left: -50%;
       z-index: 1;
       pointer-events: none;
       transform-style: preserve-3d;
-      transform: perspective(1000px);
+      transform: perspective(2000px) scale(1.1);
     }
 
     .no-items-fallback {
@@ -139,17 +142,17 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
 
     .blur-background {
       background: radial-gradient(circle, 
-        color-mix(in srgb, var(--md-sys-color-background) 95%, transparent) 0%, 
-        color-mix(in srgb, var(--md-sys-color-background) 95%, transparent) 11%, 
-        color-mix(in srgb, var(--md-sys-color-background) 90%, transparent) 18%, 
-        color-mix(in srgb, var(--md-sys-color-background) 85%, transparent) 22%, 
-        color-mix(in srgb, var(--md-sys-color-background) 80%, transparent) 26%, 
-        color-mix(in srgb, var(--md-sys-color-background) 75%, transparent) 30%, 
-        color-mix(in srgb, var(--md-sys-color-background) 70%, transparent) 35%, 
-        color-mix(in srgb, var(--md-sys-color-background) 60%, transparent) 40%, 
-        color-mix(in srgb, var(--md-sys-color-background) 50%, transparent) 45%, 
-        color-mix(in srgb, var(--md-sys-color-background) 40%, transparent) 50%, 
-        color-mix(in srgb, var(--md-sys-color-background) 30%, transparent) 55%, 
+        color-mix(in srgb, var(--md-sys-color-background) 90%, transparent) 0%, 
+        color-mix(in srgb, var(--md-sys-color-background) 90%, transparent) 11%, 
+        color-mix(in srgb, var(--md-sys-color-background) 85%, transparent) 18%, 
+        color-mix(in srgb, var(--md-sys-color-background) 80%, transparent) 22%, 
+        color-mix(in srgb, var(--md-sys-color-background) 75%, transparent) 26%, 
+        color-mix(in srgb, var(--md-sys-color-background) 70%, transparent) 30%, 
+        color-mix(in srgb, var(--md-sys-color-background) 65%, transparent) 35%, 
+        color-mix(in srgb, var(--md-sys-color-background) 55%, transparent) 40%, 
+        color-mix(in srgb, var(--md-sys-color-background) 45%, transparent) 45%, 
+        color-mix(in srgb, var(--md-sys-color-background) 35%, transparent) 50%, 
+        color-mix(in srgb, var(--md-sys-color-background) 25%, transparent) 55%, 
         color-mix(in srgb, var(--md-sys-color-background) 5%, transparent) 66%, 
         transparent 75%);
       width: 2000px;
@@ -297,8 +300,8 @@ export class WallHomeComponent implements OnInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    // Start animation immediately
-    this.startAnimation();
+    // Delay animation start to avoid conflicts with initial render
+    setTimeout(() => this.startAnimation(), 500);
   }
 
   ngOnDestroy() {
@@ -309,7 +312,12 @@ export class WallHomeComponent implements OnInit, OnDestroy {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
     }
+    if (this.currentAnimation) {
+      this.currentAnimation.cancel();
+    }
   }
+  
+  private currentAnimation?: Animation;
 
   getLogoUrl(wall: Wall): string {
     // Use organization logo if set, otherwise default to Riverside logo
@@ -317,23 +325,39 @@ export class WallHomeComponent implements OnInit, OnDestroy {
   }
 
   private getRandomAngle(): number {
-    let randomAngle = (Math.random() * 90) - 45;
-    while (Math.abs(randomAngle) < 20) {
-      randomAngle = this.getRandomAngle();
+    // Much wider angle range with more variation (20-80 degrees)
+    const minAngle = 20 + Math.random() * 20; // 20-40 minimum
+    const maxAngle = 60 + Math.random() * 20; // 60-80 maximum
+    const range = maxAngle - minAngle;
+    
+    let randomAngle = (Math.random() * range * 2) - range;
+    
+    // Ensure minimum rotation for visibility
+    if (Math.abs(randomAngle) < minAngle) {
+      randomAngle = randomAngle < 0 ? -minAngle : minAngle;
     }
+    
     return randomAngle;
   }
 
   private getRandomAngleX(): number {
-    return Math.random() * 5;
+    // More varied X rotation (3-12 degrees)
+    return 3 + Math.random() * 9;
   }
 
   private startAnimation = () => {
     if (!this.containerRef?.nativeElement) return;
+    
+    // Cancel any existing animation
+    if (this.currentAnimation) {
+      this.currentAnimation.cancel();
+    }
 
     let randomAngle = this.getRandomAngle();
-    while (Math.abs(randomAngle - this.prevAngle) < 20) {
+    let attempts = 0;
+    while (Math.abs(randomAngle - this.prevAngle) < 8 && attempts < 10) {
       randomAngle = this.getRandomAngle();
+      attempts++;
     }
     
     const randomAngleX = this.getRandomAngleX();
@@ -344,32 +368,40 @@ export class WallHomeComponent implements OnInit, OnDestroy {
     }
     this.prevAngle = randomAngle;
 
-    const offsetScale = 0.5;
-    const randomStartX = Math.random() * 100 * offsetScale;
-    const randomEndX = Math.random() * 100 * offsetScale;
-    const randomStartY = Math.random() * 100 * offsetScale;
-    const randomEndY = Math.random() * 100 * offsetScale;
+    // Much more dramatic camera movement
+    const offsetScale = 0.6; // Increased for much more movement
+    const randomStartX = (Math.random() * 100 - 50) * offsetScale; // Much wider X range
+    const randomEndX = (Math.random() * 100 - 50) * offsetScale;
+    // Y movement balanced around center
+    const randomStartY = (Math.random() * 60 - 30) * offsetScale; // Balanced movement
+    const randomEndY = (Math.random() * 60 - 30) * offsetScale;
     
     const elm = this.containerRef.nativeElement as HTMLDivElement;
 
-    this.duration = (Math.random() * 5000) + 10000;
+    // Slower, longer animation for more relaxed movement
+    this.duration = (Math.random() * 8000) + 18000;
     
-    const animation = elm.animate([
-      {
-        transform: `perspective(1000px) rotateY(${randomAngle}deg) rotateX(${randomAngleX}deg) translate3d(${randomStartX}%, ${randomStartY}%, 0) scale(1.0)`
-      },
-      {
-        transform: `perspective(1000px) rotateY(${randomAngle}deg) rotateX(${randomAngleX}deg) translate3d(${randomEndX}%, ${randomEndY}%, 0) scale(1.0)`
-      }
-    ], {
-      duration: this.duration,
-      easing: 'linear',
-    });
+    try {
+      this.currentAnimation = elm.animate([
+        {
+          transform: `perspective(2000px) rotateY(${randomAngle}deg) rotateX(${randomAngleX}deg) translate3d(${randomStartX}%, ${randomStartY}%, 0) scale(1.1)`
+        },
+        {
+          transform: `perspective(2000px) rotateY(${randomAngle}deg) rotateX(${randomAngleX}deg) translate3d(${randomEndX}%, ${randomEndY}%, 0) scale(1.1)`
+        }
+      ], {
+        duration: this.duration,
+        easing: 'linear',
+      });
 
-    animation.onfinish = () => {
-      this.startAnimation();
-    };
-    
-    this.cdr.detectChanges();
+      this.currentAnimation.onfinish = () => {
+        // Use requestAnimationFrame for smoother transitions
+        requestAnimationFrame(() => {
+          this.startAnimation();
+        });
+      };
+    } catch (error) {
+      console.error('Animation error:', error);
+    }
   }
 }

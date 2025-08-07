@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { WallItem, WallObjectType, WallItemImage } from '../../../../shared/models/wall.model';
+import { WallItem, WallObjectType, WallItemImage, Wall } from '../../../../shared/models/wall.model';
 import { WallItemCardComponent } from '../wall-item-card/wall-item-card.component';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 
@@ -19,7 +19,7 @@ import { MaterialIconComponent } from '../../../../shared/components/material-ic
         @for (item of paginatedItems; track item.id) {
           <app-wall-item-card
             [item]="item"
-            [preset]="preset"
+            [preset]="preset || findObjectTypeForItem(item)"
             [title]="getItemTitle(item)"
             [subtitle]="getItemSubtitle(item) || ''"
             [metadata]="getMetadata(item)"
@@ -284,6 +284,7 @@ import { MaterialIconComponent } from '../../../../shared/components/material-ic
 export class WallItemsGridComponent {
   @Input() items: WallItem[] = [];
   @Input() preset: WallObjectType | null = null;
+  @Input() wall: Wall | null = null; // Added to support mixed object types
   @Input() viewMode: 'grid' | 'list' = 'grid';
   @Input() selectedItems: WallItem[] = [];
   @Input() pageSize: number = 50;
@@ -339,27 +340,43 @@ export class WallItemsGridComponent {
   }
 
   getItemTitle(item: WallItem): string {
-    if (!this.preset) return 'Untitled Item';
+    // Use provided preset or find from wall's object types
+    const objectType = this.preset || this.findObjectTypeForItem(item);
     
-    const primaryField = this.preset.displaySettings?.primaryField;
+    if (!objectType) {
+      // Fallback to first text field in fieldData
+      const firstTextField = Object.keys(item.fieldData || {}).find(key => 
+        typeof item.fieldData[key] === 'string' && item.fieldData[key].trim()
+      );
+      return firstTextField ? this.formatFieldValue(item.fieldData[firstTextField]) : 'Untitled Item';
+    }
     
-    if (primaryField && item.fieldData[primaryField]) {
+    const primaryField = objectType.displaySettings?.primaryField;
+    
+    if (primaryField && item.fieldData && item.fieldData[primaryField]) {
       return this.formatFieldValue(item.fieldData[primaryField]);
     }
     
     // Fallback to first text field
-    const firstTextField = Object.keys(item.fieldData).find(key => 
+    const firstTextField = Object.keys(item.fieldData || {}).find(key => 
       typeof item.fieldData[key] === 'string' && item.fieldData[key].trim()
     );
     
     return firstTextField ? this.formatFieldValue(item.fieldData[firstTextField]) : 'Untitled Item';
   }
 
+  findObjectTypeForItem(item: WallItem): WallObjectType | null {
+    if (!this.wall || !this.wall.objectTypes || !item.objectTypeId) return null;
+    return this.wall.objectTypes.find(ot => ot.id === item.objectTypeId) || null;
+  }
+
   getItemSubtitle(item: WallItem): string | null {
-    if (!this.preset) return null;
+    // Use provided preset or find from wall's object types
+    const objectType = this.preset || this.findObjectTypeForItem(item);
+    if (!objectType) return null;
     
-    const secondaryField = this.preset.displaySettings?.secondaryField;
-    const tertiaryField = this.preset.displaySettings?.tertiaryField;
+    const secondaryField = objectType.displaySettings?.secondaryField;
+    const tertiaryField = objectType.displaySettings?.tertiaryField;
     
     const subtitleParts: string[] = [];
     
@@ -381,9 +398,12 @@ export class WallItemsGridComponent {
   getMetadata(item: WallItem): Array<{key: string; value: string; icon?: string}> {
     const metadata: Array<{key: string; value: string; icon?: string}> = [];
     
+    // Use provided preset or find from wall's object types
+    const objectType = this.preset || this.findObjectTypeForItem(item);
+    
     // Add additional relevant field data if available and not already in subtitle
-    if (this.preset) {
-      const displaySettings = this.preset.displaySettings;
+    if (objectType) {
+      const displaySettings = objectType.displaySettings;
       const usedFields = [
         displaySettings.primaryField,
         displaySettings.secondaryField,
@@ -394,7 +414,7 @@ export class WallItemsGridComponent {
       Object.keys(item.fieldData).forEach(fieldId => {
         if (!usedFields.includes(fieldId) && item.fieldData[fieldId]) {
           const fieldValue = item.fieldData[fieldId];
-          const field = this.preset?.fields.find(f => f.id === fieldId);
+          const field = objectType?.fields.find(f => f.id === fieldId);
           
           if (field && fieldValue && metadata.length < 3) { // Limit to 3 metadata items
             let displayValue = '';
