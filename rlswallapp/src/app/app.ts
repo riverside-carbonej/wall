@@ -1,18 +1,19 @@
-import { Component, signal, OnInit, inject } from '@angular/core';
+import { Component, signal, OnInit, OnDestroy, inject, ElementRef, ViewChild } from '@angular/core';
 import { RouterOutlet, RouterModule, Router, NavigationEnd, NavigationStart, NavigationError, NavigationCancel } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, state, style, transition, animate } from '@angular/animations';
-import { filter, switchMap, map } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { filter, switchMap, map, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { of, Subject, combineLatest } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeService } from './shared/services/theme.service';
 import { UserAccountMenuComponent } from './shared/components/user-account-menu/user-account-menu.component';
 import { WallService } from './features/walls/services/wall.service';
-import { Wall, WallTheme } from './shared/models/wall.model';
+import { Wall, WallTheme, WallItem } from './shared/models/wall.model';
 import { NavigationService } from './shared/services/navigation.service';
 import { NavigationMenuComponent } from './shared/components/navigation-menu/navigation-menu.component';
 import { InactivityService } from './shared/services/inactivity.service';
+import { WallItemService } from './features/wall-items/services/wall-item.service';
 
 @Component({
   selector: 'app-root',
@@ -87,6 +88,47 @@ import { InactivityService } from './shared/services/inactivity.service';
                   <span class="material-icons md-20">close</span>
                 </button>
               </div>
+              
+              <!-- Search Results Dropdown -->
+              <div class="search-results-dropdown" 
+                   *ngIf="(searchResults().walls.length > 0 || searchResults().items.length > 0) && searchQuery().length > 0"
+                   [@slideDown]>
+                <!-- Walls Section -->
+                <div class="search-section" *ngIf="searchResults().walls.length > 0">
+                  <div class="search-section-header label-medium">Walls</div>
+                  <button class="search-result-item interactive" 
+                          *ngFor="let wall of searchResults().walls"
+                          (click)="navigateToWall(wall)">
+                    <span class="material-icons md-20 result-icon">dashboard</span>
+                    <div class="result-content">
+                      <div class="result-title body-medium">{{ wall.name }}</div>
+                      <div class="result-subtitle caption" *ngIf="wall.description">
+                        {{ wall.description | slice:0:50 }}{{ wall.description.length > 50 ? '...' : '' }}
+                      </div>
+                    </div>
+                  </button>
+                </div>
+                
+                <!-- Wall Items Section -->
+                <div class="search-section" *ngIf="searchResults().items.length > 0">
+                  <div class="search-section-header label-medium">Items</div>
+                  <button class="search-result-item interactive" 
+                          *ngFor="let item of searchResults().items"
+                          (click)="navigateToItem(item)">
+                    <span class="material-icons md-20 result-icon">article</span>
+                    <div class="result-content">
+                      <div class="result-title body-medium">{{ getItemTitle(item) }}</div>
+                      <div class="result-subtitle caption">{{ getItemSubtitle(item) }}</div>
+                    </div>
+                  </button>
+                </div>
+                
+                <!-- No Results Message -->
+                <div class="no-results" *ngIf="searchQuery().length > 2 && searchResults().walls.length === 0 && searchResults().items.length === 0">
+                  <span class="material-icons md-48 on-surface-variant">search_off</span>
+                  <p class="body-medium on-surface-variant">No results found for "{{ searchQuery() }}"</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -153,14 +195,37 @@ import { InactivityService } from './shared/services/inactivity.service';
               </button>
             </div>
             
-            <!-- Quick search suggestions -->
-            <div class="search-suggestions" *ngIf="searchSuggestions().length > 0">
-              <div class="suggestions-header label-medium">Quick suggestions</div>
-              <div class="suggestion-item interactive p-3" 
-                   *ngFor="let suggestion of searchSuggestions()" 
-                   (click)="selectSuggestion(suggestion)">
-                <span class="material-icons md-20 on-surface-variant">{{ suggestion.icon }}</span>
-                <span class="suggestion-text body-medium">{{ suggestion.text }}</span>
+            <!-- Mobile Search Results -->
+            <div class="mobile-search-results" 
+                 *ngIf="(searchResults().walls.length > 0 || searchResults().items.length > 0) && searchQuery().length > 0">
+              <!-- Walls Section -->
+              <div class="search-section" *ngIf="searchResults().walls.length > 0">
+                <div class="search-section-header label-medium">Walls</div>
+                <button class="search-result-item interactive" 
+                        *ngFor="let wall of searchResults().walls"
+                        (click)="navigateToWall(wall)">
+                  <span class="material-icons md-20 result-icon">dashboard</span>
+                  <div class="result-content">
+                    <div class="result-title body-medium">{{ wall.name }}</div>
+                    <div class="result-subtitle caption" *ngIf="wall.description">
+                      {{ wall.description | slice:0:50 }}{{ wall.description.length > 50 ? '...' : '' }}
+                    </div>
+                  </div>
+                </button>
+              </div>
+              
+              <!-- Wall Items Section -->
+              <div class="search-section" *ngIf="searchResults().items.length > 0">
+                <div class="search-section-header label-medium">Items</div>
+                <button class="search-result-item interactive" 
+                        *ngFor="let item of searchResults().items"
+                        (click)="navigateToItem(item)">
+                  <span class="material-icons md-20 result-icon">article</span>
+                  <div class="result-content">
+                    <div class="result-title body-medium">{{ getItemTitle(item) }}</div>
+                    <div class="result-subtitle caption">{{ getItemSubtitle(item) }}</div>
+                  </div>
+                </button>
               </div>
             </div>
           </div>
@@ -390,6 +455,99 @@ import { InactivityService } from './shared/services/inactivity.service';
       z-index: 2;
     }
 
+    /* Search Results Dropdown */
+    .search-results-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: var(--md-sys-color-surface);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-sys-shape-corner-large);
+      box-shadow: var(--md-sys-elevation-level3);
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 1001;
+    }
+
+    .search-section {
+      padding: var(--md-sys-spacing-2) 0;
+    }
+
+    .search-section:not(:last-child) {
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    }
+
+    .search-section-header {
+      padding: var(--md-sys-spacing-2) var(--md-sys-spacing-4);
+      color: var(--md-sys-color-on-surface-variant);
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+    }
+
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      gap: var(--md-sys-spacing-3);
+      width: 100%;
+      padding: var(--md-sys-spacing-3) var(--md-sys-spacing-4);
+      background: transparent;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .search-result-item:hover {
+      background-color: var(--md-sys-color-surface-variant);
+    }
+
+    .result-icon {
+      color: var(--md-sys-color-on-surface-variant);
+      flex-shrink: 0;
+    }
+
+    .result-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .result-title {
+      color: var(--md-sys-color-on-surface);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .result-subtitle {
+      color: var(--md-sys-color-on-surface-variant);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .no-results {
+      padding: var(--md-sys-spacing-6) var(--md-sys-spacing-4);
+      text-align: center;
+    }
+
+    .no-results .material-icons {
+      opacity: 0.5;
+      margin-bottom: var(--md-sys-spacing-2);
+    }
+
+    .mobile-search-results {
+      margin-top: var(--md-sys-spacing-4);
+      max-height: 60vh;
+      overflow-y: auto;
+      background: var(--md-sys-color-surface-container);
+      border-radius: var(--md-sys-shape-corner-medium);
+    }
+
     /* Mobile-optimized actions */
     .header-end {
       display: flex;
@@ -617,11 +775,12 @@ import { InactivityService } from './shared/services/inactivity.service';
     }
   `]
 })
-export class App implements OnInit {
+export class App implements OnInit, OnDestroy {
   protected readonly title = signal('RLS Wall App');
   private themeService = inject(ThemeService);
   private router = inject(Router);
   private wallService = inject(WallService);
+  private wallItemService = inject(WallItemService);
   public navigationService = inject(NavigationService);
   private inactivityService = inject(InactivityService);
   protected currentTheme = signal(this.themeService.getCurrentThemeSync());
@@ -634,6 +793,8 @@ export class App implements OnInit {
   protected searchQuery = signal('');
   protected showMobileSearch = signal(false);
   protected searchSuggestions = signal<{icon: string, text: string}[]>([]);
+  protected searchResults = signal<{walls: Wall[], items: any[]}>({walls: [], items: []});
+  private searchSubject = new Subject<string>();
   
   // Navigation loading state with proper progress tracking
   protected navigationProgress = toSignal(this.router.events.pipe(
@@ -669,6 +830,14 @@ export class App implements OnInit {
   ngOnInit(): void {
     this.themeService.getCurrentTheme().subscribe(theme => {
       this.currentTheme.set(theme);
+    });
+
+    // Set up search with debounce
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.performSearch(query);
     });
 
     // Listen to route changes to update navigation context
@@ -797,9 +966,9 @@ export class App implements OnInit {
 
   getSearchPlaceholder(): string {
     if (this.currentWall()) {
-      return `Search in ${this.currentWall()?.name}...`;
+      return `Search items in ${this.currentWall()?.name}...`;
     }
-    return 'Search walls, people, content...';
+    return 'Search walls you have access to...';
   }
 
   // Mobile search methods
@@ -818,27 +987,116 @@ export class App implements OnInit {
     const target = event.target as HTMLInputElement;
     this.searchQuery.set(target.value);
     
-    // Update search suggestions based on query
-    if (target.value.length > 0) {
-      this.searchSuggestions.set([
-        { icon: 'dashboard', text: `Search in walls for "${target.value}"` },
-        { icon: 'person', text: `Find people named "${target.value}"` },
-        { icon: 'tag', text: `Show items tagged "${target.value}"` }
-      ]);
-    } else {
-      this.searchSuggestions.set([]);
+    // Trigger search with debounce
+    this.searchSubject.next(target.value);
+  }
+
+  private performSearch(query: string): void {
+    if (query.length < 2) {
+      this.searchResults.set({walls: [], items: []});
+      return;
     }
+
+    const lowerQuery = query.toLowerCase();
+
+    // If we're in a wall context, search within the wall
+    if (this.currentWall()) {
+      const wallId = this.currentWall()!.id;
+      
+      // Search wall items
+      this.wallItemService.getWallItems(wallId).pipe(
+        map(items => {
+          // Filter items based on their field data
+          const matchingItems = items.filter(item => {
+            const fieldData = item.fieldData || item.data || {};
+            return Object.values(fieldData).some(value => 
+              String(value).toLowerCase().includes(lowerQuery)
+            );
+          }).slice(0, 5); // Limit to 5 results
+          
+          return matchingItems;
+        })
+      ).subscribe(items => {
+        this.searchResults.set({walls: [], items});
+      });
+    } else {
+      // Search all accessible walls
+      this.wallService.getAllWalls().pipe(
+        map((walls: Wall[]) => {
+          // Filter walls by name or description
+          const matchingWalls = walls.filter((wall: Wall) => 
+            wall.name.toLowerCase().includes(lowerQuery) ||
+            (wall.description && wall.description.toLowerCase().includes(lowerQuery))
+          ).slice(0, 5); // Limit to 5 results
+          
+          return matchingWalls;
+        })
+      ).subscribe((walls: Wall[]) => {
+        this.searchResults.set({walls, items: []});
+      });
+    }
+  }
+
+  navigateToWall(wall: Wall): void {
+    this.clearSearch();
+    this.showMobileSearch.set(false);
+    this.router.navigate(['/walls', wall.id]);
+  }
+
+  navigateToItem(item: any): void {
+    this.clearSearch();
+    this.showMobileSearch.set(false);
+    
+    const wallId = item.wallId || this.currentWall()?.id;
+    if (wallId && item.id) {
+      // Try to navigate to the preset-based route first
+      const objectTypeId = item.objectTypeId || 'default';
+      this.router.navigate(['/walls', wallId, 'preset', objectTypeId, 'items', item.id]);
+    }
+  }
+
+  getItemTitle(item: any): string {
+    // Try to get a meaningful title from the item's field data
+    const fieldData = item.fieldData || item.data || {};
+    
+    // Look for common title fields
+    const titleFields = ['name', 'title', 'firstName', 'lastName', 'displayName'];
+    for (const field of titleFields) {
+      if (fieldData[field]) {
+        return String(fieldData[field]);
+      }
+    }
+    
+    // Fall back to first non-empty field value
+    const firstValue = Object.values(fieldData).find(v => v && String(v).trim());
+    return firstValue ? String(firstValue) : 'Untitled Item';
+  }
+
+  getItemSubtitle(item: any): string {
+    // Get the wall name if available
+    if (this.currentWall()) {
+      const objectType = this.currentWall()?.objectTypes?.find(ot => ot.id === item.objectTypeId);
+      return objectType?.name || 'Item';
+    }
+    return 'Item';
   }
 
   clearSearch(): void {
     this.searchQuery.set('');
     this.searchSuggestions.set([]);
+    this.searchResults.set({walls: [], items: []});
+    this.searchValue = '';
   }
 
   selectSuggestion(suggestion: {icon: string, text: string}): void {
     // Handle suggestion selection
     console.log('Selected suggestion:', suggestion);
     this.showMobileSearch.set(false);
+  }
+
+  // Clean up on destroy
+  ngOnDestroy(): void {
+    this.searchSubject.complete();
   }
 
   // Apps menu methods

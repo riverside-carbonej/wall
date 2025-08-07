@@ -352,6 +352,7 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   onEntityFocus() {
     this.showEntitySuggestions = true;
     this.updateFilteredEntities();
+    this.positionEntityDropdown();
   }
 
   onEntitySearch(event: Event) {
@@ -359,6 +360,7 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     this.entitySearchTerm = input.value;
     this.updateFilteredEntities();
     this.showEntitySuggestions = true;
+    this.positionEntityDropdown();
   }
   
   private updateFilteredEntities() {
@@ -436,6 +438,36 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     setTimeout(() => {
       this.showEntitySuggestions = false;
     }, 200);
+  }
+
+  private positionEntityDropdown() {
+    // Use setTimeout to ensure DOM is updated
+    setTimeout(() => {
+      const searchInput = document.querySelector('.entity-search:focus') as HTMLInputElement;
+      const dropdown = document.querySelector('.entity-suggestions') as HTMLElement;
+      
+      if (searchInput && dropdown) {
+        const rect = searchInput.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const dropdownHeight = Math.min(300, dropdown.scrollHeight);
+        
+        // Position the dropdown
+        dropdown.style.left = `${rect.left}px`;
+        dropdown.style.width = `${rect.width}px`;
+        
+        // Check if there's enough space below
+        if (spaceBelow >= dropdownHeight || spaceBelow > spaceAbove) {
+          // Position below the input
+          dropdown.style.top = `${rect.bottom + 4}px`;
+          dropdown.style.bottom = 'auto';
+        } else {
+          // Position above the input
+          dropdown.style.bottom = `${window.innerHeight - rect.top + 4}px`;
+          dropdown.style.top = 'auto';
+        }
+      }
+    }, 0);
   }
   
   private loadEntityItems() {

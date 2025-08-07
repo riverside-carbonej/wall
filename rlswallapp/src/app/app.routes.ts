@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { wallContextGuard } from './core/guards/wall-context.guard';
 import { wallContextSimpleGuard } from './core/guards/wall-context-simple.guard';
+import { publicWallGuard } from './core/guards/public-wall.guard';
+import { publicWallContextGuard } from './core/guards/public-wall-context.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/walls', pathMatch: 'full' },
@@ -34,12 +36,12 @@ export const routes: Routes = [
   { 
     path: 'walls/:id', 
     loadComponent: () => import('./features/walls/components/wall-home/wall-home.component').then(m => m.WallHomeComponent),
-    canActivate: [AuthGuard, wallContextGuard]
+    canActivate: [publicWallGuard, publicWallContextGuard]
   },
   { 
     path: 'walls/:id/overview', 
     loadComponent: () => import('./features/walls/components/wall-overview/wall-overview.component').then(m => m.WallOverviewComponent),
-    canActivate: [AuthGuard, wallContextGuard]
+    canActivate: [publicWallGuard, publicWallContextGuard]
   },
   { 
     path: 'walls/:id/presets', 
@@ -66,7 +68,7 @@ export const routes: Routes = [
   { 
     path: 'walls/:wallId/preset/:presetId/items', 
     loadComponent: () => import('./features/wall-items/pages/preset-item-list/preset-item-list.component').then(m => m.PresetItemListComponent),
-    canActivate: [AuthGuard, wallContextGuard]
+    canActivate: [publicWallGuard, publicWallContextGuard]
   },
   { 
     path: 'walls/:wallId/preset/:presetId/items/add', 
@@ -76,7 +78,7 @@ export const routes: Routes = [
   { 
     path: 'walls/:wallId/preset/:presetId/items/:itemId', 
     loadComponent: () => import('./features/wall-items/pages/preset-item-page/preset-item-page.component').then(m => m.PresetItemPageComponent),
-    canActivate: [AuthGuard, wallContextGuard]
+    canActivate: [publicWallGuard, publicWallContextGuard]
   },
   { 
     path: 'walls/:wallId/preset/:presetId/items/:itemId/edit', 
@@ -88,7 +90,7 @@ export const routes: Routes = [
   { 
     path: 'walls/:wallId/items', 
     loadComponent: () => import('./features/wall-items/pages/wall-item-list/wall-item-list.component').then(m => m.WallItemListComponent),
-    canActivate: [AuthGuard, wallContextGuard]
+    canActivate: [publicWallGuard, publicWallContextGuard]
   },
   { 
     path: 'walls/:wallId/items/select-type', 
@@ -103,7 +105,7 @@ export const routes: Routes = [
   { 
     path: 'walls/:wallId/items/:itemId', 
     loadComponent: () => import('./features/wall-items/pages/generic-wall-item-page/generic-wall-item-page.component').then(m => m.GenericWallItemPageComponent),
-    canActivate: [AuthGuard, wallContextGuard]
+    canActivate: [publicWallGuard, publicWallContextGuard]
   },
   { 
     path: 'walls/:wallId/items/:itemId/edit', 

@@ -352,6 +352,14 @@
   width: 100%;
 }
 
+.entity-field {
+  overflow: visible !important;
+}
+
+.dynamic-field-renderer {
+  overflow: visible !important;
+}
+
 .relationship-search {
   width: 100%;
   padding: 16px 20px;
@@ -529,18 +537,16 @@
 }
 
 .entity-suggestions {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  position: fixed;
   margin-top: 4px;
   background: var(--md-sys-color-surface);
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 8px;
-  box-shadow: var(--md-sys-elevation-2);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
   max-height: 300px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 9999;
+  min-width: 250px;
 }
 
 .entity-suggestion {

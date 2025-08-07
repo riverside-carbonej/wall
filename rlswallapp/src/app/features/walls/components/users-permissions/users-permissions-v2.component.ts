@@ -127,26 +127,28 @@ interface WallUser {
                 <!-- Add User Row -->
                 <tr class="add-user-row">
                   <td colspan="3">
-                    <div class="add-user-content">
-                      <mat-icon [icon]="'person_add'"></mat-icon>
-                      <input
-                        #searchInput
-                        type="text"
-                        class="add-user-input"
-                        [(ngModel)]="searchQuery"
-                        placeholder="Add people by name or email"
-                        (input)="onSearchChange(searchQuery)"
-                        (keydown.enter)="addUser()"
-                        (focus)="positionDropdown($event)">
+                    <div class="add-user-wrapper">
+                      <div class="add-user-content">
+                        <mat-icon [icon]="'person_add'"></mat-icon>
+                        <input
+                          #searchInput
+                          type="text"
+                          class="add-user-input"
+                          [(ngModel)]="searchQuery"
+                          placeholder="Add people by name or email"
+                          (input)="onSearchChange(searchQuery)"
+                          (keydown.enter)="addUser()">
+                        
+                        <app-themed-button
+                          [variant]="'raised'"
+                          [disabled]="!canAddUser()"
+                          text="Add"
+                          icon="add"
+                          (buttonClick)="addUser()">
+                        </app-themed-button>
+                      </div>
                       
-                      <app-themed-button
-                        [variant]="'raised'"
-                        [disabled]="!canAddUser()"
-                        text="Add"
-                        (buttonClick)="addUser()">
-                      </app-themed-button>
-                      
-                      <!-- Search Results Dropdown -->
+                      <!-- Search Results Dropdown (positioned below input) -->
                       <div class="search-results" *ngIf="showSearchResults() && searchResults().length > 0">
                         <div class="search-result" 
                              *ngFor="let user of searchResults()"
@@ -389,19 +391,27 @@ interface WallUser {
       opacity: 0.7;
     }
 
+    /* Add User Wrapper */
+    .add-user-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
     /* Search Results */
     .search-results {
-      position: fixed;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
       background: var(--md-sys-color-surface);
       border: 1px solid var(--md-sys-color-outline-variant);
       border-radius: 8px;
-      margin-top: 4px;
+      margin-top: 8px;
       max-height: 250px;
       overflow-y: auto;
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-      z-index: 10000;
+      z-index: 1000;
       min-width: 300px;
-      max-width: 400px;
     }
 
     .add-user-content {
@@ -679,7 +689,7 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
           
           if (convertedResults.length > 0) {
             this.searchResults.set(convertedResults);
-            this.positionDropdownFromInput();
+            // Dropdown now positions itself via CSS
           } else {
             // Fallback to Firebase Auth search if no Firestore results
             this.firebaseAuthSearch.searchUsers(value).subscribe({
@@ -691,13 +701,13 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
                   // Final fallback to mock results for testing
                   this.searchResults.set(this.getMockSearchResults(value));
                 }
-                this.positionDropdownFromInput();
+                // Dropdown now positions itself via CSS
               },
               error: (error) => {
                 console.error('Firebase Auth search error:', error);
                 // Fallback to mock results
                 this.searchResults.set(this.getMockSearchResults(value));
-                this.positionDropdownFromInput();
+                // Dropdown now positions itself via CSS
               }
             });
           }
@@ -713,12 +723,12 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
               } else {
                 this.searchResults.set(this.getMockSearchResults(value));
               }
-              this.positionDropdownFromInput();
+              // Dropdown now positions itself via CSS
             },
             error: (authError) => {
               console.error('Both search methods failed:', authError);
               this.searchResults.set(this.getMockSearchResults(value));
-              this.positionDropdownFromInput();
+              // Dropdown now positions itself via CSS
             }
           });
         }
@@ -730,23 +740,11 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
   }
 
   positionDropdown(event: Event) {
-    this.positionDropdownFromInput();
+    // No longer needed - using CSS absolute positioning
   }
 
   private positionDropdownFromInput() {
-    setTimeout(() => {
-      const inputElement = document.querySelector('.add-user-input') as HTMLInputElement;
-      const dropdown = document.querySelector('.search-results') as HTMLElement;
-      
-      if (inputElement && dropdown) {
-        const rect = inputElement.getBoundingClientRect();
-        dropdown.style.position = 'fixed';
-        dropdown.style.top = `${rect.bottom + 4}px`;
-        dropdown.style.left = `${rect.left}px`;
-        dropdown.style.width = `${Math.max(rect.width, 300)}px`;
-        dropdown.style.display = 'block';
-      }
-    }, 50); // Small delay to ensure DOM is updated
+    // No longer needed - using CSS absolute positioning
   }
 
   private getMockSearchResults(searchTerm: string): AuthUser[] {
@@ -1015,7 +1013,7 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
     // Add click outside handler to close dropdown
     document.addEventListener('click', (event) => {
       const target = event.target as HTMLElement;
-      if (!target.closest('.add-user-content')) {
+      if (!target.closest('.add-user-wrapper')) {
         this.showSearchResults.set(false);
       }
     });

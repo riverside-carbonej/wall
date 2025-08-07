@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef 
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, Subject, takeUntil } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { WallService } from '../../services/wall.service';
 import { WallItemService } from '../../../wall-items/services/wall-item.service';
 import { Wall, WallItem, WallObjectType } from '../../../../shared/models/wall.model';
@@ -44,17 +44,30 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
         }
       </div>
       
-      <!-- Animated background with all wall items -->
+      <!-- Animated background with ALL wall items from all object types mixed together -->
       <div class="content-container" #container>
-        <app-wall-items-grid
-          [items]="(wallItems$ | async) || []"
-          [preset]="null"
-          [viewMode]="'grid'"
-          [selectedItems]="[]"
-          [pageSize]="100"
-          [pageIndex]="0"
-          style="contain: content; pointer-events: none;">
-        </app-wall-items-grid>
+        @if ((wallItems$ | async); as items) {
+          @if (items.length > 0) {
+            <app-wall-items-grid
+              [items]="items"
+              [preset]="null"
+              [viewMode]="'grid'"
+              [selectedItems]="[]"
+              [pageSize]="200"
+              [pageIndex]="0"
+              style="contain: content; pointer-events: none;">
+            </app-wall-items-grid>
+          } @else {
+            <!-- Fallback when no items -->
+            <div class="no-items-fallback">
+              <div class="placeholder-grid">
+                @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+                  <div class="placeholder-card"></div>
+                }
+              </div>
+            </div>
+          }
+        }
       </div>
     </div>
   `,
@@ -81,6 +94,34 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
       pointer-events: none;
       transform-style: preserve-3d;
       transform: perspective(1000px);
+    }
+
+    .no-items-fallback {
+      width: 100%;
+      height: 100%;
+      padding: 2rem;
+    }
+
+    .placeholder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+      width: 100%;
+      height: 100%;
+    }
+
+    .placeholder-card {
+      background: linear-gradient(135deg, 
+        rgba(var(--md-sys-color-primary-rgb), 0.1) 0%, 
+        rgba(var(--md-sys-color-secondary-rgb), 0.1) 100%);
+      border-radius: 12px;
+      height: 200px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.6; }
     }
 
     .title-container {
@@ -236,14 +277,14 @@ export class WallHomeComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     );
 
-    // Load wall items  
-    this.wallItems$ = this.wallItemService.getWallItems(this.wallId).pipe(
-      takeUntil(this.destroy$)
-    );
-
     // Extract object types from wall
     this.objectTypes$ = this.wall$.pipe(
       map(wall => wall?.objectTypes || [])
+    );
+
+    // Load ALL wall items from all object types mixed together
+    this.wallItems$ = this.wallItemService.getWallItems(this.wallId).pipe(
+      takeUntil(this.destroy$)
     );
 
     // Navigation context is already set by wallContextGuard before this component loads
