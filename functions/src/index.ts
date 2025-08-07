@@ -1,8 +1,10 @@
 import {setGlobalOptions} from "firebase-functions";
-import {onCall, HttpsError} from "firebase-functions/v2/https";
+import {onCall, onRequest, HttpsError} from "firebase-functions/v2/https";
 import {getAuth} from "firebase-admin/auth";
+import {getFirestore} from "firebase-admin/firestore";
 import {initializeApp} from "firebase-admin/app";
 import * as logger from "firebase-functions/logger";
+import {sendBugReportEmail} from "./sendEmail";
 
 // Initialize Firebase Admin
 initializeApp();
@@ -109,5 +111,78 @@ export const getUsersByUids = onCall({
   } catch (error) {
     logger.error("Error getting users by UIDs:", error);
     throw new HttpsError("internal", "Failed to get users");
+  }
+});
+
+// Cloud function to send bug report email
+export const sendBugReport = onRequest({
+  cors: true,
+  maxInstances: 10,
+}, async (req, res) => {
+  // Enable CORS
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
+  if (req.method !== "POST") {
+    res.status(405).send("Method Not Allowed");
+    return;
+  }
+
+  try {
+    const bugReport = req.body;
+    
+    // Save to Firestore for admin dashboard
+    const db = getFirestore();
+    const reportRef = await db.collection('bug-reports').add({
+      ...bugReport,
+      createdAt: new Date().toISOString(),
+      status: 'new',
+      read: false
+    });
+    
+    logger.info("🐛 Bug report saved to Firestore", {
+      id: reportRef.id,
+      from: bugReport.userEmail || 'Anonymous',
+      description: bugReport.description?.substring(0, 100)
+    });
+    
+    // Try to send email notification (optional)
+    await sendBugReportEmail(bugReport);
+    
+    res.status(200).json({
+      success: true, 
+      message: "Bug report sent successfully",
+      reportId: reportRef.id
+    });
+  } catch (error) {
+    logger.error("Error processing bug report:", error);
+    
+    // Try to at least save basic info
+    try {
+      const db = getFirestore();
+      await db.collection('bug-reports').add({
+        userEmail: req.body.userEmail || 'unknown',
+        description: req.body.description || 'Error saving full report',
+        timestamp: new Date().toISOString(),
+        error: String(error),
+        status: 'error',
+        read: false
+      });
+    } catch (saveError) {
+      logger.error("Failed to save bug report:", saveError);
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: "Bug report received",
+      note: "Report saved with limited information"
+    });
   }
 });

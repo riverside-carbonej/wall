@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { AuthService, AppUser } from '../../../core/services/auth.service';
 import { MaterialIconComponent } from '../material-icon/material-icon.component';
 import { ThemedButtonComponent } from '../themed-button/themed-button.component';
+import { BugReportDialogComponent } from '../bug-report-dialog/bug-report-dialog.component';
 
 @Component({
   selector: 'app-user-account-menu',
@@ -79,6 +80,25 @@ import { ThemedButtonComponent } from '../themed-button/themed-button.component'
               <div class="user-email">{{ user.email }}</div>
             </div>
           </div>
+
+          <!-- Bug Report Button (only show when logged in) -->
+          @if (user) {
+            <div class="menu-divider"></div>
+            
+            <div class="menu-section">
+              <app-themed-button
+                [fullWidth]="true"
+                [color]="'primary'"
+                [variant]="'basic'"
+                [icon]="'bug_report'"
+                [label]="'Report Bug'"
+                [customPadding]="'16px 24px'"
+                [height]="'48px'"
+                [justifyContent]="'center'"
+                (buttonClick)="onReportBug()">
+              </app-themed-button>
+            </div>
+          }
 
           <div class="menu-divider"></div>
 
@@ -390,10 +410,13 @@ export class UserAccountMenuComponent implements OnInit, OnDestroy {
   isMenuOpen = false;
   imageLoadFailed = false;
 
+  private dialogRef?: ComponentRef<BugReportDialogComponent>;
+
   constructor(
     private authService: AuthService,
     private router: Router,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private viewContainerRef: ViewContainerRef
   ) {
     this.currentUser$ = this.authService.currentUser$;
   }
@@ -500,5 +523,24 @@ export class UserAccountMenuComponent implements OnInit, OnDestroy {
   onSignIn(): void {
     this.closeMenu();
     this.router.navigate(['/login']);
+  }
+
+  onReportBug(): void {
+    this.closeMenu();
+    
+    // Create and show the bug report dialog
+    if (!this.dialogRef) {
+      this.dialogRef = this.viewContainerRef.createComponent(BugReportDialogComponent);
+      document.body.appendChild(this.dialogRef.location.nativeElement);
+      
+      // Clean up reference when dialog is closed
+      const checkInterval = setInterval(() => {
+        if (!document.body.contains(this.dialogRef!.location.nativeElement)) {
+          clearInterval(checkInterval);
+          this.dialogRef?.destroy();
+          this.dialogRef = undefined;
+        }
+      }, 100);
+    }
   }
 }

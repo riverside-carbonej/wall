@@ -123,5 +123,13 @@ service cloud.firestore {
       allow write: if false; // Set to false for now - update with your UID
       // allow write: if request.auth != null && request.auth.uid == "YOUR_SUPER_ADMIN_UID";
     }
+    
+    // Bug reports collection - only admin (Jack) can read
+    match /bug-reports/{reportId} {
+      // Only Jack can read bug reports
+      allow read: if request.auth != null && request.auth.uid == 'HElXlnY0qPY6rE7t1lpM2G3BMhe2';
+      // Only cloud functions can write (no client writes)
+      allow write: if false;
+    }
   }
 }
