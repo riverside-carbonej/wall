@@ -116,9 +116,10 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
     }
 
     .title-wrapper {
-      width: min-content;
+      width: max-content;
       height: min-content;
-      min-width: 500px;
+      min-width: min(500px, 90vw);
+      max-width: 90vw;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -126,6 +127,7 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
       font-size: 24px;
       pointer-events: auto;
       text-align: center;
+      padding: 0 1rem;
     }
 
     .organization-logo {
@@ -150,17 +152,57 @@ import { WallItemsGridComponent } from '../../../wall-items/components/wall-item
       margin: 0 0 1.5rem 0;
       opacity: 0.9;
       text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     .wall-title {
       font-size: 2.5em;
       font-weight: 600;
+      line-height: 1.3;
       margin: 0 0 1rem 0;
-      white-space: nowrap;
       text-shadow: 0 2px 12px rgba(0,0,0,0.4);
       letter-spacing: -0.02em;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+      max-width: 100%;
     }
 
+    /* Responsive adjustments for narrow screens */
+    @media (max-width: 768px) {
+      .title-wrapper {
+        font-size: 18px;
+      }
+      
+      .organization-logo img {
+        width: 8em;
+        height: 8em;
+      }
+      
+      .wall-title {
+        font-size: 2em;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .title-wrapper {
+        font-size: 16px;
+      }
+      
+      .organization-logo img {
+        width: 6em;
+        height: 6em;
+      }
+      
+      .wall-title {
+        font-size: 1.75em;
+      }
+      
+      .organization-name {
+        font-size: 0.9em;
+      }
+    }
 
   `]
 })

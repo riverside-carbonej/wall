@@ -11,7 +11,8 @@
       "Bash(npx firebase deploy:*)",
       "Bash(cat:*)",
       "Bash(npm install:*)",
-      "Bash(npx firebase:*)"
+      "Bash(npx firebase:*)",
+      "Bash(start http://localhost:4301)"
     ],
     "deny": []
   }
