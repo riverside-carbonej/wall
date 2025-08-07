@@ -123,7 +123,7 @@ export class WallTemplatesService {
           inactivityTimeout: 10
         },
         visibility: {
-          isPublished: true,
+          isPublished: false,
           requiresLogin: false
         }
       },
@@ -179,7 +179,7 @@ export class WallTemplatesService {
           inactivityTimeout: 5
         },
         visibility: {
-          isPublished: true,
+          isPublished: false,
           requiresLogin: false
         }
       },
