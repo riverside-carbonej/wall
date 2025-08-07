@@ -375,21 +375,26 @@ export class WallItemsGridComponent {
     const objectType = this.preset || this.findObjectTypeForItem(item);
     if (!objectType) return null;
     
+    const MAX_SUBTITLE_LENGTH = 60; // Maximum characters for subtitle
     const secondaryField = objectType.displaySettings?.secondaryField;
     const tertiaryField = objectType.displaySettings?.tertiaryField;
     
     const subtitleParts: string[] = [];
     
-    // Add secondary field if present
+    // Add secondary field if present and not too long
     if (secondaryField && item.fieldData[secondaryField]) {
-      const secondaryValue = item.fieldData[secondaryField];
-      subtitleParts.push(this.formatFieldValue(secondaryValue));
+      const secondaryValue = this.formatFieldValue(item.fieldData[secondaryField]);
+      if (secondaryValue && secondaryValue.length <= MAX_SUBTITLE_LENGTH) {
+        subtitleParts.push(secondaryValue);
+      }
     }
     
-    // Add tertiary field if present
+    // Add tertiary field if present and not too long
     if (tertiaryField && item.fieldData[tertiaryField]) {
-      const tertiaryValue = item.fieldData[tertiaryField];
-      subtitleParts.push(this.formatFieldValue(tertiaryValue));
+      const tertiaryValue = this.formatFieldValue(item.fieldData[tertiaryField]);
+      if (tertiaryValue && tertiaryValue.length <= MAX_SUBTITLE_LENGTH) {
+        subtitleParts.push(tertiaryValue);
+      }
     }
     
     return subtitleParts.length > 0 ? subtitleParts.join(' • ') : null;
@@ -397,6 +402,7 @@ export class WallItemsGridComponent {
 
   getMetadata(item: WallItem): Array<{key: string; value: string; icon?: string}> {
     const metadata: Array<{key: string; value: string; icon?: string}> = [];
+    const MAX_FIELD_LENGTH = 80; // Maximum characters to show on card
     
     // Use provided preset or find from wall's object types
     const objectType = this.preset || this.findObjectTypeForItem(item);
@@ -447,8 +453,8 @@ export class WallItemsGridComponent {
               displayValue = String(fieldValue);
             }
             
-            // Only add to metadata if displayValue has meaningful content
-            if (displayValue && displayValue.trim()) {
+            // Only add to metadata if displayValue has meaningful content AND is not too long
+            if (displayValue && displayValue.trim() && displayValue.length <= MAX_FIELD_LENGTH) {
               metadata.push({
                 key: fieldId,
                 value: displayValue,

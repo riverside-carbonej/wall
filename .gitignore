@@ -67,3 +67,12 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Migration secrets - NEVER COMMIT THESE
+migration/firebase-service-account-key.json
+firebase-service-account-key.json
+**/firebase-service-account-key.json
+
+# Migration output (optional - can be regenerated)
+migration/migration-output/
+migration-output/

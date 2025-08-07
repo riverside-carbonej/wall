@@ -12,7 +12,12 @@
       "Bash(cat:*)",
       "Bash(npm install:*)",
       "Bash(npx firebase:*)",
-      "Bash(start http://localhost:4301)"
+      "Bash(start http://localhost:4301)",
+      "Bash(sqlite3:*)",
+      "Bash(gh repo view:*)",
+      "Bash(git push:*)",
+      "Bash(git reset:*)",
+      "Bash(git rm:*)"
     ],
     "deny": []
   }
