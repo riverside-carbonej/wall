@@ -193,12 +193,15 @@ interface WallUser {
     :host {
       display: block;
       height: 100%;
+      overflow: visible;
     }
 
     .permissions-container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 24px;
+      position: relative;
+      overflow: visible;
     }
 
     /* Access Summary - Compact */
@@ -235,6 +238,8 @@ interface WallUser {
       border-radius: 12px;
       padding: 24px;
       border: 1px solid var(--md-sys-color-outline-variant);
+      position: relative;
+      overflow: visible;
     }
     
     .people-table-container h3 {
@@ -249,7 +254,8 @@ interface WallUser {
       width: 100%;
       border-collapse: collapse;
       border-radius: 8px;
-      overflow: hidden;
+      overflow: visible;
+      position: relative;
     }
     
     .people-table thead {
@@ -352,10 +358,14 @@ interface WallUser {
     .add-user-row {
       background: var(--md-sys-color-surface-container-low);
       border-top: 2px solid var(--md-sys-color-outline-variant);
+      position: relative;
+      overflow: visible;
     }
     
     .add-user-row td {
       padding: 20px;
+      position: relative;
+      overflow: visible;
     }
     
     .add-user-content {
@@ -400,18 +410,19 @@ interface WallUser {
     /* Search Results */
     .search-results {
       position: absolute;
-      top: 100%;
+      top: calc(100% + 8px);
       left: 0;
       right: 0;
       background: var(--md-sys-color-surface);
       border: 1px solid var(--md-sys-color-outline-variant);
       border-radius: 8px;
-      margin-top: 8px;
-      max-height: 250px;
+      max-height: 300px;
       overflow-y: auto;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-      z-index: 1000;
-      min-width: 300px;
+      overflow-x: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      z-index: 9999;
+      min-width: 350px;
+      max-width: 500px;
     }
 
     .add-user-content {
