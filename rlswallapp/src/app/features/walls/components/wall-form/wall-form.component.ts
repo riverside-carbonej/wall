@@ -558,6 +558,14 @@ import { Subject } from 'rxjs';
                 <span *ngIf="wallForm.get('inactivityTimeout')?.errors?.['max']">Maximum timeout is 60 minutes</span>
               </div>
             </div>
+
+            <div class="form-group">
+              <app-material-switch
+                formControlName="showQrCode"
+                label="Show QR Code in Navigation"
+                helpText="Display a QR code in the sidebar that links to this wall">
+              </app-material-switch>
+            </div>
           </div>
         </section>
       </form>
@@ -2568,7 +2576,8 @@ export class WallFormComponent implements OnInit, OnDestroy {
       requiresLogin: [true], // Default to login-required
       
       // Settings
-      inactivityTimeout: [5, [Validators.required, Validators.min(1), Validators.max(60)]]
+      inactivityTimeout: [5, [Validators.required, Validators.min(1), Validators.max(60)]],
+      showQrCode: [false] // QR code visibility toggle
     });
   }
 
@@ -2585,7 +2594,8 @@ export class WallFormComponent implements OnInit, OnDestroy {
         allowDepartmentEdit: false,
         isPublished: template.wall.visibility?.isPublished || false,
         requiresLogin: template.wall.visibility?.requiresLogin ?? true,
-        inactivityTimeout: template.wall.settings?.inactivityTimeout || 5
+        inactivityTimeout: template.wall.settings?.inactivityTimeout || 5,
+        showQrCode: template.wall.settings?.showQrCode || false
       });
 
       // Apply theme
@@ -2624,6 +2634,7 @@ export class WallFormComponent implements OnInit, OnDestroy {
             organizationSubtitle: wall.organizationSubtitle,
             organizationLogoUrl: wall.organizationLogoUrl,
             inactivityTimeout: wall.settings?.inactivityTimeout || 5,
+            showQrCode: wall.settings?.showQrCode || false,
             // Load visibility settings
             isPublished: wall.visibility?.isPublished || false,
             requiresLogin: wall.visibility?.requiresLogin ?? true // Default to true (internal) if not set
@@ -2831,7 +2842,16 @@ export class WallFormComponent implements OnInit, OnDestroy {
             organizationLogoUrl: this.wallForm.get('organizationLogoUrl')?.value,
             theme: this.selectedTheme,
             permissions,
-            visibility
+            visibility,
+            settings: {
+              allowComments: false,
+              allowRatings: false,
+              enableNotifications: true,
+              autoSave: true,
+              moderationRequired: false,
+              inactivityTimeout: this.wallForm.get('inactivityTimeout')?.value || 5,
+              showQrCode: this.wallForm.get('showQrCode')?.value || false
+            }
           };
           
           this.wallService.updateWall(this.wallId, updateData).subscribe({
@@ -2869,7 +2889,8 @@ export class WallFormComponent implements OnInit, OnDestroy {
               enableNotifications: true,
               autoSave: true,
               moderationRequired: false,
-              inactivityTimeout: this.wallForm.get('inactivityTimeout')?.value || 5
+              inactivityTimeout: this.wallForm.get('inactivityTimeout')?.value || 5,
+              showQrCode: this.wallForm.get('showQrCode')?.value || false
             },
             
             // Metadata

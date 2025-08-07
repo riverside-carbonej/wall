@@ -7,8 +7,8 @@
       <mat-form-field appearance="outline" class="control-field">
         <mat-label>Map Type</mat-label>
         <mat-select 
-          [value]="settings.tileProvider"
-          (selectionChange)="onTileProviderChange($event.value)">
+          [(ngModel)]="settings.tileProvider"
+          (ngModelChange)="onTileProviderChange($event)">
           <mat-option value="openstreetmap">
             <mat-icon>map</mat-icon>
             Street Map
@@ -24,8 +24,8 @@
       <mat-form-field appearance="outline" class="control-field">
         <mat-label>Filter by Type</mat-label>
         <mat-select 
-          [value]="settings.showAllItems ? 'all' : settings.filterByObjectType"
-          (selectionChange)="onFilterChange($event.value)">
+          [(ngModel)]="filterValue"
+          (ngModelChange)="onFilterChange($event)">
           <mat-option value="all">
             <mat-icon>visibility</mat-icon>
             All Items ({{ getVisibleItemsCount() }})

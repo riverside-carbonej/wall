@@ -117,7 +117,7 @@ export const routes: Routes = [
   { 
     path: 'walls/:wallId/map', 
     loadComponent: () => import('./features/maps/components/map-view/map-view.component').then(m => m.MapViewComponent),
-    canActivate: [AuthGuard, wallContextGuard]
+    canActivate: [publicWallGuard, publicWallContextGuard]
   },
   
   // Placeholder routes for future admin features

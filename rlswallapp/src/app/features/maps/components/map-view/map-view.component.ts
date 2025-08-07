@@ -1,9 +1,9 @@
 import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
-import { SelectComponent } from '../../../../shared/components/select/select.component';
 import { TooltipDirective } from '../../../../shared/components/tooltip/tooltip.component';
 import { ProgressSpinnerComponent } from '../../../../shared/components/progress-spinner/progress-spinner.component';
 import { MatFormField, MatLabel, MatSelect, MatOption, MatIcon } from '../../../../shared/components/material-stubs';
@@ -17,6 +17,7 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
 import { WallService } from '../../../walls/services/wall.service';
 import { WallItemService } from '../../../wall-items/services/wall-item.service';
 import { ThemeService } from '../../../../shared/services/theme.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { WallItemsGridComponent } from '../../../wall-items/components/wall-items-grid/wall-items-grid.component';
 
 export interface MapViewSettings {
@@ -37,9 +38,9 @@ export interface MapItemClickEvent {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ThemedButtonComponent,
     MaterialIconComponent,
-    SelectComponent,
     TooltipDirective,
     ProgressSpinnerComponent,
     LoadingStateComponent,
@@ -81,6 +82,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   isLoading = false;
   visibleItems: WallItem[] = [];
   mapMarkers: MapMarker[] = [];
+  filterValue: string = 'all';
   private currentWallId?: string;
   private currentWall?: Wall;
   private wallThemeColors?: { primary: string; secondary: string; accent: string; };
@@ -91,12 +93,14 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
     private wallService: WallService,
     private wallItemService: WallItemService,
     private router: Router,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private authService: AuthService
   ) {}
   
   ngOnInit() {
     // Apply initial settings
     this.settings = { ...this.settings, ...this.initialSettings };
+    this.filterValue = this.settings.showAllItems ? 'all' : (this.settings.filterByObjectType || 'all');
     
     // Get current wall ID from route if not set
     if (!this.currentWallId) {
@@ -472,12 +476,15 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   
   private loadWallData() {
     // Load wall data when used as standalone route
+    const currentUser = this.authService.currentUser;
     this.route.params.pipe(
       switchMap(params => {
         const wallId = params['wallId'];
         if (wallId) {
           this.currentWallId = wallId;
-          return this.wallService.getWallById(wallId);
+          return currentUser 
+            ? this.wallService.getWallById(wallId)
+            : this.wallService.getWallByIdPublic(wallId);
         }
         return [];
       }),

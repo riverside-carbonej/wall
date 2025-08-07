@@ -8,6 +8,7 @@ import { NlpService } from '../../../../shared/services/nlp.service';
 import { WallService } from '../../../walls/services/wall.service';
 import { WallItemService } from '../../services/wall-item.service';
 import { Wall, WallItem, WallObjectType } from '../../../../shared/models/wall.model';
+import { AuthService } from '../../../../core/services/auth.service';
 import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/components/empty-state/empty-state.component';
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 import { CardComponent, CardAction } from '../../../../shared/components/card/card.component';
@@ -609,7 +610,8 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
     private wallService: WallService,
     private wallItemService: WallItemService,
     private confirmationDialog: ConfirmationDialogService,
-    public nlpService: NlpService
+    public nlpService: NlpService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -621,9 +623,14 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
       }))
     );
 
-    // Load wall data
+    // Load wall data - use public method if not authenticated
+    const currentUser = this.authService.currentUser;
     this.wall$ = routeParams$.pipe(
-      switchMap(({ wallId }) => this.wallService.getWallById(wallId)),
+      switchMap(({ wallId }) => 
+        currentUser 
+          ? this.wallService.getWallById(wallId)
+          : this.wallService.getWallByIdPublic(wallId)
+      ),
       filter(wall => wall !== null),
       takeUntil(this.destroy$)
     ) as Observable<Wall>;

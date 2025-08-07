@@ -16,6 +16,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { WallService } from '../../../walls/services/wall.service';
 import { WallItemService } from '../../services/wall-item.service';
 import { ImageUploadService } from '../../services/image-upload.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { ItemImageGalleryComponent } from '../../components/item-image-gallery/item-image-gallery.component';
 import { DynamicFieldRendererComponent } from '../../components/dynamic-field-renderer/dynamic-field-renderer.component';
 import { EntityAssociationManagerComponent } from '../../components/entity-association-manager/entity-association-manager.component';
@@ -109,6 +110,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     private wallService: WallService,
     private wallItemService: WallItemService,
     private imageUploadService: ImageUploadService,
+    private authService: AuthService,
     private fb: FormBuilder,
     private formStateService: FormStateService,
     private cdr: ChangeDetectorRef,
@@ -191,8 +193,11 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // Load wall data and item data
-    this.wall$ = this.wallService.getWallById(this.wallId);
+    // Load wall data and item data - use public method if not authenticated
+    const currentUser = this.authService.currentUser;
+    this.wall$ = currentUser 
+      ? this.wallService.getWallById(this.wallId)
+      : this.wallService.getWallByIdPublic(this.wallId);
     
     if (this.itemId) {
       // Existing item - load it

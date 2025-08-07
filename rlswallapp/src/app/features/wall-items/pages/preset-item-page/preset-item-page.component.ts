@@ -8,6 +8,7 @@ import { switchMap, filter, map } from 'rxjs/operators';
 import { WallService } from '../../../walls/services/wall.service';
 import { WallItemService } from '../../services/wall-item.service';
 import { ImageUploadService, PendingImage } from '../../../../shared/services/image-upload.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { Wall, WallObjectType, WallItem, WallItemImage } from '../../../../shared/models/wall.model';
 import { PresetItemBasePageComponent, PageMode } from '../../components/preset-item-base-page/preset-item-base-page.component';
 import { FormStateService, FormState } from '../../../../shared/services/form-state.service';
@@ -80,6 +81,7 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
     private fb: FormBuilder,
     private wallService: WallService,
     private wallItemService: WallItemService,
+    private authService: AuthService,
     private imageUploadService: ImageUploadService,
     private formStateService: FormStateService,
     private cdr: ChangeDetectorRef
@@ -104,9 +106,14 @@ export class PresetItemPageComponent implements OnInit, OnDestroy, AfterViewInit
       }))
     );
 
-    // Load wall data
+    // Load wall data - use public method if not authenticated
+    const currentUser = this.authService.currentUser;
     this.wall$ = routeParams$.pipe(
-      switchMap(({ wallId }) => this.wallService.getWallById(wallId)),
+      switchMap(({ wallId }) => 
+        currentUser 
+          ? this.wallService.getWallById(wallId)
+          : this.wallService.getWallByIdPublic(wallId)
+      ),
       filter(wall => wall !== null),
       takeUntil(this.destroy$)
     ) as Observable<Wall>;

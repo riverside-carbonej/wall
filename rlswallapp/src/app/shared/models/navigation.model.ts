@@ -16,6 +16,10 @@ export interface WallNavigationContext {
   canAdmin: boolean;
   totalItemCount?: number;
   hasLocationEnabledTypes?: boolean;
+  wallSettings?: {
+    showQrCode?: boolean;
+    inactivityTimeout?: number;
+  };
 }
 
 export interface WallObjectTypeNav {

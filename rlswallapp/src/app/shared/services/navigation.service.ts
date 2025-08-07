@@ -68,7 +68,11 @@ export class NavigationService {
       canEdit,
       canAdmin,
       totalItemCount: itemCount,
-      hasLocationEnabledTypes: this.hasLocationEnabledObjectTypes(wall.objectTypes || [])
+      hasLocationEnabledTypes: this.hasLocationEnabledObjectTypes(wall.objectTypes || []),
+      wallSettings: {
+        showQrCode: wall.settings?.showQrCode,
+        inactivityTimeout: wall.settings?.inactivityTimeout
+      }
     };
 
     this._currentContext.next(context);

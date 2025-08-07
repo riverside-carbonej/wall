@@ -10,6 +10,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { WallItemService } from '../../services/wall-item.service';
 import { WallService } from '../../../walls/services/wall.service';
 import { Wall, WallItem, WallObjectType } from '../../../../shared/models/wall.model';
+import { AuthService } from '../../../../core/services/auth.service';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/components/empty-state/empty-state.component';
 import { CardComponent, CardAction, CardMenuItem } from '../../../../shared/components/card/card.component';
@@ -348,7 +349,8 @@ export class WallItemListComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private wallItemService: WallItemService,
-    private wallService: WallService
+    private wallService: WallService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -370,8 +372,12 @@ export class WallItemListComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Load wall data
-    this.wall$ = this.wallService.getWallById(this.wallId).pipe(
+    // Load wall data - use public method if not authenticated
+    const currentUser = this.authService.currentUser;
+    this.wall$ = (currentUser 
+      ? this.wallService.getWallById(this.wallId)
+      : this.wallService.getWallByIdPublic(this.wallId)
+    ).pipe(
       takeUntil(this.destroy$)
     );
 

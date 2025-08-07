@@ -181,6 +181,7 @@ export interface Wall {
     maxItemsPerUser?: number;
     moderationRequired: boolean;
     inactivityTimeout: number; // in minutes, default 5
+    showQrCode?: boolean; // Show QR code in navigation sidebar
   };
   
   // Metadata

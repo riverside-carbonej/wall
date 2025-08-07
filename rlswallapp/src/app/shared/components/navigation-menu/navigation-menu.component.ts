@@ -10,6 +10,7 @@ import { NavigationService } from '../../services/navigation.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { SideButtonComponent } from '../side-button/side-button.component';
 import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navigation.model';
+import { QrCodeComponent } from '../qr-code/qr-code.component';
 
 @Component({
   selector: 'app-navigation-menu',
@@ -18,7 +19,8 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
   imports: [
     CommonModule,
     DividerComponent,
-    SideButtonComponent
+    SideButtonComponent,
+    QrCodeComponent
   ],
   template: `
     <div class="navigation-menu" [class.open]="isMenuOpen()" [class.closed]="!isMenuOpen()">
@@ -76,6 +78,17 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
                 [selected]="isAdminPathSelectedWithCD('/permissions')"
                 (buttonClick)="navigateToAdmin('/permissions')">
               </app-side-button>
+          </div>
+        }
+
+        <!-- QR Code Section -->
+        @if (shouldShowQrCode()) {
+          <div class="qr-code-section">
+            <app-qr-code 
+              [data]="qrCodeUrl()"
+              [label]="'Visit This Wall'"
+              [size]="150">
+            </app-qr-code>
           </div>
         }
 
@@ -280,6 +293,16 @@ import { WallMenuItem, WallNavigationContext, AddMode } from '../../models/navig
       animation: bounce 2s infinite;
     }
     
+    /* QR Code Section */
+    .qr-code-section {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid var(--md-sys-color-outline-variant);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
     @keyframes bounce {
       0%, 20%, 50%, 80%, 100% {
         transform: translateY(0);
@@ -321,6 +344,21 @@ export class NavigationMenuComponent implements OnInit, OnDestroy, AfterViewInit
   protected readonly hasAdminPermissions = computed(() => {
     const context = this.currentContext();
     return context?.canAdmin ?? false;
+  });
+  
+  protected readonly shouldShowQrCode = computed(() => {
+    const context = this.currentContext();
+    // Show QR code if wall settings explicitly enable it
+    return context?.wallSettings?.showQrCode === true;
+  });
+  
+  protected readonly qrCodeUrl = computed(() => {
+    const context = this.currentContext();
+    if (typeof window !== 'undefined' && context?.wallId) {
+      // Generate URL for the specific wall
+      return `${window.location.origin}/walls/${context.wallId}`;
+    }
+    return window.location.origin || 'https://riversidewalls.com';
   });
 
   constructor() {}
