@@ -76,3 +76,7 @@ firebase-service-account-key.json
 # Migration output (optional - can be regenerated)
 migration/migration-output/
 migration-output/
+
+# Backup data (stored separately in OneDrive)
+backups/
+**/backups/
