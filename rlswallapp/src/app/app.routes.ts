@@ -6,6 +6,11 @@ import { wallContextSimpleGuard } from './core/guards/wall-context-simple.guard'
 export const routes: Routes = [
   { path: '', redirectTo: '/walls', pathMatch: 'full' },
   { path: 'login', loadComponent: () => import('./auth/components/login.component').then(m => m.LoginComponent) },
+  {
+    path: 'admin/bugs',
+    loadComponent: () => import('./features/admin/bug-reports-dashboard.component').then(m => m.BugReportsDashboardComponent),
+    canActivate: [AuthGuard]
+  },
   { 
     path: 'walls', 
     loadComponent: () => import('./features/walls/components/wall-list/wall-list.component').then(m => m.WallListComponent),

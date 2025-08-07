@@ -1,0 +1,31 @@
+displayName: "Bug Report Received - Riverside Wall App"
+documentation:
+  content: |
+    # Bug Report Alert
+    
+    A new bug report has been submitted to the Riverside Wall App.
+    
+    ## Quick Actions
+    - [View Bug Reports Dashboard](https://riverside-wall-app.web.app/admin/bugs)
+    - [View Firebase Console Logs](https://console.firebase.google.com/project/riverside-wall-app/functions/logs)
+    
+    Check the dashboard for full details.
+  mimeType: text/markdown
+conditions:
+  - displayName: "Bug Report Log Entry"
+    conditionMatchedLog:
+      filter: |
+        resource.type="cloud_function"
+        resource.labels.function_name="sendBugReport"
+        jsonPayload.message=~"Bug report saved to Firestore"
+        severity>=INFO
+      labelExtractors:
+        user_email: 'EXTRACT(jsonPayload.from)'
+        report_id: 'EXTRACT(jsonPayload.id)'
+alertStrategy:
+  notificationRateLimit:
+    period: 300s  # 5 minutes
+  autoClose: 604800s  # 7 days
+notificationChannels: []  # Add your notification channel IDs here
+severity: WARNING
+enabled: true
