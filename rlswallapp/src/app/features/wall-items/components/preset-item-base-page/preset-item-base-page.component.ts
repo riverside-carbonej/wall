@@ -204,7 +204,7 @@ export type PageMode = 'create' | 'view' | 'edit';
                     
                     <!-- Individual tabs for each related entity type -->
                     @if (mode === 'view' && item && hasRelatedItems()) {
-                      @for (relatedType of relatedTypes; track relatedType.objectType.id; let i = $index) {
+                      @for (relatedType of relatedTypes; track $index; let i = $index) {
                         <mat-tab [label]="getTabLabelForEntityType(relatedType.objectType, i)">
                           <div class="related-items-section">
                             @if (loadingRelatedItems) {
@@ -899,10 +899,20 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
   ngOnChanges(changes: SimpleChanges) {
     // Check if relevant inputs have changed
     if (changes['mode'] || changes['item'] || changes['wall'] || changes['preset']) {
-      // Invalidate cache when inputs change
+      console.log('📝 PresetItemBasePageComponent ngOnChanges:', {
+        mode: changes['mode']?.currentValue,
+        hasItem: !!changes['item']?.currentValue,
+        hasWall: !!changes['wall']?.currentValue,
+        hasPreset: !!changes['preset']?.currentValue
+      });
+      
+      // Invalidate cache AND clear existing relatedTypes when inputs change
       this.cachedRelatedTypes = null;
+      this.relatedTypes = []; // Clear existing array to prevent accumulation
+      console.log('🗑️ Cache invalidated and relatedTypes cleared');
+      
       this.checkAndLoadRelatedItems();
-      // Update related types
+      // Update related types (will repopulate from scratch)
       this.updateRelatedTypes();
     }
   }
@@ -1111,9 +1121,60 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
 
   private updateRelatedTypes() {
     console.log('🔄 Updating relatedTypes property');
+    console.log('   Current relatedTypes before update:', this.relatedTypes.length, 'items');
+    console.log('   Current relatedTypes IDs:', this.relatedTypes.map(rt => rt.objectType.id));
+    
+    // Force clear cache first
+    this.cachedRelatedTypes = null;
+    
+    // Create a completely new array
+    const newRelatedTypes: { objectType: WallObjectType; fieldName: string }[] = [];
+    
     const types = this.getRelatedObjectTypes();
-    this.relatedTypes = types;
-    console.log('✅ relatedTypes property updated with', types.length, 'types');
+    console.log('   Got', types.length, 'types from getRelatedObjectTypes');
+    
+    // Check for duplicates before setting
+    const idCounts = new Map<string, number>();
+    types.forEach(t => {
+      const count = idCounts.get(t.objectType.id) || 0;
+      idCounts.set(t.objectType.id, count + 1);
+    });
+    
+    const duplicates = Array.from(idCounts.entries()).filter(([id, count]) => count > 1);
+    if (duplicates.length > 0) {
+      console.error('🚨 DUPLICATE OBJECT TYPE IDS DETECTED IN relatedTypes:');
+      duplicates.forEach(([id, count]) => {
+        console.error(`   - ID "${id}" appears ${count} times`);
+      });
+      
+      // Debug: Show all items with details
+      console.log('📋 All items in relatedTypes:');
+      types.forEach((t, i) => {
+        console.log(`   [${i}] ${t.objectType.name} (id: ${t.objectType.id}, field: ${t.fieldName})`);
+      });
+      
+      // Filter out duplicates - keep only first occurrence
+      const seen = new Set<string>();
+      const filtered = types.filter(t => {
+        if (seen.has(t.objectType.id)) {
+          console.warn(`   ⚠️ Removing duplicate: ${t.objectType.name} (${t.objectType.id})`);
+          return false;
+        }
+        seen.add(t.objectType.id);
+        return true;
+      });
+      
+      console.log(`   ✅ Filtered from ${types.length} to ${filtered.length} types`);
+      // Replace the entire array with a new one
+      this.relatedTypes = [...filtered];
+    } else {
+      // Replace the entire array with a new one
+      this.relatedTypes = [...types];
+    }
+    
+    console.log('✅ relatedTypes property REPLACED with', this.relatedTypes.length, 'types');
+    console.log('   Final relatedTypes:', this.relatedTypes.map(rt => rt.objectType.name));
+    console.log('   Final relatedTypes IDs:', this.relatedTypes.map(rt => rt.objectType.id));
   }
   
   getRelatedObjectTypes(): { objectType: WallObjectType; fieldName: string }[] {
@@ -1132,6 +1193,23 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
     
     console.log(`📊 Current preset: ${this.preset.name} (${this.preset.id})`);
     console.log(`📊 Total object types in wall: ${this.wall.objectTypes?.length}`);
+    console.log('📊 Wall object types:', this.wall.objectTypes?.map(ot => ({ id: ot.id, name: ot.name })));
+    
+    // Check for duplicate object types in the wall
+    const wallTypeIds = this.wall.objectTypes?.map(ot => ot.id) || [];
+    const uniqueWallTypeIds = new Set(wallTypeIds);
+    if (wallTypeIds.length !== uniqueWallTypeIds.size) {
+      console.error('🚨 DUPLICATE OBJECT TYPES IN WALL:');
+      const idCounts = new Map<string, number>();
+      wallTypeIds.forEach(id => {
+        idCounts.set(id, (idCounts.get(id) || 0) + 1);
+      });
+      idCounts.forEach((count, id) => {
+        if (count > 1) {
+          console.error(`   - Object type ID "${id}" appears ${count} times in wall.objectTypes`);
+        }
+      });
+    }
     
     const relatedTypesMap = new Map<string, { objectType: WallObjectType; fieldNames: string[] }>();
     
@@ -1161,6 +1239,7 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
       });
       
       // OUTGOING: Find object types that this object type points TO
+      // These will be shown as tabs for easy management
       if (this.preset) {
         this.preset.fields.forEach((field: FieldDefinition) => {
           if (field.type === 'entity') {
@@ -1348,7 +1427,6 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
 
   getTabLabelForEntityType(objectType: WallObjectType, index?: number): string {
     const label = this.nlpService.getDisplayPlural(objectType.name);
-    console.log(`🏷️ Tab label requested - Index: ${index}, Type: ${objectType.name} (${objectType.id}), Label: ${label}`);
     return label;
   }
 }

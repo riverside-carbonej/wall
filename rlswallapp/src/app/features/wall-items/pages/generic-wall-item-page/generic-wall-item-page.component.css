@@ -339,6 +339,12 @@
   padding: 24px 0;
 }
 
+/* Entity Association Tab */
+.entity-association-tab {
+  min-height: 400px;
+  background: var(--md-sys-color-surface);
+}
+
 .related-type-section {
   margin-bottom: 32px;
 }

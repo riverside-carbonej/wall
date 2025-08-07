@@ -1,4 +1,8 @@
 <div class="dynamic-field-renderer">
+  <!-- Skip entity fields in read-only mode (they appear in tabs instead) -->
+  @if (readonly && field.type === 'entity') {
+    <!-- Entity associations shown in tabs when in view mode -->
+  } @else {
   <!-- Read-only Display Mode -->
   @if (readonly) {
     <div class="readonly-field">
@@ -264,5 +268,6 @@
       }
 
     </div>
+  }
   }
 </div>

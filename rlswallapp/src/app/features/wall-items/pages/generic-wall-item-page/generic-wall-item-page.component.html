@@ -192,9 +192,33 @@
             </form>
           </mat-tab>
           
-          <!-- Individual tabs for each related entity type -->
-          @if (!isNewItem && hasRelatedItems()) {
-            @for (relatedType of getRelatedObjectTypes(); track relatedType.objectType.id) {
+          <!-- Individual tabs for entity associations -->
+          <!-- Debug: Entity fields count = {{ entityFieldsArray.length }} -->
+          @if (!isNewItem && entityFieldsArray.length > 0) {
+            @for (field of entityFieldsArray; track field.id; let i = $index) {
+              <!-- Debug: Processing field {{ field.name }} ({{ field.type }}) at index {{ i }} -->
+              @if (getTargetObjectType(field)) {
+                <mat-tab [label]="field.name">
+                  <div class="entity-association-tab">
+                    <app-entity-association-manager
+                      [currentItem]="wallItem"
+                      [targetObjectType]="getTargetObjectType(field)!"
+                      [field]="field"
+                      [wallId]="wallId"
+                      [canEdit]="editing"
+                      (associationsChanged)="onAssociationsChanged(field.id, $event)"
+                      (viewItem)="navigateToRelatedItem($event)"
+                      (editItem)="navigateToRelatedItem($event)">
+                    </app-entity-association-manager>
+                  </div>
+                </mat-tab>
+              }
+            }
+          }
+          
+          <!-- Individual tabs for each related entity type (items that reference this) -->
+          @if (!isNewItem && relatedObjectTypesArray.length > 0) {
+            @for (relatedType of relatedObjectTypesArray; track relatedType.objectType.id) {
               <mat-tab [label]="getTabLabelForEntityType(relatedType.objectType)">
                 <div class="related-items-section">
                   @if (loadingRelatedItems) {

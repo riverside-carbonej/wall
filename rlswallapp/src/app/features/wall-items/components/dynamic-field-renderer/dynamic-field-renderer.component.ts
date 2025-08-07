@@ -68,6 +68,7 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   entitySearchTerm: string = '';
   showEntitySuggestions: boolean = false;
   allEntityItems: Array<{id: string; name: string; subtitle?: string}> = [];
+  isLoadingEntities: boolean = false;
   
   ngOnInit() {
     this.initializeFieldData();
@@ -75,7 +76,24 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     // Re-initialize field data when inputs change (like readonly mode or formGroup)
-    if (changes['formGroup'] || changes['readonly'] || changes['value']) {
+    if (changes['formGroup'] || changes['readonly'] || changes['value'] || changes['wall']) {
+      console.log('🔄 DynamicFieldRenderer ngOnChanges - field:', this.field?.name, 'changes:', Object.keys(changes));
+      
+      // Log the actual changes for debugging
+      if (changes['value']) {
+        console.log('  📦 Value changed:', {
+          previous: changes['value'].previousValue,
+          current: changes['value'].currentValue,
+          isFirstChange: changes['value'].isFirstChange()
+        });
+      }
+      if (changes['readonly']) {
+        console.log('  👁️ Readonly changed:', {
+          previous: changes['readonly'].previousValue,
+          current: changes['readonly'].currentValue
+        });
+      }
+      
       // Use setTimeout to ensure the form control is properly initialized
       setTimeout(() => {
         this.initializeFieldData();
@@ -86,6 +104,11 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   private initializeFieldData() {
     // Ensure we have a valid form control before proceeding
     if (!this.formControl || !this.field) {
+      console.warn('⚠️ DynamicFieldRenderer - missing formControl or field', {
+        hasFormControl: !!this.formControl,
+        hasField: !!this.field,
+        fieldId: this.field?.id
+      });
       return;
     }
     
@@ -93,6 +116,17 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     let initialValue = this.formControl.value !== null && this.formControl.value !== undefined 
       ? this.formControl.value 
       : this.value;
+    
+    console.log('📊 DynamicFieldRenderer initializeFieldData:', {
+      field: this.field.name,
+      fieldId: this.field.id,
+      type: this.field.type,
+      initialValue,
+      formControlValue: this.formControl.value,
+      inputValue: this.value,
+      readonly: this.readonly,
+      hasWall: !!this.wall
+    });
     
     // Convert Date objects to ISO string format for date inputs
     if (this.field.type === 'date' && initialValue instanceof Date) {
@@ -103,15 +137,40 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     
     
     if (this.field.type === 'entity') {
+      console.log('🔗 Initializing entity field:', this.field.name, 'value:', initialValue);
+      
+      // Check if we need to reload entities
+      const currentIds = this.selectedEntities.map(e => e.id);
+      const newIds = initialValue ? (Array.isArray(initialValue) ? initialValue : [initialValue]) : [];
+      const needsReload = JSON.stringify(currentIds.sort()) !== JSON.stringify(newIds.sort());
+      
+      console.log('🔍 Entity reload check:', {
+        currentIds,
+        newIds,
+        needsReload,
+        readonly: this.readonly
+      });
+      
+      // Always load available entity items
       this.loadEntityItems();
       
-      // Initialize selected entities from current value
-      if (initialValue) {
-        // Handle both single and multiple entity values
-        const entityIds = Array.isArray(initialValue) ? initialValue : [initialValue];
+      // Only reload selected entities if they've changed or we don't have them yet
+      if (needsReload || this.selectedEntities.length === 0) {
+        // Clear and reload
+        this.selectedEntities = [];
         
-        // Load the actual entity names
-        this.loadSelectedEntities(entityIds);
+        if (initialValue) {
+          // Handle both single and multiple entity values
+          const entityIds = Array.isArray(initialValue) ? initialValue : [initialValue];
+          console.log('📌 Loading selected entities:', entityIds);
+          
+          // Load the actual entity names
+          this.loadSelectedEntities(entityIds);
+        } else {
+          console.log('⚠️ No initial value for entity field');
+        }
+      } else {
+        console.log('✅ Keeping existing selected entities:', this.selectedEntities.length);
       }
     }
   }
@@ -161,13 +220,25 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
         // Multiple entity selection
         const names = value.map(id => {
           const entity = this.selectedEntities.find(e => e.id === id);
-          return entity ? entity.name : id;
+          // Show loading only if we're actually loading
+          return entity ? entity.name : (this.isLoadingEntities ? 'Loading...' : `Entity ${id}`);
         });
         return names.join(', ');
       } else {
         // Single entity selection
         const entity = this.selectedEntities.find(e => e.id === value);
-        return entity ? entity.name : value;
+        // Show loading only if we're actually loading
+        if (entity) {
+          return entity.name;
+        } else if (this.isLoadingEntities && value) {
+          return 'Loading...';
+        } else if (value) {
+          // Try loading if we haven't loaded yet
+          console.log('📍 Triggering entity load from getDisplayValue for:', value);
+          this.loadSelectedEntities([value]);
+          return 'Loading...';
+        }
+        return '';
       }
     }
     
@@ -331,10 +402,33 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   }
   
   private updateEntityFormControlValue() {
-    if (!this.field.entityConfig?.allowMultiple) {
-      this.formControl?.setValue(this.selectedEntities[0]?.id || null);
-    } else {
-      this.formControl?.setValue(this.selectedEntities.map(item => item.id));
+    const newValue = !this.field.entityConfig?.allowMultiple 
+      ? (this.selectedEntities[0]?.id || null)
+      : this.selectedEntities.map(item => item.id);
+    
+    console.log('📝 Updating entity form control value:', {
+      field: this.field.name,
+      newValue,
+      selectedEntities: this.selectedEntities.map(e => ({ id: e.id, name: e.name })),
+      readonly: this.readonly
+    });
+    
+    if (this.formControl && !this.readonly) {
+      // Set value with emitEvent: true to trigger form state changes
+      this.formControl.setValue(newValue);
+      // Mark as dirty and touched to enable save button
+      this.formControl.markAsDirty();
+      this.formControl.markAsTouched();
+      
+      // Also mark the parent form as dirty
+      if (this.formGroup) {
+        this.formGroup.markAsDirty();
+      }
+      
+      console.log('✅ Form control updated and marked dirty');
+    } else if (this.formControl && this.readonly) {
+      // In readonly mode, update without emitting events
+      this.formControl.setValue(newValue, { emitEvent: false });
     }
   }
   
@@ -355,18 +449,20 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     }
 
     // Find the target object type definition to get display field names
-    const targetObjectType = this.wall.objectTypes?.find(ot => ot.id === targetObjectTypeId);
+    let targetObjectType = this.wall.objectTypes?.find(ot => ot.id === targetObjectTypeId);
     
+    // Fallback: try to find by name if ID doesn't match
     if (!targetObjectType) {
-      // Try to find by name as fallback
-      const targetByName = this.wall.objectTypes?.find(ot => 
+      targetObjectType = this.wall.objectTypes?.find(ot => 
         ot.name.toLowerCase() === targetObjectTypeId.toLowerCase()
       );
-      if (targetByName) {
-        this.loadEntityItemsForType(targetByName);
+      
+      if (!targetObjectType) {
+        console.warn('⚠️ Cannot load entity items - target object type not found:', targetObjectTypeId);
         return;
+      } else {
+        console.log('📎 Found object type by name fallback for loading:', targetObjectType.name, targetObjectType.id);
       }
-      return;
     }
 
     this.loadEntityItemsForType(targetObjectType);
@@ -416,40 +512,103 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   }
   
   private loadSelectedEntities(entityIds: string[]) {
-    if (!this.field.entityConfig || !this.wall) return;
+    if (!this.field.entityConfig || !this.wall) {
+      console.warn('⚠️ Cannot load selected entities - missing config or wall');
+      return;
+    }
     
     const targetObjectTypeId = this.field.entityConfig.targetObjectTypeId;
-    if (!targetObjectTypeId) return;
+    if (!targetObjectTypeId) {
+      console.warn('⚠️ No target object type ID');
+      return;
+    }
 
     // Find the target object type definition
-    const targetObjectType = this.wall.objectTypes?.find(ot => ot.id === targetObjectTypeId);
-    if (!targetObjectType) return;
+    let targetObjectType = this.wall.objectTypes?.find(ot => ot.id === targetObjectTypeId);
+    
+    // Fallback: try to find by name if ID doesn't match
+    if (!targetObjectType) {
+      targetObjectType = this.wall.objectTypes?.find(ot => 
+        ot.name.toLowerCase() === targetObjectTypeId.toLowerCase()
+      );
+      
+      if (!targetObjectType) {
+        console.warn('⚠️ Target object type not found by ID or name:', targetObjectTypeId);
+        return;
+      } else {
+        console.log('📎 Found object type by name fallback:', targetObjectType.name, targetObjectType.id);
+      }
+    }
+
+    console.log('🔍 Loading selected entities for:', targetObjectType.name, 'IDs:', entityIds);
+    
+    // Set loading state
+    this.isLoadingEntities = true;
+
+    // Track how many entities we're waiting for
+    let pendingLoads = entityIds.length;
+    
+    if (pendingLoads === 0) {
+      this.isLoadingEntities = false;
+      return;
+    }
 
     // Load each selected entity
     entityIds.forEach(entityId => {
-      this.wallItemService.getWallItemById(entityId).subscribe(item => {
-        if (item) {
-          const primaryField = targetObjectType.displaySettings?.primaryField;
-          const secondaryField = targetObjectType.displaySettings?.secondaryField;
+      console.log('📡 Fetching entity:', entityId);
+      this.wallItemService.getWallItemById(entityId).subscribe({
+        next: (item) => {
+          if (item) {
+            const primaryField = targetObjectType.displaySettings?.primaryField;
+            const secondaryField = targetObjectType.displaySettings?.secondaryField;
+            
+            let name = 'Untitled';
+            let subtitle = '';
+
+            if (primaryField && item.fieldData[primaryField]) {
+              name = this.formatFieldValue(item.fieldData[primaryField]);
+            } else {
+              // Fallback to first text field if no primary field
+              const firstTextField = targetObjectType.fields.find((f: any) => 
+                f.type === 'text' && item.fieldData[f.id]
+              );
+              if (firstTextField && item.fieldData[firstTextField.id]) {
+                name = this.formatFieldValue(item.fieldData[firstTextField.id]);
+              }
+            }
+
+            if (secondaryField && item.fieldData[secondaryField]) {
+              subtitle = this.formatFieldValue(item.fieldData[secondaryField]);
+            }
+
+            // Only add if not already in the list
+            if (!this.selectedEntities.some(e => e.id === entityId)) {
+              const entity = {
+                id: entityId,
+                name: name,
+                subtitle: subtitle
+              };
+              this.selectedEntities.push(entity);
+              console.log('✅ Added entity to selected:', entity);
+            } else {
+              console.log('⚠️ Entity already in selected list:', entityId);
+            }
+          } else {
+            console.warn('⚠️ Entity not found:', entityId);
+          }
           
-          let name = 'Untitled';
-          let subtitle = '';
-
-          if (primaryField && item.fieldData[primaryField]) {
-            name = this.formatFieldValue(item.fieldData[primaryField]);
+          // Check if all entities are loaded
+          pendingLoads--;
+          if (pendingLoads === 0) {
+            this.isLoadingEntities = false;
+            console.log('✅ All entities loaded');
           }
-
-          if (secondaryField && item.fieldData[secondaryField]) {
-            subtitle = this.formatFieldValue(item.fieldData[secondaryField]);
-          }
-
-          // Only add if not already in the list
-          if (!this.selectedEntities.some(e => e.id === entityId)) {
-            this.selectedEntities.push({
-              id: entityId,
-              name: name,
-              subtitle: subtitle
-            });
+        },
+        error: (error) => {
+          console.error('❌ Error loading entity:', entityId, error);
+          pendingLoads--;
+          if (pendingLoads === 0) {
+            this.isLoadingEntities = false;
           }
         }
       });

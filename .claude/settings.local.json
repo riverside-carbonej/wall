@@ -5,7 +5,8 @@
       "Bash(npm start)",
       "Bash(npm run build:*)",
       "Bash(ng build)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

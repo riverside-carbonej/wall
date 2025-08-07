@@ -18,6 +18,7 @@ import { WallItemService } from '../../services/wall-item.service';
 import { ImageUploadService } from '../../services/image-upload.service';
 import { ItemImageGalleryComponent } from '../../components/item-image-gallery/item-image-gallery.component';
 import { DynamicFieldRendererComponent } from '../../components/dynamic-field-renderer/dynamic-field-renderer.component';
+import { EntityAssociationManagerComponent } from '../../components/entity-association-manager/entity-association-manager.component';
 import { DeleteButtonComponent } from '../../components/delete-button/delete-button.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { PageAction } from '../../../../shared/components/page-layout/page-layout.component';
@@ -42,6 +43,7 @@ import { WallItemsGridComponent } from '../../components/wall-items-grid/wall-it
     ProgressSpinnerComponent,
     ItemImageGalleryComponent,
     DynamicFieldRendererComponent,
+    EntityAssociationManagerComponent,
     DeleteButtonComponent,
     LoadingStateComponent,
     WallItemsGridComponent
@@ -57,6 +59,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   @Input() isNewItem = false;
 
   private destroy$ = new Subject<void>();
+  private wallSubscription$ = new Subject<void>();
   
   wall$!: Observable<Wall | null>;
   wall: Wall | null = null; // Store wall reference for related items
@@ -89,6 +92,10 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   relatedItems: { [objectTypeId: string]: WallItem[] } = {};
   loadingRelatedItems = false;
   
+  // Stable arrays for template to prevent change detection issues
+  entityFieldsArray: FieldDefinition[] = [];
+  relatedObjectTypesArray: { objectType: WallObjectType; fieldName: string }[] = [];
+  
   // Form state management
   formState$!: Observable<FormState>;
   private initialFormData: any = {};
@@ -109,15 +116,21 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   ) {}
   
   ngOnInit() {
+    console.log('🚀 GenericWallItemPage initialized');
     this.initializeFromRoute();
     this.setupForm();
   }
   
   ngOnDestroy() {
+    this.wallSubscription$.next();
+    this.wallSubscription$.complete();
     this.destroy$.next();
     this.destroy$.complete();
     this.cleanupImagePreviews();
     this.formStateService.unregisterForm('generic-wall-item-form');
+    // Clear arrays
+    this.entityFieldsArray = [];
+    this.relatedObjectTypesArray = [];
   }
 
   private computePageActions(): PageAction[] {
@@ -197,7 +210,21 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   }
   
   private loadExistingItem() {
+    console.log('🔄 loadExistingItem called', {
+      timestamp: new Date().toISOString(),
+      itemId: this.itemId,
+      stackTrace: new Error().stack
+    });
+    
     this.isLoading = true;
+    
+    // Clear caches and arrays when loading item
+    this._entityFieldsCache = null;
+    this._entityFieldsCacheKey = null;
+    this._relatedObjectTypesCache = null;
+    this._relatedObjectTypesCacheKey = null;
+    this.entityFieldsArray = [];
+    this.relatedObjectTypesArray = [];
     
     this.wallItemService.getWallItemById(this.itemId!).pipe(
       takeUntil(this.destroy$)
@@ -236,12 +263,100 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   }
   
   private loadObjectType(objectTypeId: string) {
+    console.log('📦 loadObjectType called', {
+      timestamp: new Date().toISOString(),
+      objectTypeId,
+      currentObjectType: this.objectType?.id,
+      stackTrace: new Error().stack
+    });
+    
+    // Clear entity fields cache when loading new object type
+    this._entityFieldsCache = null;
+    this._entityFieldsCacheKey = null;
+    
+    // Cancel any previous wall subscription to prevent duplicates
+    this.wallSubscription$.next();
+    
     this.wall$.pipe(
+      takeUntil(this.wallSubscription$),
       takeUntil(this.destroy$)
     ).subscribe(wall => {
       if (wall) {
         this.wall = wall; // Store wall reference for related items
-        this.objectType = wall.objectTypes.find(ot => ot.id === objectTypeId) || null;
+        // Ensure we get a fresh object type reference to avoid stale data
+        const newObjectType = wall.objectTypes.find(ot => ot.id === objectTypeId) || null;
+        
+        // CRITICAL LOGGING: Check if fields are already duplicated in the source data
+        if (newObjectType) {
+          const fieldIds = newObjectType.fields.map(f => f.id);
+          const fieldNames = newObjectType.fields.map(f => f.name);
+          const duplicateIds = fieldIds.filter((id, idx) => fieldIds.indexOf(id) !== idx);
+          const duplicateNames = fieldNames.filter((name, idx) => fieldNames.indexOf(name) !== idx);
+          
+          console.log('🚨 FIELD ANALYSIS IN loadObjectType:', {
+            timestamp: new Date().toISOString(),
+            objectTypeId: newObjectType.id,
+            totalFields: newObjectType.fields.length,
+            uniqueFieldIds: new Set(fieldIds).size,
+            uniqueFieldNames: new Set(fieldNames).size,
+            duplicateIds: duplicateIds.length > 0 ? duplicateIds : 'none',
+            duplicateNames: duplicateNames.length > 0 ? duplicateNames : 'none',
+            allFields: newObjectType.fields.map((f, idx) => ({
+              index: idx,
+              id: f.id,
+              name: f.name,
+              type: f.type
+            }))
+          });
+          
+          // If we find duplicates, trace where they came from
+          if (duplicateNames.length > 0) {
+            console.error('❌ DUPLICATES FOUND IN SOURCE DATA!', {
+              wall: wall,
+              objectTypes: wall.objectTypes,
+              problematicObjectType: newObjectType
+            });
+          }
+        }
+        
+        // Log if objectType is changing
+        if (this.objectType !== newObjectType) {
+          console.log('🔄 ObjectType changing:', {
+            from: this.objectType?.id,
+            to: newObjectType?.id,
+            oldFieldCount: this.objectType?.fields?.length,
+            newFieldCount: newObjectType?.fields?.length
+          });
+        }
+        
+        this.objectType = newObjectType;
+        
+        // Update stable arrays for template ONLY when objectType changes
+        if (this.objectType) {
+          // Update entity fields array
+          this.entityFieldsArray = this.objectType.fields.filter(field => field.type === 'entity');
+          console.log('📋 Updated entityFieldsArray:', this.entityFieldsArray.map(f => f.name));
+          
+          // Update related object types array
+          this.updateRelatedObjectTypesArray();
+          
+          console.log('🎯 Loaded ObjectType:', {
+            name: this.objectType.name,
+            id: this.objectType.id,
+            totalFields: this.objectType.fields.length,
+            entityFieldsCount: this.entityFieldsArray.length,
+            fieldTypes: this.objectType.fields.map(f => ({
+              id: f.id,
+              name: f.name,
+              type: f.type,
+              entityConfig: f.entityConfig
+            }))
+          });
+        } else {
+          this.entityFieldsArray = [];
+          this.relatedObjectTypesArray = [];
+        }
+        
         this.setupDynamicForm();
         // Load related items if this is an existing item
         if (!this.isNewItem) {
@@ -265,12 +380,22 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   private setupDynamicForm() {
     if (!this.objectType) return;
     
+    console.log('🔧 Setting up dynamic form for', this.objectType.name);
+    console.log('📊 Current wallItem fieldData:', this.wallItem.fieldData);
+    
+    // Unregister existing form state if it exists
+    this.formStateService.unregisterForm('generic-wall-item-form');
+    
     const formControls: { [key: string]: any } = {};
     
     // Create form controls for each field definition
     this.objectType.fields.forEach(field => {
       const validators = this.getValidatorsForField(field);
       const currentValue = this.wallItem.fieldData[field.id] || this.getDefaultValueForField(field);
+      
+      if (field.type === 'entity') {
+        console.log(`🔗 Entity field "${field.name}" (${field.id}): value =`, currentValue);
+      }
       
       formControls[field.id] = [currentValue, validators];
     });
@@ -408,7 +533,29 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   
   // Event handlers
   onToggleEditMode() {
-    this.editing = !this.editing;
+    console.log('🔄 Toggling edit mode from', this.editing, 'to', !this.editing);
+    
+    if (!this.editing) {
+      // Entering edit mode - reinitialize form to ensure all fields are properly set up
+      console.log('📝 Entering edit mode, reinitializing form');
+      this.editing = true;
+      
+      // Reinitialize the form with current values
+      if (this.objectType && this.wallItem) {
+        this.setupDynamicForm();
+        // Force change detection to ensure dynamic field renderers update
+        this.cdr.detectChanges();
+      }
+    } else {
+      // Exiting edit mode
+      console.log('👁️ Exiting edit mode');
+      this.editing = false;
+      
+      // Reset form to original values if not saved
+      if (this.objectType && this.wallItem) {
+        this.syncItemToForm();
+      }
+    }
   }
   
   onImageSelected(event: Event) {
@@ -537,9 +684,20 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
         this.editing = false; // Exit edit mode
         this.router.navigate(['/walls', this.wallId, 'items', savedItemId]);
       } else {
-        // For edit mode: stay on the same page and update FormStateService with new initial data
-        this.initialFormData = this.itemForm.value;
-        this.formStateService.updateInitialData('generic-wall-item-form', this.initialFormData);
+        // For edit mode: navigate to refresh the page completely
+        // This avoids any potential rendering issues from reloading in place
+        this.editing = false;
+        
+        // Navigate to the same page to force a full reload
+        this.router.navigate(['/walls', this.wallId, 'items', savedItemId], {
+          queryParams: { refresh: Date.now() }
+        }).then(() => {
+          // Remove the refresh query param after navigation
+          this.router.navigate([], {
+            queryParams: {},
+            queryParamsHandling: 'merge'
+          });
+        });
       }
       
     } catch (error) {
@@ -627,10 +785,23 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   }
   
   canSave(): boolean {
-    // Check if form state allows saving OR if there are image changes
+    // Check if form state allows saving OR if there are image changes OR if form is dirty
     const formState = this.formStateService.getFormState('generic-wall-item-form');
     const formCanSave = formState?.canSave ?? false;
-    return formCanSave || this.hasImageChanges();
+    const formIsDirty = this.itemForm?.dirty ?? false;
+    const formIsValid = this.itemForm?.valid ?? true;
+    
+    const result = (formCanSave || this.hasImageChanges() || (formIsDirty && formIsValid));
+    
+    console.log('🔍 canSave check:', {
+      formCanSave,
+      hasImageChanges: this.hasImageChanges(),
+      formIsDirty,
+      formIsValid,
+      result
+    });
+    
+    return result;
   }
   
   async onDeleteItem() {
@@ -660,7 +831,7 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   getBasicFields(): FieldDefinition[] {
     if (!this.objectType) return [];
     
-    return this.objectType.fields.filter(field => 
+    const basicFields = this.objectType.fields.filter(field => 
       field.type === 'text' || 
       field.type === 'longtext' || 
       field.type === 'email' || 
@@ -668,6 +839,9 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
       field.type === 'number' ||
       field.type === 'date'
     );
+    
+    console.log('📋 getBasicFields:', basicFields.map(f => ({ id: f.id, name: f.name, type: f.type })));
+    return basicFields;
   }
 
   getLocationFields(): FieldDefinition[] {
@@ -691,25 +865,120 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
       field.type !== 'url' &&
       field.type !== 'number' &&
       field.type !== 'date' &&
-      field.type !== 'location'
+      field.type !== 'location' &&
+      field.type !== 'entity' // Exclude entity fields from custom fields
     );
+  }
+  
+  private _entityFieldsCache: FieldDefinition[] | null = null;
+  private _entityFieldsCacheKey: string | null = null;
+  
+  private _getEntityFieldsCallCount = 0;
+  
+  getEntityFields(): FieldDefinition[] {
+    this._getEntityFieldsCallCount++;
+    const callNumber = this._getEntityFieldsCallCount;
+    
+    if (!this.objectType) {
+      console.log(`📞 getEntityFields call #${callNumber}: No objectType, returning []`);
+      return [];
+    }
+    
+    // Use cached result if object type hasn't changed
+    const cacheKey = `${this.objectType.id}-${this.objectType.fields.length}`;
+    if (this._entityFieldsCacheKey === cacheKey && this._entityFieldsCache) {
+      console.log(`📞 getEntityFields call #${callNumber} using cache:`, {
+        cacheKey,
+        cachedCount: this._entityFieldsCache.length,
+        cachedFields: this._entityFieldsCache.map(f => f.name)
+      });
+      return this._entityFieldsCache;
+    }
+    
+    // Create a defensive copy to avoid mutations
+    const entityFields = [...this.objectType.fields].filter(field => field.type === 'entity');
+    
+    // Check for duplicates in the original array
+    const allFieldIds = this.objectType.fields.map(f => f.id);
+    const duplicateIds = allFieldIds.filter((id, index) => allFieldIds.indexOf(id) !== index);
+    
+    // Check for duplicates in entity fields
+    const entityFieldIds = entityFields.map(f => f.id);
+    const entityFieldNames = entityFields.map(f => f.name);
+    const entityDuplicates = entityFieldIds.filter((id, index) => entityFieldIds.indexOf(id) !== index);
+    const entityNameDuplicates = entityFieldNames.filter((name, index) => entityFieldNames.indexOf(name) !== index);
+    
+    console.log(`📞 getEntityFields call #${callNumber} RECALCULATING:`, {
+      timestamp: new Date().toISOString(),
+      objectType: this.objectType.name,
+      objectTypeId: this.objectType.id,
+      totalFields: this.objectType.fields.length,
+      allFields: this.objectType.fields.map(f => ({ id: f.id, name: f.name, type: f.type })),
+      entityFields: entityFields.map(f => ({ id: f.id, name: f.name, type: f.type })),
+      duplicateIdsInAllFields: duplicateIds.length > 0 ? duplicateIds : 'none',
+      duplicateIdsInEntityFields: entityDuplicates.length > 0 ? entityDuplicates : 'none',
+      stackTrace: new Error().stack
+    });
+    
+    // Cache the result
+    this._entityFieldsCache = entityFields;
+    this._entityFieldsCacheKey = cacheKey;
+    
+    return entityFields;
+  }
+  
+  getTargetObjectType(field: FieldDefinition): WallObjectType | null {
+    if (!field.entityConfig || !this.wall) return null;
+    
+    const targetId = field.entityConfig.targetObjectTypeId;
+    
+    // First try exact ID match
+    let targetType = this.wall.objectTypes?.find(ot => ot.id === targetId);
+    
+    // If not found, try name match (case-insensitive)
+    if (!targetType) {
+      targetType = this.wall.objectTypes?.find(ot => 
+        ot.name.toLowerCase() === targetId.toLowerCase()
+      );
+    }
+    
+    return targetType || null;
+  }
+  
+  onAssociationsChanged(fieldId: string, associationIds: string[]) {
+    // Update the form control and field data
+    const formControl = this.itemForm.get(fieldId);
+    if (formControl) {
+      const value = !this.objectType?.fields.find(f => f.id === fieldId)?.entityConfig?.allowMultiple
+        ? (associationIds[0] || null)
+        : associationIds;
+      
+      formControl.setValue(value);
+      formControl.markAsDirty();
+      formControl.markAsTouched();
+      this.itemForm.markAsDirty();
+      
+      // Update wallItem fieldData
+      this.wallItem.fieldData[fieldId] = value;
+      
+      // Trigger change detection
+      this.cdr.detectChanges();
+    }
   }
 
   // Related items methods
-  hasRelatedItems(): boolean {
-    return this.getRelatedObjectTypes().length > 0;
-  }
-
-  getRelatedObjectTypes(): { objectType: WallObjectType; fieldName: string }[] {
-    if (!this.wall) return [];
+  private updateRelatedObjectTypesArray() {
+    if (!this.wall || !this.objectType) {
+      this.relatedObjectTypesArray = [];
+      return;
+    }
     
     const relatedTypes: { objectType: WallObjectType; fieldName: string }[] = [];
-    const addedTypes = new Set<string>(); // Prevent duplicates
+    const addedTypes = new Set<string>();
     
     this.wall.objectTypes?.forEach((otherObjectType: WallObjectType) => {
-      if (otherObjectType.id === this.objectType?.id) return; // Skip self
+      if (otherObjectType.id === this.objectType?.id) return;
       
-      // INCOMING: Find object types that have entity fields pointing TO this object type
       otherObjectType.fields.forEach((field: FieldDefinition) => {
         if (field.type === 'entity' && 
             field.entityConfig?.targetObjectTypeId === this.objectType?.id &&
@@ -721,22 +990,54 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
           addedTypes.add(otherObjectType.id);
         }
       });
-      
-      // OUTGOING: Find object types that this object type points TO
-      if (this.objectType) {
-        this.objectType.fields.forEach((field: FieldDefinition) => {
-          if (field.type === 'entity' && 
-              field.entityConfig?.targetObjectTypeId === otherObjectType.id &&
-              !addedTypes.has(otherObjectType.id)) {
-            relatedTypes.push({ 
-              objectType: otherObjectType, 
-              fieldName: field.name 
-            });
-            addedTypes.add(otherObjectType.id);
-          }
-        });
-      }
     });
+    
+    this.relatedObjectTypesArray = relatedTypes;
+    console.log('📋 Updated relatedObjectTypesArray:', relatedTypes.map(rt => rt.objectType.name));
+  }
+  
+  hasRelatedItems(): boolean {
+    return this.relatedObjectTypesArray.length > 0;
+  }
+
+  private _relatedObjectTypesCache: { objectType: WallObjectType; fieldName: string }[] | null = null;
+  private _relatedObjectTypesCacheKey: string | null = null;
+  
+  getRelatedObjectTypes(): { objectType: WallObjectType; fieldName: string }[] {
+    if (!this.wall) return [];
+    
+    // Use cached result if wall and object type haven't changed
+    const cacheKey = `${this.wall.id}-${this.objectType?.id}-${this.wall.objectTypes?.length}`;
+    if (this._relatedObjectTypesCacheKey === cacheKey && this._relatedObjectTypesCache) {
+      return this._relatedObjectTypesCache;
+    }
+    
+    const relatedTypes: { objectType: WallObjectType; fieldName: string }[] = [];
+    const addedTypes = new Set<string>(); // Prevent duplicates
+    
+    this.wall.objectTypes?.forEach((otherObjectType: WallObjectType) => {
+      if (otherObjectType.id === this.objectType?.id) return; // Skip self
+      
+      // ONLY INCOMING: Find object types that have entity fields pointing TO this object type
+      // (OUTGOING relationships are handled by entity field tabs, not here)
+      otherObjectType.fields.forEach((field: FieldDefinition) => {
+        if (field.type === 'entity' && 
+            field.entityConfig?.targetObjectTypeId === this.objectType?.id &&
+            !addedTypes.has(otherObjectType.id)) {
+          relatedTypes.push({ 
+            objectType: otherObjectType, 
+            fieldName: field.name 
+          });
+          addedTypes.add(otherObjectType.id);
+        }
+      });
+    });
+    
+    console.log('📋 getRelatedObjectTypes (incoming only):', relatedTypes.map(rt => rt.objectType.name));
+    
+    // Cache the result
+    this._relatedObjectTypesCache = relatedTypes;
+    this._relatedObjectTypesCacheKey = cacheKey;
     
     return relatedTypes;
   }
@@ -756,7 +1057,8 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
       for (const { objectType, fieldName } of relatedTypes) {
         const relatedItemsForType: WallItem[] = [];
         
-        // INCOMING: Find items of this object type that reference the current item
+        // ONLY INCOMING: Find items of this object type that reference the current item
+        // (Outgoing relationships are handled by entity field tabs)
         const incomingItems = allItems.filter(item => {
           if (item.objectTypeId !== objectType.id) return false;
           
@@ -772,33 +1074,8 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
           });
         });
         
-        // OUTGOING: Find items of this object type that the current item references
-        const outgoingItems = allItems.filter(item => {
-          if (item.objectTypeId !== objectType.id) return false;
-          
-          // Check if the current item's entity fields contain reference to this item
-          if (this.objectType) {
-            const currentItemEntityFields = this.objectType.fields.filter(f => f.type === 'entity');
-            
-            return currentItemEntityFields.some(field => {
-              const fieldValue = this.wallItem.fieldData[field.id];
-              if (Array.isArray(fieldValue)) {
-                return fieldValue.includes(item.id);
-              }
-              return fieldValue === item.id;
-            });
-          }
-          return false;
-        });
-        
-        // Combine both directions and remove duplicates
-        const combinedItems = [...incomingItems, ...outgoingItems];
-        const uniqueItems = combinedItems.filter((item, index, self) => 
-          index === self.findIndex(t => t.id === item.id)
-        );
-        
-        if (uniqueItems.length > 0) {
-          this.relatedItems[objectType.id] = uniqueItems;
+        if (incomingItems.length > 0) {
+          this.relatedItems[objectType.id] = incomingItems;
         }
       }
     } catch (error) {

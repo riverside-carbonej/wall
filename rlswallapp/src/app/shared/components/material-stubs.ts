@@ -312,7 +312,7 @@ export class MatChipOption {
     <div class="mat-tab-group">
       <div class="mat-tab-header">
         <div class="mat-tab-label-container">
-          @for (tab of tabs; track tab.label; let i = $index) {
+          @for (tab of tabs; track $index; let i = $index) {
             <button 
               class="mat-tab-label"
               [class.mat-tab-label-active]="selectedIndex() === i"
@@ -390,13 +390,27 @@ export class MatChipOption {
 export class MatTabGroup {
   selectedIndex = model<number>(0);
   tabs: {label: string, disabled: boolean}[] = [];
+  private tabsInitialized = false;
 
   selectTab(index: number) {
     this.selectedIndex.set(index);
   }
 
   addTab(label: string, disabled: boolean = false) {
-    this.tabs.push({label, disabled});
+    // Prevent duplicate tabs from being added
+    const existingTab = this.tabs.find(tab => tab.label === label);
+    if (!existingTab) {
+      this.tabs.push({label, disabled});
+    }
+  }
+  
+  clearTabs() {
+    this.tabs = [];
+    this.tabsInitialized = false;
+  }
+  
+  markTabsInitialized() {
+    this.tabsInitialized = true;
   }
 }
 
@@ -423,11 +437,14 @@ export class MatTab implements OnInit {
   
   private tabGroup = inject(MatTabGroup, { optional: true });
   private tabIndex: number = 0;
+  private hasRegistered = false;
 
   ngOnInit() {
-    if (this.tabGroup) {
+    // Only register the tab once to prevent duplicates
+    if (this.tabGroup && !this.hasRegistered) {
       this.tabIndex = this.tabGroup.tabs.length;
       this.tabGroup.addTab(this.label(), this.disabled());
+      this.hasRegistered = true;
     }
   }
   
