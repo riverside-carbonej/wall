@@ -1,0 +1,38 @@
+=================================
+RIVERSIDE VETERANS EXPORT SUMMARY
+=================================
+
+Total Veterans: 560
+
+BY DECADE:
+----------
+  1930s: 1
+  1950s: 32
+  1960s: 136
+  1970s: 57
+  1980s: 64
+  1990s: 46
+  2000s: 73
+  2010s: 47
+  2020s: 3
+
+DATA COMPLETENESS:
+------------------
+  With Photos: 209 (37.3%)
+  Without Photos: 351 (62.7%)
+  With Rank Info: 289 (51.6%)
+  With Deployments: 31 (5.5%)
+  With Branch Info: 511 (91.3%)
+
+TOP GRADUATION YEARS:
+--------------------
+  Unknown: 101
+  1966: 26
+  1965: 22
+  1964: 21
+  1963: 18
+  1970: 15
+  2003: 13
+  1967: 11
+  1968: 11
+  1969: 11
