@@ -1,0 +1,83 @@
+{
+  "branches": [
+    {
+      "id": "0RwoKPsofuBAVo7Tqx93",
+      "name": "Space Force",
+      "fieldData": {
+        "name": "Space Force",
+        "description": "Guardians of the final frontier, responsible for securing space operations and protecting vital satellite systems."
+      }
+    },
+    {
+      "id": "DRkKKqV0KTK6PMAyM7t3",
+      "name": "Coast Guard",
+      "fieldData": {
+        "name": "Coast Guard",
+        "description": "Protectors of U.S. waters, focused on maritime law enforcement, lifesaving missions, and safeguarding national security."
+      }
+    },
+    {
+      "id": "O6GjK0MJkDV56qqS0G7T",
+      "name": "Navy",
+      "fieldData": {
+        "name": "Navy",
+        "description": "Guardians of the seas, committed to securing maritime freedom and projecting U.S. strength and humanitarian efforts globally."
+      }
+    },
+    {
+      "id": "bP2QVeH1XRiKpSiislGy",
+      "name": "Marines",
+      "fieldData": {
+        "name": "Marines",
+        "description": "Elite, rapid-response force, known for courage and readiness, specializing in amphibious and expeditionary operations."
+      }
+    },
+    {
+      "id": "cfD5hNlYql7wilzOXQUf",
+      "name": "Air Force",
+      "fieldData": {
+        "name": "Air Force",
+        "description": "Defenders of the skies and space, ensuring air superiority, global mobility, and missile defense to protect the nation."
+      }
+    },
+    {
+      "id": "rbXhQx6v1P6RnxKe1d5Y",
+      "name": "Army",
+      "fieldData": {
+        "name": "Army",
+        "description": "The principal ground force, dedicated to defending the nation and securing peace through land-based military operations."
+      }
+    }
+  ],
+  "mappings": {
+    "Space Force": "0RwoKPsofuBAVo7Tqx93",
+    "space force": "0RwoKPsofuBAVo7Tqx93",
+    "Coast Guard": "DRkKKqV0KTK6PMAyM7t3",
+    "coast guard": "DRkKKqV0KTK6PMAyM7t3",
+    "coastguard": "DRkKKqV0KTK6PMAyM7t3",
+    "USCG": "DRkKKqV0KTK6PMAyM7t3",
+    "Navy": "O6GjK0MJkDV56qqS0G7T",
+    "navy": "O6GjK0MJkDV56qqS0G7T",
+    "US Navy": "O6GjK0MJkDV56qqS0G7T",
+    "USN": "O6GjK0MJkDV56qqS0G7T",
+    "Marines": "bP2QVeH1XRiKpSiislGy",
+    "marines": "bP2QVeH1XRiKpSiislGy",
+    "Marine Corps": "bP2QVeH1XRiKpSiislGy",
+    "Marine": "bP2QVeH1XRiKpSiislGy",
+    "USMC": "bP2QVeH1XRiKpSiislGy",
+    "marine": "bP2QVeH1XRiKpSiislGy",
+    "Air Force": "cfD5hNlYql7wilzOXQUf",
+    "air force": "cfD5hNlYql7wilzOXQUf",
+    "airforce": "cfD5hNlYql7wilzOXQUf",
+    "Airforce": "cfD5hNlYql7wilzOXQUf",
+    "USAF": "cfD5hNlYql7wilzOXQUf",
+    "Army": "rbXhQx6v1P6RnxKe1d5Y",
+    "army": "rbXhQx6v1P6RnxKe1d5Y",
+    "US Army": "rbXhQx6v1P6RnxKe1d5Y",
+    "USA": "rbXhQx6v1P6RnxKe1d5Y"
+  },
+  "fieldConfiguration": {
+    "fieldId": "branches",
+    "fieldType": "entity"
+  }
+}

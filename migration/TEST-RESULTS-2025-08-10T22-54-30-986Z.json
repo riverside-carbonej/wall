@@ -1,0 +1,30 @@
+{
+  "updated": [
+    {
+      "name": "William Tecil",
+      "fields": [
+        "branches"
+      ]
+    },
+    {
+      "name": "William R McKosky",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Donovan (Don) Eskesen",
+      "fields": [
+        "name"
+      ]
+    }
+  ],
+  "added": [],
+  "errors": [],
+  "statistics": {
+    "veteransUpdated": 3,
+    "veteransAdded": 0,
+    "fieldsUpdated": 3,
+    "errors": 0
+  }
+}

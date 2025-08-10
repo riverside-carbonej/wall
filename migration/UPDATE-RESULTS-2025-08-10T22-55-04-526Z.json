@@ -1,0 +1,576 @@
+{
+  "updated": [
+    {
+      "name": "William Tecil",
+      "fields": [
+        "branches"
+      ]
+    },
+    {
+      "name": "William R McKosky",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Donovan (Don) Eskesen",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Fred Searles",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Dave Crowther",
+      "fields": [
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate"
+      ]
+    },
+    {
+      "name": "Ric Filppi",
+      "fields": [
+        "rank"
+      ]
+    },
+    {
+      "name": "James Nau",
+      "fields": [
+        "militaryEntryDate"
+      ]
+    },
+    {
+      "name": "Alvin Juniper",
+      "fields": [
+        "rank"
+      ]
+    },
+    {
+      "name": "Mike Stark",
+      "fields": [
+        "branches"
+      ]
+    },
+    {
+      "name": "Donald Tulenson",
+      "fields": [
+        "rank"
+      ]
+    },
+    {
+      "name": "Ernest Bystrom",
+      "fields": [
+        "branches"
+      ]
+    },
+    {
+      "name": "David Cope",
+      "fields": [
+        "rank"
+      ]
+    },
+    {
+      "name": "Christian (Chris) Eskesen",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Mary Kaye Frazier",
+      "fields": [
+        "rank"
+      ]
+    },
+    {
+      "name": "Ed Watson",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Carol Brockway (Franz)",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Janice Casilas (Parker)",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Christine Yowell (Pritchard)",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Terry A Reckart",
+      "fields": [
+        "rank"
+      ]
+    },
+    {
+      "name": "Richard H Libby Jr.",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Arnold L. Versaw Jr.",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Lori White (Loomis)",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "James Patton Sr.",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Larry Tucker",
+      "fields": [
+        "graduationYear"
+      ]
+    },
+    {
+      "name": "Daniel McCann",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Preston LaFrance",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Al Raddatz",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "David McDiffett",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Shawn Pridemore",
+      "fields": [
+        "rank"
+      ]
+    },
+    {
+      "name": "Elizabeth Ferry (Klco)",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Robert Meyer",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Richard Potter",
+      "fields": [
+        "branches"
+      ]
+    },
+    {
+      "name": "Amanda Ofstedahl (Few)",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Danielle Ingersoll (Pafford)",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Don Tobul",
+      "fields": [
+        "rank"
+      ]
+    },
+    {
+      "name": "Shane McKee",
+      "fields": [
+        "name",
+        "graduationYear"
+      ]
+    },
+    {
+      "name": "Brian Potter",
+      "fields": [
+        "branches"
+      ]
+    },
+    {
+      "name": "Michelle DeCola",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Kyle McKee",
+      "fields": [
+        "name",
+        "graduationYear",
+        "militaryEntryDate"
+      ]
+    },
+    {
+      "name": "Joe Mattern",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Melissa Mullowney (Strand)",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Darvin (DJ) Douglas",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Robert (Bobby) Cichinelli",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Sally Hurayt (Dolenc)",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Jonathan Ivaskovic",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Jordan Dawson",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Steven Ivaskovic",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "James Marizek",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Tyler Semak",
+      "fields": [
+        "rank"
+      ]
+    },
+    {
+      "name": "Michael DeBacker",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Alex Ponn",
+      "fields": [
+        "rank"
+      ]
+    },
+    {
+      "name": "Alessandra Chiappone (Sams)",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Shawn McClure",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Brian McCollister",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Bob McCollister",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Tim McCollister",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "William McFadden Jr.",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Charles Neal",
+      "fields": [
+        "rank"
+      ]
+    },
+    {
+      "name": "Michael O'Leary",
+      "fields": [
+        "name"
+      ]
+    },
+    {
+      "name": "Thomas Reed",
+      "fields": [
+        "militaryEntryDate"
+      ]
+    },
+    {
+      "name": "Christina Takacs (Smith)",
+      "fields": [
+        "name"
+      ]
+    }
+  ],
+  "added": [
+    {
+      "name": "Ralph Hepburn",
+      "id": "6ngkjj5zQwKtVFPadUQ4"
+    },
+    {
+      "name": "Gene Esterhay",
+      "id": "9U7LD68UIdFa83j7PVyi"
+    },
+    {
+      "name": "Donald Paulin",
+      "id": "3nGfk4Z8tNAhPSztnPUC"
+    },
+    {
+      "name": "Craig Artman",
+      "id": "kM7WNrY7Tf12Wc5v9yZE"
+    },
+    {
+      "name": "\"laurence \"\"larry\"\"\" Harley",
+      "id": "2LUPZvqjpPvqRfoARXGG"
+    },
+    {
+      "name": "Donald Neroda (1960 OR. 61)",
+      "id": "bO3f2rZiefmbPAercQra"
+    },
+    {
+      "name": "Robert Mills",
+      "id": "s9pgIFAVNoYNf9D6zEI6"
+    },
+    {
+      "name": "Robert Simmons (63 JR Yr)",
+      "id": "ImUICtoSPcaD0YE8sPvv"
+    },
+    {
+      "name": "Joe Hanusososky",
+      "id": "orikaD521zQQcXzSde8h"
+    },
+    {
+      "name": "William Shay. 3rd",
+      "id": "U0eWH4wnUFCEjaWwR9Ge"
+    },
+    {
+      "name": "Jerry (gerald) Dolan",
+      "id": "6mtwqM7BjrwwlyoVmHzq"
+    },
+    {
+      "name": "Ed Kujala",
+      "id": "MMOMD48eTr8QyqcvkeB4"
+    },
+    {
+      "name": "David Townshend",
+      "id": "nEPKYfrCUKZMEzbFW2cz"
+    },
+    {
+      "name": "Glen Anderson",
+      "id": "uKtw9TCDzoWhH5AtfiYx"
+    },
+    {
+      "name": "John Walther (1969 Left)",
+      "id": "pSdqDeVjjigpX9tHCoz4"
+    },
+    {
+      "name": "Greg (gregory) Script Blank ON Quesion",
+      "id": "sjIcA5YJHYVNaK0wAUTw"
+    },
+    {
+      "name": "Sydney Jr. Stacy",
+      "id": "9kfRxBxk9ixBbuW3VgXV"
+    },
+    {
+      "name": "Georgia Young (formerly Ash)",
+      "id": "e1V11co1cyztn61n0wmi"
+    },
+    {
+      "name": "Jane Hemming  Now Carsten",
+      "id": "9Vq4T2EDWNg5GDHY1nJT"
+    },
+    {
+      "name": "\"israel Turkey",
+      "id": "T5mdUat8QPqOTv4bHEhn"
+    },
+    {
+      "name": "James Mccauley",
+      "id": "D6o6pt21N0Yg0zDtOkzc"
+    },
+    {
+      "name": "Katherine Mctaggart Voyce (1999??)",
+      "id": "hFgK0aZcJU4R1fNQcKHA"
+    },
+    {
+      "name": "Gerald Satava II",
+      "id": "WTUIzPPnLZu3fKhWnqko"
+    },
+    {
+      "name": "Amber Lafountaine (carson) Married Name",
+      "id": "F3npKkJrra3gWODgc0GZ"
+    },
+    {
+      "name": "Matt Froehle Froehle",
+      "id": "oEiduHHhBBn13HRIlMLz"
+    },
+    {
+      "name": "Daniel Sterra",
+      "id": "lWp2f385h2ywv0k4MH4V"
+    },
+    {
+      "name": "Nick Mighton 2014 JR Yr.)",
+      "id": "TxIK9FejlJpsMtgL5MZ2"
+    },
+    {
+      "name": "Savannah Mickus",
+      "id": "ZmS11kRYMsWFhG4Pv54b"
+    },
+    {
+      "name": "Louis Andersen  (faculty)",
+      "id": "vPsaqlgHoM0xrQsfNmnU"
+    },
+    {
+      "name": "Dave Burris (teacher)",
+      "id": "YcAnBbgdcdIHsDiEKKTd"
+    },
+    {
+      "name": "John Delong (asst Super)",
+      "id": "ywSebdcpaW1WCQ0j0xVZ"
+    },
+    {
+      "name": "Dave Denner (teacher)",
+      "id": "HKpTXG7zkzCW7AwAVZ8t"
+    },
+    {
+      "name": "Aaron Draime (teacher)",
+      "id": "Ucd8Dl0gHLypkVu1O4UF"
+    },
+    {
+      "name": "Jim Ganas (staff)",
+      "id": "Ccp62lujfyPZqVPMb5vq"
+    },
+    {
+      "name": "Frank Gerard (ad)",
+      "id": "n2vMeXr6gNoKB0MsLFf9"
+    },
+    {
+      "name": "Dan Grill (staff)",
+      "id": "Wll9Z2fBrux6krXgklb5"
+    },
+    {
+      "name": "Bill Grose (teacher)",
+      "id": "m7dUeZEp1BLuMlxOwt16"
+    },
+    {
+      "name": "Thomas Hilston (sc. Board)",
+      "id": "A64VUHTT5DS6MOgbvhFw"
+    },
+    {
+      "name": "Ed Johnson (staff)",
+      "id": "sSLGecCyS0edvTCqV70O"
+    },
+    {
+      "name": "John Lauer Sr.  (faculty)",
+      "id": "oUuTFUm3lzzfH2atSP8w"
+    },
+    {
+      "name": "Robert Mcfarren (teacher)",
+      "id": "Yk7LCfpnaA0S9CR2tGwo"
+    },
+    {
+      "name": "Donald Mckenna (principal)",
+      "id": "AJ1wnPQrJtixBjW7KUnj"
+    },
+    {
+      "name": "Harold Parsons Supperint)",
+      "id": "RwklADBkTrGZfkSRfkBl"
+    },
+    {
+      "name": "Bill Skelly (staff)",
+      "id": "ABS1oMFKA3A9719Nu2Iz"
+    },
+    {
+      "name": "George Strailey (teacher)",
+      "id": "gr75EmvqK6hiaqK93PXz"
+    },
+    {
+      "name": "John Sutch (teacher)",
+      "id": "o6zKbHXNf5ToGUWnTPib"
+    },
+    {
+      "name": "William Walrath (teacher)",
+      "id": "dsc4vVlf6Y6ukb2W3lMJ"
+    },
+    {
+      "name": "John  (teacher) Warner",
+      "id": "7j8sdBrE65kbSgYXTa7R"
+    }
+  ],
+  "errors": [],
+  "statistics": {
+    "veteransUpdated": 61,
+    "veteransAdded": 48,
+    "fieldsUpdated": 66,
+    "errors": 0
+  }
+}

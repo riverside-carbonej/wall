@@ -1,0 +1,1544 @@
+{
+  "processed": [
+    {
+      "row": 9,
+      "firebaseId": "4M3culiQaIF49fvw6LKc",
+      "name": "William Tecil",
+      "updates": [
+        {
+          "field": "branches",
+          "current": [],
+          "proposed": [
+            "rbXhQx6v1P6RnxKe1d5Y"
+          ],
+          "type": "addition",
+          "note": "Converted \"Army\" to branch ID"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 23,
+      "firebaseId": "27MkvON3IowX80r9NwQI",
+      "name": "William R McKosky",
+      "updates": [
+        {
+          "field": "name",
+          "current": "William R McKosky",
+          "proposed": "William R Mckosky",
+          "type": "formatting",
+          "cleaned": true
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 24,
+      "firebaseId": "bwQgodHaZBXO049X5wP8",
+      "name": "Donovan (Don) Eskesen",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Donovan (Don) Eskesen",
+          "proposed": "Donovan (Don) Eskesen",
+          "type": "formatting",
+          "cleaned": true
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 53,
+      "firebaseId": "4tin6BTatLN0uMStrXWR",
+      "name": "Fred Searles",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Fred Searles",
+          "proposed": "Fred Searles (1962)",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 60,
+      "firebaseId": "BcHQ8oYlWJE4jhCuWY4h",
+      "name": "Dave Crowther",
+      "updates": [
+        {
+          "field": "rank",
+          "current": null,
+          "proposed": "Major",
+          "type": "addition"
+        },
+        {
+          "field": "militaryEntryDate",
+          "current": null,
+          "proposed": "1969-01-01T00:00:00.000Z",
+          "type": "addition"
+        },
+        {
+          "field": "militaryExitDate",
+          "current": null,
+          "proposed": "1971-01-01T00:00:00.000Z",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 79,
+      "firebaseId": "UakMqgM52bNy1tjgHqIe",
+      "name": "Ric Filppi",
+      "updates": [
+        {
+          "field": "rank",
+          "current": null,
+          "proposed": "1st Class Navy Diver",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 84,
+      "firebaseId": "S0lLEMNFlUSxJAPM9CKU",
+      "name": "James Nau",
+      "updates": [
+        {
+          "field": "militaryEntryDate",
+          "current": null,
+          "proposed": "1968-01-01T00:00:00.000Z",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 105,
+      "firebaseId": "dNSLVdTTX5e6X1nMP6ZI",
+      "name": "Alvin Juniper",
+      "updates": [
+        {
+          "field": "rank",
+          "current": null,
+          "proposed": "SP 5",
+          "type": "addition"
+        }
+      ],
+      "issues": [
+        {
+          "field": "graduationYear",
+          "conflict": "Firebase: 1966, CSV: 1965"
+        }
+      ]
+    },
+    {
+      "row": 113,
+      "firebaseId": "FT4MbMgc2Hva9Jd7GBF6",
+      "name": "Mike Stark",
+      "updates": [
+        {
+          "field": "branches",
+          "current": [],
+          "proposed": [
+            "rbXhQx6v1P6RnxKe1d5Y"
+          ],
+          "type": "addition",
+          "note": "Converted \"Army\" to branch ID"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 115,
+      "firebaseId": "wHcyD8fx54pt7ptlKKbN",
+      "name": "Donald Tulenson",
+      "updates": [
+        {
+          "field": "rank",
+          "current": null,
+          "proposed": "SGT E5",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 120,
+      "firebaseId": "bSzoewVZRjLADT1NYccd",
+      "name": "Ernest Bystrom",
+      "updates": [
+        {
+          "field": "branches",
+          "current": [],
+          "proposed": [
+            "rbXhQx6v1P6RnxKe1d5Y"
+          ],
+          "type": "addition",
+          "note": "Converted \"Army\" to branch ID"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 123,
+      "firebaseId": "ZeNO4Iifcb2rygXQ99Gm",
+      "name": "David Cope",
+      "updates": [
+        {
+          "field": "rank",
+          "current": null,
+          "proposed": "Not sure",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 125,
+      "firebaseId": "DVIDbg6g3Elq8dFrFDDo",
+      "name": "Christian (Chris) Eskesen",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Christian (Chris) Eskesen",
+          "proposed": "Christian (Chris) Eskesen",
+          "type": "formatting",
+          "cleaned": true
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 156,
+      "firebaseId": "tHAG2hTY5Wz4ZLRgZoPr",
+      "name": "Mary Kaye Frazier",
+      "updates": [
+        {
+          "field": "rank",
+          "current": null,
+          "proposed": "or 68\"",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 176,
+      "firebaseId": "F1k7I1qudLXxa8CqCpCN",
+      "name": "Ed Watson",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Ed Watson",
+          "proposed": "Ed Watson",
+          "type": "formatting",
+          "cleaned": true
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 182,
+      "firebaseId": "vdk9BaLhEE61LSVZzdvs",
+      "name": "Carol Brockway (Franz)",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Carol Brockway (Franz)",
+          "proposed": "Carol Brockway (franz)",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 187,
+      "firebaseId": "uvZ59ClsIRu5pwS6up9r",
+      "name": "Janice Casilas (Parker)",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Janice Casilas (Parker)",
+          "proposed": "Janice Casilas (parker)",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 193,
+      "firebaseId": "GICzi3M2eTn0RWR1yV8Z",
+      "name": "Christine Yowell (Pritchard)",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Christine Yowell (Pritchard)",
+          "proposed": "Christine Yowell (pritchard)",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 195,
+      "firebaseId": "6XdVHFF8j8MjTJn4Czvd",
+      "name": "Terry A Reckart",
+      "updates": [
+        {
+          "field": "rank",
+          "current": null,
+          "proposed": "MM!SS",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 199,
+      "firebaseId": "qEf7wPnqW21Au16rPruD",
+      "name": "Richard H Libby Jr.",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Richard H Libby Jr.",
+          "proposed": "Richard H Libby Jr/",
+          "type": "formatting",
+          "cleaned": true
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 215,
+      "firebaseId": "nDcaCwYSNf0BhZPo7NNX",
+      "name": "Arnold L. Versaw Jr.",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Arnold L. Versaw Jr.",
+          "proposed": "Arnold L Versaw JR",
+          "type": "formatting",
+          "cleaned": true
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 246,
+      "firebaseId": "iD7rK7bWJWtpF9igVOLA",
+      "name": "Lori White (Loomis)",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Lori White (Loomis)",
+          "proposed": "Lori White (Loomis)",
+          "type": "formatting",
+          "cleaned": true
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 250,
+      "firebaseId": "USyCfNfsIluQwGpVGaLS",
+      "name": "James Patton Sr.",
+      "updates": [
+        {
+          "field": "name",
+          "current": "James Patton Sr.",
+          "proposed": "James Patton SR",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 252,
+      "firebaseId": "ZwGTVNkQZ59hq0FBtWM2",
+      "name": "Larry Tucker",
+      "updates": [
+        {
+          "field": "graduationYear",
+          "current": null,
+          "proposed": "1982",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 282,
+      "firebaseId": "EQvifNlUbmKZpQKyQne7",
+      "name": "Daniel McCann",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Daniel McCann",
+          "proposed": "Daniel Mccann",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 288,
+      "firebaseId": "f4jiOyytXdbOXrzYCUDv",
+      "name": "Preston LaFrance",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Preston LaFrance",
+          "proposed": "Preston Lafrance",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 294,
+      "firebaseId": "xd0ZR52XcU1pQzflqTOn",
+      "name": "Al Raddatz",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Al Raddatz",
+          "proposed": "AL Raddatz",
+          "type": "formatting",
+          "cleaned": true
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 322,
+      "firebaseId": "iT1JAOjfoTphAENO4Oku",
+      "name": "David McDiffett",
+      "updates": [
+        {
+          "field": "name",
+          "current": "David McDiffett",
+          "proposed": "David Mcdiffett",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 325,
+      "firebaseId": "rghs2abZUoyQ7ZUFw3UF",
+      "name": "Shawn Pridemore",
+      "updates": [
+        {
+          "field": "rank",
+          "current": null,
+          "proposed": "Sergeant",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 331,
+      "firebaseId": "kcKg0eowK1vbJizBnjZS",
+      "name": "Elizabeth Ferry (Klco)",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Elizabeth Ferry (Klco)",
+          "proposed": "Elizabeth Ferry (klco)",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 333,
+      "firebaseId": "34UF5kyQTEiqyPARcQPF",
+      "name": "Robert Meyer",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Robert Meyer",
+          "proposed": "Robert Meyer (1998)",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 334,
+      "firebaseId": "27dhUcztTvHx48vegaOX",
+      "name": "Richard Potter",
+      "updates": [
+        {
+          "field": "branches",
+          "current": [],
+          "proposed": [
+            "O6GjK0MJkDV56qqS0G7T"
+          ],
+          "type": "addition",
+          "note": "Converted \"Navy\" to branch ID"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 338,
+      "firebaseId": "FohVCbV9J0xNDENkbzUv",
+      "name": "Amanda Ofstedahl (Few)",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Amanda Ofstedahl (Few)",
+          "proposed": "Amanda Ofstedahl (few)",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 347,
+      "firebaseId": "vJ6squXoJUTeLLahfjZn",
+      "name": "Danielle Ingersoll (Pafford)",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Danielle Ingersoll (Pafford)",
+          "proposed": "Danielle Ingersoll (pafford)",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 352,
+      "firebaseId": "GKX2s6WKURQ9UhPIajsf",
+      "name": "Don Tobul",
+      "updates": [
+        {
+          "field": "rank",
+          "current": null,
+          "proposed": "Iraq Vet",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 355,
+      "firebaseId": "XuKIKq7QyfuCyTKX4Dqt",
+      "name": "Shane McKee",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Shane McKee",
+          "proposed": "Shane Mckee",
+          "type": "formatting"
+        },
+        {
+          "field": "graduationYear",
+          "current": null,
+          "proposed": "2001",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 359,
+      "firebaseId": "ekU7oyyHoVvW6t9KOV8m",
+      "name": "Brian Potter",
+      "updates": [
+        {
+          "field": "branches",
+          "current": [],
+          "proposed": [
+            "O6GjK0MJkDV56qqS0G7T"
+          ],
+          "type": "addition",
+          "note": "Converted \"Navy\" to branch ID"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 367,
+      "firebaseId": "xfaY8lEnNyq7JCeO1St9",
+      "name": "Michelle DeCola",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Michelle DeCola",
+          "proposed": "Michelle Decola",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 377,
+      "firebaseId": "YcxIOLDYuhd0zy4g3LCg",
+      "name": "Kyle McKee",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Kyle McKee",
+          "proposed": "Kyle Mckee",
+          "type": "formatting"
+        },
+        {
+          "field": "graduationYear",
+          "current": null,
+          "proposed": "2003",
+          "type": "addition"
+        },
+        {
+          "field": "militaryEntryDate",
+          "current": null,
+          "proposed": "2020-01-01T00:00:00.000Z",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 389,
+      "firebaseId": "Hlmx1l44PmKbRk8pwMad",
+      "name": "Joe Mattern",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Joe Mattern",
+          "proposed": "Joe Mattern*",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 402,
+      "firebaseId": "KTa2pM1j9PYaOrF7je3B",
+      "name": "Melissa Mullowney (Strand)",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Melissa Mullowney (Strand)",
+          "proposed": "Melissa Mullowney (strand)",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 412,
+      "firebaseId": "EgLO62gb4iBORS8Somum",
+      "name": "Darvin (DJ) Douglas",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Darvin (DJ) Douglas",
+          "proposed": "Darvin (dj) Douglas",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 418,
+      "firebaseId": "IpULl3QBRxSx5DLei2AI",
+      "name": "Robert (Bobby) Cichinelli",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Robert (Bobby) Cichinelli",
+          "proposed": "Robert (bobby) Cichinelli*",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 428,
+      "firebaseId": "vGL9iWyH3tz7CJAo4cDj",
+      "name": "Sally Hurayt (Dolenc)",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Sally Hurayt (Dolenc)",
+          "proposed": "Sally Hurayt (dolenc)*",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 429,
+      "firebaseId": "Ep1DBRM6r89m0pRCMu6W",
+      "name": "Jonathan Ivaskovic",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Jonathan Ivaskovic",
+          "proposed": "Jonathan Ivaskovic*",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 435,
+      "firebaseId": "kW60Jqr2UBPJiO7DjBVa",
+      "name": "Jordan Dawson",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Jordan Dawson",
+          "proposed": "Jordan Dawson*",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 436,
+      "firebaseId": "jdUdT53kMpfQzLC1GcFk",
+      "name": "Steven Ivaskovic",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Steven Ivaskovic",
+          "proposed": "Steven Ivaskovic*",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 448,
+      "firebaseId": "4NVsz8ulVNphhL0hSQPC",
+      "name": "James Marizek",
+      "updates": [
+        {
+          "field": "name",
+          "current": "James Marizek",
+          "proposed": "James Marizek*",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 450,
+      "firebaseId": "KSNq3PxdQrv6E2lJzXkT",
+      "name": "Tyler Semak",
+      "updates": [
+        {
+          "field": "rank",
+          "current": null,
+          "proposed": "Currently serving",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 457,
+      "firebaseId": "Ux3xs1EikX2feHWwaPcT",
+      "name": "Michael DeBacker",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Michael DeBacker",
+          "proposed": "Michael Debacker",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 462,
+      "firebaseId": "9Xu3ukLryc3I1THHzD9K",
+      "name": "Alex Ponn",
+      "updates": [
+        {
+          "field": "rank",
+          "current": null,
+          "proposed": "IDK",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 478,
+      "firebaseId": "W4GHoSiuyB5NWiMLH8eU",
+      "name": "Alessandra Chiappone (Sams)",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Alessandra Chiappone (Sams)",
+          "proposed": "Alessandra Chiappone (Sams)",
+          "type": "formatting",
+          "cleaned": true
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 515,
+      "firebaseId": "eYfMp3aWxvLWI9cA5nl1",
+      "name": "Shawn McClure",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Shawn McClure",
+          "proposed": "Shawn Mcclure*",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 516,
+      "firebaseId": "8LjAhgyXLf1s9gzctBAz",
+      "name": "Brian McCollister",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Brian McCollister",
+          "proposed": "Brian Mccollister",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 517,
+      "firebaseId": "d4ZLZfkQcshXurLjolnD",
+      "name": "Bob McCollister",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Bob McCollister",
+          "proposed": "Bob Mccollister",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 518,
+      "firebaseId": "iWlOFkLjDU2eUFdtvHev",
+      "name": "Tim McCollister",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Tim McCollister",
+          "proposed": "Tim Mccollister",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 519,
+      "firebaseId": "izETh1frxZ0TVHAr2a9R",
+      "name": "William McFadden Jr.",
+      "updates": [
+        {
+          "field": "name",
+          "current": "William McFadden Jr.",
+          "proposed": "William Mcfadden Jr.",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 525,
+      "firebaseId": "bpFnjofeEJAMsmvUpezn",
+      "name": "Charles Neal",
+      "updates": [
+        {
+          "field": "rank",
+          "current": null,
+          "proposed": "WWI service",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 526,
+      "firebaseId": "FbbID99VXdz4RbllSAbv",
+      "name": "Michael O'Leary",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Michael O'Leary",
+          "proposed": "Michael O'leary",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 537,
+      "firebaseId": "x30t4NJa77Z7kzgJM6eX",
+      "name": "Thomas Reed",
+      "updates": [
+        {
+          "field": "militaryEntryDate",
+          "current": null,
+          "proposed": "1953-01-01T00:00:00.000Z",
+          "type": "addition"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "row": 554,
+      "firebaseId": "cWrgUzLBjH1pf2rSNUmG",
+      "name": "Christina Takacs (Smith)",
+      "updates": [
+        {
+          "field": "name",
+          "current": "Christina Takacs (Smith)",
+          "proposed": "Christina Takacs (smith)",
+          "type": "formatting"
+        }
+      ],
+      "issues": []
+    }
+  ],
+  "newVeterans": [
+    {
+      "row": 13,
+      "name": "Ralph Hepburn",
+      "graduationYear": "1956",
+      "rank": "E-4",
+      "militaryEntryDate": "1961-01-01T00:00:00.000Z",
+      "militaryExitDate": "1963-01-01T00:00:00.000Z",
+      "status": "living",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 14,
+      "name": "Gene Esterhay",
+      "graduationYear": "1956",
+      "issues": [],
+      "branches": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "branchNote": "Converted \"Air Force\" to branch ID"
+    },
+    {
+      "row": 17,
+      "name": "Donald Paulin",
+      "graduationYear": "1956",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 37,
+      "name": "Craig Artman",
+      "graduationYear": "1960",
+      "rank": "SP-5",
+      "militaryEntryDate": "1961-01-01T00:00:00.000Z",
+      "militaryExitDate": "1964-01-01T00:00:00.000Z",
+      "status": "living",
+      "notes": "kathy Riley-9395 Headlands Road",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 38,
+      "name": "\"laurence \"\"larry\"\"\" Harley",
+      "graduationYear": "1960",
+      "rank": "S4",
+      "militaryEntryDate": "1963-01-01T00:00:00.000Z",
+      "militaryExitDate": "1966-01-01T00:00:00.000Z",
+      "status": "living",
+      "notes": "lkharley948@hotmail.com.",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 47,
+      "name": "Donald Neroda (1960 OR. 61)",
+      "graduationYear": "1961",
+      "rank": "E5 (Vietnam vet)",
+      "status": "deceased",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 52,
+      "name": "Robert Mills",
+      "graduationYear": "1962",
+      "rank": "Captain",
+      "militaryEntryDate": "1967-01-01T00:00:00.000Z",
+      "militaryExitDate": "1972-01-01T00:00:00.000Z",
+      "status": "living",
+      "issues": [],
+      "branches": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "branchNote": "Converted \"Air Force\" to branch ID"
+    },
+    {
+      "row": 69,
+      "name": "Robert Simmons (63 JR Yr)",
+      "graduationYear": "1963",
+      "militaryEntryDate": "1963-01-01T00:00:00.000Z",
+      "militaryExitDate": "1967-01-01T00:00:00.000Z",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 81,
+      "name": "Joe Hanusososky",
+      "graduationYear": "1964",
+      "rank": "served from 66-69",
+      "status": "living",
+      "issues": [],
+      "branches": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "branchNote": "Converted \"Air Force\" to branch ID"
+    },
+    {
+      "row": 89,
+      "name": "William Shay. 3rd",
+      "graduationYear": "1964",
+      "rank": "E4 Corporal",
+      "militaryEntryDate": "1966-01-01T00:00:00.000Z",
+      "militaryExitDate": "1968-01-01T00:00:00.000Z",
+      "status": "deceased",
+      "issues": [],
+      "branches": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "branchNote": "Converted \"Marines\" to branch ID"
+    },
+    {
+      "row": 99,
+      "name": "Jerry (gerald) Dolan",
+      "graduationYear": "1965",
+      "status": "living",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 131,
+      "name": "Ed Kujala",
+      "graduationYear": "1966",
+      "rank": "E-4",
+      "status": "helicopter gunner in Vietnam\"",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 142,
+      "name": "David Townshend",
+      "graduationYear": "1966",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 145,
+      "name": "Glen Anderson",
+      "graduationYear": "1967",
+      "rank": "Master Sergaent",
+      "militaryEntryDate": "1969-01-01T00:00:00.000Z",
+      "militaryExitDate": "1971-01-01T00:00:00.000Z",
+      "status": "living",
+      "notes": "512-868-8581",
+      "issues": [],
+      "branches": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "branchNote": "Converted \"Air Force\" to branch ID"
+    },
+    {
+      "row": 175,
+      "name": "John Walther (1969 Left)",
+      "graduationYear": "1969",
+      "rank": "E-6 Petty Officer First Class",
+      "status": "living",
+      "notes": "Vietnam",
+      "issues": [],
+      "branches": [
+        "DRkKKqV0KTK6PMAyM7t3"
+      ],
+      "branchNote": "Converted \"Coast Guard\" to branch ID"
+    },
+    {
+      "row": 188,
+      "name": "Greg (gregory) Script Blank ON Quesion",
+      "graduationYear": "1970",
+      "rank": "O-3 Captain  On active Duty (O-2) 1LT",
+      "status": "living",
+      "notes": "gbowers14@verizon.net for more info",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 191,
+      "name": "Sydney Jr. Stacy",
+      "graduationYear": "1970",
+      "rank": "Seargeant",
+      "militaryEntryDate": "1971-01-01T00:00:00.000Z",
+      "militaryExitDate": "1974-01-01T00:00:00.000Z",
+      "issues": [],
+      "branches": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "branchNote": "Converted \"Air Force\" to branch ID"
+    },
+    {
+      "row": 204,
+      "name": "Georgia Young (formerly Ash)",
+      "graduationYear": "1972",
+      "rank": "Seargant SP-4",
+      "militaryEntryDate": "1972-01-01T00:00:00.000Z",
+      "militaryExitDate": "1975-01-01T00:00:00.000Z",
+      "status": "living",
+      "notes": "440-693-4414",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 254,
+      "name": "Jane Hemming  Now Carsten",
+      "graduationYear": "1983",
+      "rank": "E6 Staff Sergeant",
+      "militaryEntryDate": "1983-01-01T00:00:00.000Z",
+      "militaryExitDate": "1992-01-01T00:00:00.000Z",
+      "status": "living",
+      "notes": "wcarsten@yahoo.com",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 273,
+      "name": "\"israel Turkey",
+      "rank": "\"FPO NY",
+      "status": "1987",
+      "notes": "?",
+      "issues": []
+    },
+    {
+      "row": 291,
+      "name": "James Mccauley",
+      "graduationYear": "1989",
+      "rank": "MSGT",
+      "status": "living",
+      "notes": "440-668-6447",
+      "issues": [],
+      "branches": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "branchNote": "Converted \"Air Force\" to branch ID"
+    },
+    {
+      "row": 301,
+      "name": "Katherine Mctaggart Voyce (1999??)",
+      "graduationYear": "1990",
+      "status": "living",
+      "issues": [],
+      "branches": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "branchNote": "Converted \"Navy\" to branch ID"
+    },
+    {
+      "row": 313,
+      "name": "Gerald Satava II",
+      "graduationYear": "1993",
+      "rank": "Corporal",
+      "militaryEntryDate": "1993-01-01T00:00:00.000Z",
+      "militaryExitDate": "2003-01-01T00:00:00.000Z",
+      "status": "living",
+      "notes": "3306856105",
+      "issues": [],
+      "branches": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "branchNote": "Converted \"Marines\" to branch ID"
+    },
+    {
+      "row": 344,
+      "name": "Amber Lafountaine (carson) Married Name",
+      "graduationYear": "2001",
+      "rank": "Private first class",
+      "status": "living",
+      "notes": "ambercarson1982@gmail.com",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 356,
+      "name": "Matt Froehle Froehle",
+      "graduationYear": "2002",
+      "rank": "E3/OC",
+      "status": "living",
+      "notes": "513.340.1711",
+      "issues": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 385,
+      "name": "Daniel Sterra",
+      "graduationYear": "2004",
+      "status": "living",
+      "issues": [],
+      "branches": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "branchNote": "Converted \"Navy\" to branch ID"
+    },
+    {
+      "row": 445,
+      "name": "Nick Mighton 2014 JR Yr.)",
+      "graduationYear": "2014",
+      "rank": "PFC",
+      "issues": [],
+      "branches": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "branchNote": "Converted \"Marines\" to branch ID"
+    },
+    {
+      "row": 461,
+      "name": "Savannah Mickus",
+      "graduationYear": "2018",
+      "rank": "E-3",
+      "militaryEntryDate": "2018-01-01T00:00:00.000Z",
+      "issues": [],
+      "branches": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "branchNote": "Converted \"Navy\" to branch ID"
+    },
+    {
+      "row": 464,
+      "name": "Louis Andersen  (faculty)",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "branchNote": "Converted \"Navy\" to branch ID"
+    },
+    {
+      "row": 475,
+      "name": "Dave Burris (teacher)",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 481,
+      "name": "John Delong (asst Super)",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "branchNote": "Converted \"Air Force\" to branch ID"
+    },
+    {
+      "row": 482,
+      "name": "Dave Denner (teacher)",
+      "rank": "WWII Vet",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 485,
+      "name": "Aaron Draime (teacher)",
+      "rank": "1994-2000",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 489,
+      "name": "Jim Ganas (staff)",
+      "issues": [
+        "Suspicious year: 2040"
+      ]
+    },
+    {
+      "row": 491,
+      "name": "Frank Gerard (ad)",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 492,
+      "name": "Dan Grill (staff)",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "DRkKKqV0KTK6PMAyM7t3"
+      ],
+      "branchNote": "Converted \"Coast Guard\" to branch ID"
+    },
+    {
+      "row": 493,
+      "name": "Bill Grose (teacher)",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "branchNote": "Converted \"Navy\" to branch ID"
+    },
+    {
+      "row": 496,
+      "name": "Thomas Hilston (sc. Board)",
+      "rank": "SP5",
+      "militaryEntryDate": "1970-01-01T00:00:00.000Z",
+      "militaryExitDate": "1976-01-01T00:00:00.000Z",
+      "notes": "440-354-3695",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 499,
+      "name": "Ed Johnson (staff)",
+      "rank": "WWII Vet",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 508,
+      "name": "John Lauer Sr.  (faculty)",
+      "issues": [
+        "Suspicious year: 2040"
+      ]
+    },
+    {
+      "row": 520,
+      "name": "Robert Mcfarren (teacher)",
+      "rank": "WWII Vet",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 521,
+      "name": "Donald Mckenna (principal)",
+      "rank": "WWII Vet",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "branchNote": "Converted \"Air Force\" to branch ID"
+    },
+    {
+      "row": 530,
+      "name": "Harold Parsons Supperint)",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "branchNote": "Converted \"Army\" to branch ID"
+    },
+    {
+      "row": 542,
+      "name": "Bill Skelly (staff)",
+      "issues": [
+        "Suspicious year: 2040"
+      ]
+    },
+    {
+      "row": 551,
+      "name": "George Strailey (teacher)",
+      "rank": "WWII Vet",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "branchNote": "Converted \"Marines\" to branch ID"
+    },
+    {
+      "row": 552,
+      "name": "John Sutch (teacher)",
+      "issues": [
+        "Suspicious year: 2040"
+      ]
+    },
+    {
+      "row": 557,
+      "name": "William Walrath (teacher)",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "branchNote": "Converted \"Navy\" to branch ID"
+    },
+    {
+      "row": 558,
+      "name": "John  (teacher) Warner",
+      "issues": [
+        "Suspicious year: 2040"
+      ],
+      "branches": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "branchNote": "Converted \"Navy\" to branch ID"
+    }
+  ],
+  "conflicts": [],
+  "skipped": [
+    {
+      "row": 116,
+      "reason": "Invalid or header row"
+    },
+    {
+      "row": 563,
+      "reason": "Invalid or header row"
+    }
+  ],
+  "statistics": {
+    "totalRows": 563,
+    "processed": 513,
+    "newVeterans": 48,
+    "updates": 505,
+    "skipped": 2,
+    "conflicts": 7,
+    "fixes": {
+      "branchTypos": 1,
+      "nameFormatting": 41,
+      "yearIssues": 0
+    },
+    "cleaningApplied": {
+      "year2040Fixed": 100,
+      "branchesFixed": 2,
+      "nameFormattingFixed": 12,
+      "invalidBranchesRemoved": 1
+    },
+    "fixed": {
+      "unknownBranchesRemoved": 11,
+      "branchesConverted": 514,
+      "invalidBranches": [
+        "Ohio Nat'l Guard",
+        "There is a Buddy?? in yearbook\"",
+        "Army National Guard",
+        "Vietnam and Iraq Vet",
+        "Crete and Guantanamo Bay Cuba\""
+      ],
+      "updatesRemaining": 475,
+      "newVeteransRemaining": 48
+    },
+    "safety": {
+      "originalUpdates": 532,
+      "keptUpdates": 66,
+      "skippedUpdates": 466,
+      "skippedBranchOverwrites": 466,
+      "keptBranchAdditions": 5,
+      "keptNameFormatting": 41,
+      "keptRankAdditions": 12,
+      "keptDateAdditions": 5,
+      "skippedGradYearConflicts": 0
+    },
+    "finalCounts": {
+      "veteransToUpdate": 61,
+      "newVeteransToAdd": 48,
+      "totalUpdates": 66
+    }
+  }
+}

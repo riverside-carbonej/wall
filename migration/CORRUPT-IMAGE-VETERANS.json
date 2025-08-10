@@ -1,0 +1,78 @@
+{
+  "timestamp": "2025-08-10T23:29:22.704Z",
+  "corruptImageVeterans": [
+    {
+      "name": "Jami Abel",
+      "year": "1995",
+      "imageId": "201f3581-22ff-4136-8196-de590569afda",
+      "itemId": "201f3581-22ff-4136-8196-de590569afda",
+      "imageInfo": "201f3581-22ff-4136-8196-de590569afda.png"
+    },
+    {
+      "name": "John Vokac",
+      "year": "2001",
+      "imageId": "f49f0ac3-a8a7-403f-8cdf-f508143c91c2",
+      "itemId": "f49f0ac3-a8a7-403f-8cdf-f508143c91c2",
+      "imageInfo": "f49f0ac3-a8a7-403f-8cdf-f508143c91c2.png"
+    },
+    {
+      "name": "Christopher Blakeslee",
+      "year": "1991",
+      "imageId": "b42bd24e-b891-426c-9d8a-324df74f9878",
+      "itemId": "b42bd24e-b891-426c-9d8a-324df74f9878",
+      "imageInfo": "b42bd24e-b891-426c-9d8a-324df74f9878.png"
+    },
+    {
+      "name": "Jeffrey Urban",
+      "year": "1980",
+      "imageId": "ba81b86a-028e-4cf4-b3ee-be604896a4ec",
+      "itemId": "ba81b86a-028e-4cf4-b3ee-be604896a4ec",
+      "imageInfo": "ba81b86a-028e-4cf4-b3ee-be604896a4ec.png"
+    },
+    {
+      "name": "T. Grove Hach",
+      "year": "2017",
+      "imageId": "d1f3131b-a7c2-4aad-a8a4-f86a2c200a12",
+      "itemId": "d1f3131b-a7c2-4aad-a8a4-f86a2c200a12",
+      "imageInfo": "d1f3131b-a7c2-4aad-a8a4-f86a2c200a12.png"
+    }
+  ],
+  "orphanImageVeterans": [],
+  "allAffected": [
+    {
+      "name": "Jami Abel",
+      "year": "1995",
+      "imageId": "201f3581-22ff-4136-8196-de590569afda",
+      "itemId": "201f3581-22ff-4136-8196-de590569afda",
+      "imageInfo": "201f3581-22ff-4136-8196-de590569afda.png"
+    },
+    {
+      "name": "John Vokac",
+      "year": "2001",
+      "imageId": "f49f0ac3-a8a7-403f-8cdf-f508143c91c2",
+      "itemId": "f49f0ac3-a8a7-403f-8cdf-f508143c91c2",
+      "imageInfo": "f49f0ac3-a8a7-403f-8cdf-f508143c91c2.png"
+    },
+    {
+      "name": "Christopher Blakeslee",
+      "year": "1991",
+      "imageId": "b42bd24e-b891-426c-9d8a-324df74f9878",
+      "itemId": "b42bd24e-b891-426c-9d8a-324df74f9878",
+      "imageInfo": "b42bd24e-b891-426c-9d8a-324df74f9878.png"
+    },
+    {
+      "name": "Jeffrey Urban",
+      "year": "1980",
+      "imageId": "ba81b86a-028e-4cf4-b3ee-be604896a4ec",
+      "itemId": "ba81b86a-028e-4cf4-b3ee-be604896a4ec",
+      "imageInfo": "ba81b86a-028e-4cf4-b3ee-be604896a4ec.png"
+    },
+    {
+      "name": "T. Grove Hach",
+      "year": "2017",
+      "imageId": "d1f3131b-a7c2-4aad-a8a4-f86a2c200a12",
+      "itemId": "d1f3131b-a7c2-4aad-a8a4-f86a2c200a12",
+      "imageInfo": "d1f3131b-a7c2-4aad-a8a4-f86a2c200a12.png"
+    }
+  ]
+}

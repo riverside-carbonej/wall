@@ -1,0 +1,116 @@
+{
+  "timestamp": "2025-08-10T23:22:09.443Z",
+  "duplicateImages": [],
+  "corruptImages": [
+    "201f3581-22ff-4136-8196-de590569afda.png",
+    "b42bd24e-b891-426c-9d8a-324df74f9878.png",
+    "ba81b86a-028e-4cf4-b3ee-be604896a4ec.png",
+    "d1f3131b-a7c2-4aad-a8a4-f86a2c200a12.png",
+    "f49f0ac3-a8a7-403f-8cdf-f508143c91c2.png"
+  ],
+  "orphanImages": [
+    "f8ee7fc3-1d6a-465e-bd0f-6c320bac47b7.png"
+  ],
+  "veteransWithoutImages": [
+    {
+      "id": "063c6gsbHp64QTIddvOz",
+      "name": "George Clyde Hadden",
+      "year": "1952"
+    },
+    {
+      "id": "0FA3MVRU6cc1AnTM6M5A",
+      "name": "Christopher Modic",
+      "year": "2001"
+    },
+    {
+      "id": "0b53SDmEyUIINDXwwt0G",
+      "name": "Randy Myers",
+      "year": ""
+    },
+    {
+      "id": "0cLG0CMDeOtHSelclceO",
+      "name": "Michael Chirichello",
+      "year": "2003"
+    },
+    {
+      "id": "0h0nGfpteqLMGs7UmQMN",
+      "name": "Dana Saddler",
+      "year": "1986"
+    },
+    {
+      "id": "1E6t4N6lbSA2kr2r6bNJ",
+      "name": "Harvey Studer",
+      "year": "2003"
+    },
+    {
+      "id": "1TfZKDrlM0GRdhchACfY",
+      "name": "Hillary Mueri",
+      "year": "1995"
+    },
+    {
+      "id": "1XmZmOZ9T4aHAZ3CYRJG",
+      "name": "Dayton Eckart",
+      "year": "1989"
+    },
+    {
+      "id": "1pKG5BGWTlCHCO9MWIWl",
+      "name": "Dylan Maghaffey",
+      "year": ""
+    },
+    {
+      "id": "27MkvON3IowX80r9NwQI",
+      "name": "William R Mckosky",
+      "year": "1957"
+    },
+    {
+      "id": "27dhUcztTvHx48vegaOX",
+      "name": "Richard Potter",
+      "year": "1998"
+    },
+    {
+      "id": "2HpJFf4kjYvOQLK5GX0C",
+      "name": "Brad Braid",
+      "year": ""
+    },
+    {
+      "id": "2LUPZvqjpPvqRfoARXGG",
+      "name": "\"laurence \"\"larry\"\"\" Harley",
+      "year": "1960"
+    },
+    {
+      "id": "2kgBUHLsBmv21SNfs2ob",
+      "name": "Therese Elersich",
+      "year": "1990"
+    },
+    {
+      "id": "34UF5kyQTEiqyPARcQPF",
+      "name": "Robert Meyer (1998)",
+      "year": "1998"
+    },
+    {
+      "id": "3AoiYk5bMboHSdAq65F5",
+      "name": "Brian Peterson",
+      "year": "1989"
+    },
+    {
+      "id": "3COxRjlq9x9teZ6kL2vO",
+      "name": "Danielle Clark-Lewis",
+      "year": "1992"
+    },
+    {
+      "id": "3SxRpPbaXG2qNyYWkqdY",
+      "name": "Allison Whitaker",
+      "year": "2003"
+    },
+    {
+      "id": "3bsDzsf1Wt02u4KjgvDJ",
+      "name": "Mark Manley",
+      "year": "1980"
+    },
+    {
+      "id": "3nGfk4Z8tNAhPSztnPUC",
+      "name": "Donald Paulin",
+      "year": "1956"
+    }
+  ]
+}

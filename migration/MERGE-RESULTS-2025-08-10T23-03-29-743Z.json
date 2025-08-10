@@ -1,0 +1,619 @@
+{
+  "merged": [
+    {
+      "kept": {
+        "id": "SigB0E3qeDjYuXBblLbc",
+        "name": "Aaron Draime"
+      },
+      "deleted": {
+        "id": "Ucd8Dl0gHLypkVu1O4UF",
+        "name": "Aaron Draime (teacher)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "olys3gPe5MInw81zcvTq",
+        "name": "Bill Grose"
+      },
+      "deleted": {
+        "id": "m7dUeZEp1BLuMlxOwt16",
+        "name": "Bill Grose (teacher)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "Tjl03Nhn6Hl8sxWYADYN",
+        "name": "Bill Skelly"
+      },
+      "deleted": {
+        "id": "ABS1oMFKA3A9719Nu2Iz",
+        "name": "Bill Skelly (staff)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "branches",
+        "deployments"
+      ]
+    },
+    {
+      "kept": {
+        "id": "dI1v474kKpt75aVKjZVj",
+        "name": "Dan Grill"
+      },
+      "deleted": {
+        "id": "Wll9Z2fBrux6krXgklb5",
+        "name": "Dan Grill (staff)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "S5R6HMftN7BusxrhBajw",
+        "name": "Dave Burris"
+      },
+      "deleted": {
+        "id": "YcAnBbgdcdIHsDiEKKTd",
+        "name": "Dave Burris (teacher)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "ohFEDZtADtMhNTxFi4dk",
+        "name": "Dave Denner"
+      },
+      "deleted": {
+        "id": "HKpTXG7zkzCW7AwAVZ8t",
+        "name": "Dave Denner (teacher)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "K8nOMXqxYOaVLi3B8l0Z",
+        "name": "Donald McKenna"
+      },
+      "deleted": {
+        "id": "AJ1wnPQrJtixBjW7KUnj",
+        "name": "Donald Mckenna (principal)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "N7LrV47rymclL9fcb87H",
+        "name": "Ed Johnson"
+      },
+      "deleted": {
+        "id": "sSLGecCyS0edvTCqV70O",
+        "name": "Ed Johnson (staff)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "lNYcaxQCBkrp77VfJqUK",
+        "name": "Frank Gerard"
+      },
+      "deleted": {
+        "id": "n2vMeXr6gNoKB0MsLFf9",
+        "name": "Frank Gerard (ad)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "o6xS1afhfjSo9BzBMgEv",
+        "name": "George Strailey"
+      },
+      "deleted": {
+        "id": "gr75EmvqK6hiaqK93PXz",
+        "name": "George Strailey (teacher)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "T3OgiDjv0l2xWWYdk4ZD",
+        "name": "Harold Parsons"
+      },
+      "deleted": {
+        "id": "RwklADBkTrGZfkSRfkBl",
+        "name": "Harold Parsons Supperint)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "tdBCA8EEC8DTY531FaZq",
+        "name": "Jim Ganas"
+      },
+      "deleted": {
+        "id": "Ccp62lujfyPZqVPMb5vq",
+        "name": "Jim Ganas (staff)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "branches",
+        "deployments"
+      ]
+    },
+    {
+      "kept": {
+        "id": "gaunafqx8I7jUB4aMstb",
+        "name": "John DeLong"
+      },
+      "deleted": {
+        "id": "ywSebdcpaW1WCQ0j0xVZ",
+        "name": "John Delong (asst Super)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "oTttDmsUrUpZ2rhen14A",
+        "name": "John Sutch"
+      },
+      "deleted": {
+        "id": "o6zKbHXNf5ToGUWnTPib",
+        "name": "John Sutch (teacher)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "branches",
+        "deployments"
+      ]
+    },
+    {
+      "kept": {
+        "id": "6pZtzuI2NLM9Tho6Gg6w",
+        "name": "Louis Andersen"
+      },
+      "deleted": {
+        "id": "vPsaqlgHoM0xrQsfNmnU",
+        "name": "Louis Andersen  (faculty)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "gjWx4utVJuvgf1XHUTKK",
+        "name": "Robert McFarren"
+      },
+      "deleted": {
+        "id": "Yk7LCfpnaA0S9CR2tGwo",
+        "name": "Robert Mcfarren (teacher)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "b1cX1ft9MbA7fIuLn58w",
+        "name": "William Walrath"
+      },
+      "deleted": {
+        "id": "dsc4vVlf6Y6ukb2W3lMJ",
+        "name": "William Walrath (teacher)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "e51tL7rBPF0ypmKqwqRy",
+        "name": "John Lauer"
+      },
+      "deleted": {
+        "id": "jf78mpaH4CoXAYQSJjUF",
+        "name": "John Lauer Sr."
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "branches",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "deployments",
+        "description",
+        "awards"
+      ]
+    },
+    {
+      "kept": {
+        "id": "e51tL7rBPF0ypmKqwqRy",
+        "name": "John Lauer"
+      },
+      "deleted": {
+        "id": "oUuTFUm3lzzfH2atSP8w",
+        "name": "John Lauer Sr.  (faculty)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "branches",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "deployments",
+        "description",
+        "awards"
+      ]
+    },
+    {
+      "kept": {
+        "id": "5JkxCpr18ob3sjvewJ34",
+        "name": "Amber Lafountaine (Carson)"
+      },
+      "deleted": {
+        "id": "F3npKkJrra3gWODgc0GZ",
+        "name": "Amber Lafountaine (carson) Married Name"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "Z9K6Mexoi9tLcsCELiCe",
+        "name": "David Townsend"
+      },
+      "deleted": {
+        "id": "nEPKYfrCUKZMEzbFW2cz",
+        "name": "David Townshend"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "lYH7plMf6tEC1GqBMURn",
+        "name": "Donald Neroda"
+      },
+      "deleted": {
+        "id": "bO3f2rZiefmbPAercQra",
+        "name": "Donald Neroda (1960 OR. 61)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "o511bgdMVkPVYoNd2Ys5",
+        "name": "Daniel Sferra"
+      },
+      "deleted": {
+        "id": "lWp2f385h2ywv0k4MH4V",
+        "name": "Daniel Sterra"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "iEYgfjTCQsFVQbwtaK9l",
+        "name": "John Walther"
+      },
+      "deleted": {
+        "id": "pSdqDeVjjigpX9tHCoz4",
+        "name": "John Walther (1969 Left)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "branches",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "deployments",
+        "description",
+        "awards"
+      ]
+    },
+    {
+      "kept": {
+        "id": "oGpqmRj8bVkIzcq9TQeZ",
+        "name": "Matt Froehle"
+      },
+      "deleted": {
+        "id": "oEiduHHhBBn13HRIlMLz",
+        "name": "Matt Froehle Froehle"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "zA1pHvcXV7LyEpaZwD32",
+        "name": "Nick Mighton"
+      },
+      "deleted": {
+        "id": "TxIK9FejlJpsMtgL5MZ2",
+        "name": "Nick Mighton 2014 JR Yr.)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "Gx1oq3wKImWJXcCVqOIZ",
+        "name": "Robert Simmons"
+      },
+      "deleted": {
+        "id": "ImUICtoSPcaD0YE8sPvv",
+        "name": "Robert Simmons (63 JR Yr)"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "Xinf4mV6SGz4icztHHjW",
+        "name": "Gerald A. Satava II"
+      },
+      "deleted": {
+        "id": "WTUIzPPnLZu3fKhWnqko",
+        "name": "Gerald Satava II"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    },
+    {
+      "kept": {
+        "id": "DMvXqEQOlsjPDiSf1gsl",
+        "name": "Mickus"
+      },
+      "deleted": {
+        "id": "ZmS11kRYMsWFhG4Pv54b",
+        "name": "Savannah Mickus"
+      },
+      "mergedFields": [
+        "name",
+        "graduationYear",
+        "rank",
+        "militaryEntryDate",
+        "militaryExitDate",
+        "description",
+        "deployments",
+        "branches"
+      ]
+    }
+  ],
+  "deleted": [
+    "Ucd8Dl0gHLypkVu1O4UF",
+    "m7dUeZEp1BLuMlxOwt16",
+    "ABS1oMFKA3A9719Nu2Iz",
+    "Wll9Z2fBrux6krXgklb5",
+    "YcAnBbgdcdIHsDiEKKTd",
+    "HKpTXG7zkzCW7AwAVZ8t",
+    "AJ1wnPQrJtixBjW7KUnj",
+    "sSLGecCyS0edvTCqV70O",
+    "n2vMeXr6gNoKB0MsLFf9",
+    "gr75EmvqK6hiaqK93PXz",
+    "RwklADBkTrGZfkSRfkBl",
+    "Ccp62lujfyPZqVPMb5vq",
+    "ywSebdcpaW1WCQ0j0xVZ",
+    "o6zKbHXNf5ToGUWnTPib",
+    "vPsaqlgHoM0xrQsfNmnU",
+    "Yk7LCfpnaA0S9CR2tGwo",
+    "dsc4vVlf6Y6ukb2W3lMJ",
+    "jf78mpaH4CoXAYQSJjUF",
+    "oUuTFUm3lzzfH2atSP8w",
+    "F3npKkJrra3gWODgc0GZ",
+    "nEPKYfrCUKZMEzbFW2cz",
+    "bO3f2rZiefmbPAercQra",
+    "lWp2f385h2ywv0k4MH4V",
+    "pSdqDeVjjigpX9tHCoz4",
+    "oEiduHHhBBn13HRIlMLz",
+    "TxIK9FejlJpsMtgL5MZ2",
+    "ImUICtoSPcaD0YE8sPvv",
+    "WTUIzPPnLZu3fKhWnqko",
+    "ZmS11kRYMsWFhG4Pv54b"
+  ],
+  "errors": []
+}

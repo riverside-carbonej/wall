@@ -1,0 +1,1111 @@
+{
+  "timestamp": "2025-08-10T23:00:45.964Z",
+  "totalVeterans": 608,
+  "exactDuplicates": [],
+  "similarGroups": [
+    [
+      {
+        "id": "SigB0E3qeDjYuXBblLbc",
+        "name": "Aaron Draime",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "Ucd8Dl0gHLypkVu1O4UF",
+        "name": "Aaron Draime (teacher)",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "5JkxCpr18ob3sjvewJ34",
+        "name": "Amber Lafountaine (Carson)",
+        "graduationYear": "2000",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "F3npKkJrra3gWODgc0GZ",
+        "name": "Amber Lafountaine (carson) Married Name",
+        "graduationYear": "2001",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "olys3gPe5MInw81zcvTq",
+        "name": "Bill Grose",
+        "graduationYear": "",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "m7dUeZEp1BLuMlxOwt16",
+        "name": "Bill Grose (teacher)",
+        "graduationYear": "",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "Tjl03Nhn6Hl8sxWYADYN",
+        "name": "Bill Skelly",
+        "graduationYear": "",
+        "branch": [],
+        "hasImage": false
+      },
+      {
+        "id": "ABS1oMFKA3A9719Nu2Iz",
+        "name": "Bill Skelly (staff)",
+        "graduationYear": "",
+        "branch": [],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "Ui0s7eNHarnAQwH1y4z2",
+        "name": "Charles Richard Waterman",
+        "graduationYear": "1960",
+        "branch": [
+          "bP2QVeH1XRiKpSiislGy"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "t3sB7n8jIb509rIxXWHE",
+        "name": "Richard",
+        "graduationYear": "1965",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "dI1v474kKpt75aVKjZVj",
+        "name": "Dan Grill",
+        "graduationYear": "",
+        "branch": [
+          "DRkKKqV0KTK6PMAyM7t3"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "Wll9Z2fBrux6krXgklb5",
+        "name": "Dan Grill (staff)",
+        "graduationYear": "",
+        "branch": [
+          "DRkKKqV0KTK6PMAyM7t3"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "o511bgdMVkPVYoNd2Ys5",
+        "name": "Daniel Sferra",
+        "graduationYear": "2004",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "lWp2f385h2ywv0k4MH4V",
+        "name": "Daniel Sterra",
+        "graduationYear": "2004",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "S5R6HMftN7BusxrhBajw",
+        "name": "Dave Burris",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "YcAnBbgdcdIHsDiEKKTd",
+        "name": "Dave Burris (teacher)",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "ohFEDZtADtMhNTxFi4dk",
+        "name": "Dave Denner",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "HKpTXG7zkzCW7AwAVZ8t",
+        "name": "Dave Denner (teacher)",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "Z9K6Mexoi9tLcsCELiCe",
+        "name": "David Townsend",
+        "graduationYear": "1966",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": true
+      },
+      {
+        "id": "nEPKYfrCUKZMEzbFW2cz",
+        "name": "David Townshend",
+        "graduationYear": "1966",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "K8nOMXqxYOaVLi3B8l0Z",
+        "name": "Donald McKenna",
+        "graduationYear": "",
+        "branch": [
+          "cfD5hNlYql7wilzOXQUf"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "AJ1wnPQrJtixBjW7KUnj",
+        "name": "Donald Mckenna (principal)",
+        "graduationYear": "",
+        "branch": [
+          "cfD5hNlYql7wilzOXQUf"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "lYH7plMf6tEC1GqBMURn",
+        "name": "Donald Neroda",
+        "graduationYear": "1961",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": true
+      },
+      {
+        "id": "bO3f2rZiefmbPAercQra",
+        "name": "Donald Neroda (1960 OR. 61)",
+        "graduationYear": "1961",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "1pKG5BGWTlCHCO9MWIWl",
+        "name": "Dylan Maghaffey",
+        "graduationYear": "",
+        "branch": [],
+        "hasImage": false
+      },
+      {
+        "id": "k5kl7boLrflNJfCY4KPx",
+        "name": "Ryan Maghaffey",
+        "graduationYear": "",
+        "branch": [],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "N7LrV47rymclL9fcb87H",
+        "name": "Ed Johnson",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "sSLGecCyS0edvTCqV70O",
+        "name": "Ed Johnson (staff)",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "lNYcaxQCBkrp77VfJqUK",
+        "name": "Frank Gerard",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "n2vMeXr6gNoKB0MsLFf9",
+        "name": "Frank Gerard (ad)",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "o6xS1afhfjSo9BzBMgEv",
+        "name": "George Strailey",
+        "graduationYear": "",
+        "branch": [
+          "bP2QVeH1XRiKpSiislGy"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "gr75EmvqK6hiaqK93PXz",
+        "name": "George Strailey (teacher)",
+        "graduationYear": "",
+        "branch": [
+          "bP2QVeH1XRiKpSiislGy"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "Xinf4mV6SGz4icztHHjW",
+        "name": "Gerald A. Satava II",
+        "graduationYear": "1993",
+        "branch": [
+          "bP2QVeH1XRiKpSiislGy"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "WTUIzPPnLZu3fKhWnqko",
+        "name": "Gerald Satava II",
+        "graduationYear": "1993",
+        "branch": [
+          "bP2QVeH1XRiKpSiislGy"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "T3OgiDjv0l2xWWYdk4ZD",
+        "name": "Harold Parsons",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "RwklADBkTrGZfkSRfkBl",
+        "name": "Harold Parsons Supperint)",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "tdBCA8EEC8DTY531FaZq",
+        "name": "Jim Ganas",
+        "graduationYear": "",
+        "branch": [],
+        "hasImage": false
+      },
+      {
+        "id": "Ccp62lujfyPZqVPMb5vq",
+        "name": "Jim Ganas (staff)",
+        "graduationYear": "",
+        "branch": [],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "gaunafqx8I7jUB4aMstb",
+        "name": "John DeLong",
+        "graduationYear": "",
+        "branch": [
+          "cfD5hNlYql7wilzOXQUf"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "ywSebdcpaW1WCQ0j0xVZ",
+        "name": "John Delong (asst Super)",
+        "graduationYear": "",
+        "branch": [
+          "cfD5hNlYql7wilzOXQUf"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "e51tL7rBPF0ypmKqwqRy",
+        "name": "John Lauer",
+        "graduationYear": "1988",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": true
+      },
+      {
+        "id": "jf78mpaH4CoXAYQSJjUF",
+        "name": "John Lauer Sr.",
+        "graduationYear": "",
+        "branch": [],
+        "hasImage": false
+      },
+      {
+        "id": "oUuTFUm3lzzfH2atSP8w",
+        "name": "John Lauer Sr.  (faculty)",
+        "graduationYear": "",
+        "branch": [],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "oTttDmsUrUpZ2rhen14A",
+        "name": "John Sutch",
+        "graduationYear": "",
+        "branch": [],
+        "hasImage": false
+      },
+      {
+        "id": "o6zKbHXNf5ToGUWnTPib",
+        "name": "John Sutch (teacher)",
+        "graduationYear": "",
+        "branch": [],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "iEYgfjTCQsFVQbwtaK9l",
+        "name": "John Walther",
+        "graduationYear": "1969",
+        "branch": [
+          "DRkKKqV0KTK6PMAyM7t3"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "pSdqDeVjjigpX9tHCoz4",
+        "name": "John Walther (1969 Left)",
+        "graduationYear": "1969",
+        "branch": [
+          "DRkKKqV0KTK6PMAyM7t3"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "hFgK0aZcJU4R1fNQcKHA",
+        "name": "Katherine Mctaggart Voyce (1999??)",
+        "graduationYear": "1990",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "Lvy7y9PxqMwDRoffv5YZ",
+        "name": "Kathern McTaggart Voyce",
+        "graduationYear": "1990",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "6pZtzuI2NLM9Tho6Gg6w",
+        "name": "Louis Andersen",
+        "graduationYear": "",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "vPsaqlgHoM0xrQsfNmnU",
+        "name": "Louis Andersen  (faculty)",
+        "graduationYear": "",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "oGpqmRj8bVkIzcq9TQeZ",
+        "name": "Matt Froehle",
+        "graduationYear": "2002",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "oEiduHHhBBn13HRIlMLz",
+        "name": "Matt Froehle Froehle",
+        "graduationYear": "2002",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "dbzqqXo3mWiiQfCHldc2",
+        "name": "Michael Parsons",
+        "graduationYear": "1994",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "bGRfsYOA57Q4O5PXRvpZ",
+        "name": "Michael Person",
+        "graduationYear": "2014",
+        "branch": [
+          "bP2QVeH1XRiKpSiislGy"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "DMvXqEQOlsjPDiSf1gsl",
+        "name": "Mickus",
+        "graduationYear": "2018",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "ZmS11kRYMsWFhG4Pv54b",
+        "name": "Savannah Mickus",
+        "graduationYear": "2018",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "zA1pHvcXV7LyEpaZwD32",
+        "name": "Nick Mighton",
+        "graduationYear": "2014",
+        "branch": [
+          "bP2QVeH1XRiKpSiislGy"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "TxIK9FejlJpsMtgL5MZ2",
+        "name": "Nick Mighton 2014 JR Yr.)",
+        "graduationYear": "2014",
+        "branch": [
+          "bP2QVeH1XRiKpSiislGy"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "l6Gmg63gHmInMwHQZWjA",
+        "name": "Robert Brooks",
+        "graduationYear": "2009",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "YmbGdLT6cCyPwUiLbi6S",
+        "name": "Robert L Brooks",
+        "graduationYear": "1954",
+        "branch": [
+          "cfD5hNlYql7wilzOXQUf"
+        ],
+        "hasImage": true
+      }
+    ],
+    [
+      {
+        "id": "gjWx4utVJuvgf1XHUTKK",
+        "name": "Robert McFarren",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "Yk7LCfpnaA0S9CR2tGwo",
+        "name": "Robert Mcfarren (teacher)",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "Gx1oq3wKImWJXcCVqOIZ",
+        "name": "Robert Simmons",
+        "graduationYear": "1963",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "ImUICtoSPcaD0YE8sPvv",
+        "name": "Robert Simmons (63 JR Yr)",
+        "graduationYear": "1963",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "OAf5y1JnkQtg7TwvceHg",
+        "name": "Thomas Hilston",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "A64VUHTT5DS6MOgbvhFw",
+        "name": "Thomas Hilston (sc. Board)",
+        "graduationYear": "",
+        "branch": [
+          "rbXhQx6v1P6RnxKe1d5Y"
+        ],
+        "hasImage": false
+      }
+    ],
+    [
+      {
+        "id": "Da2BHZCTktENBMLbhPwY",
+        "name": "Tim Kallay",
+        "graduationYear": "1966",
+        "branch": [
+          "cfD5hNlYql7wilzOXQUf"
+        ],
+        "hasImage": true
+      },
+      {
+        "id": "63Vp4BFnNhXuqrx6O1UM",
+        "name": "Tom Kallay",
+        "graduationYear": "1965",
+        "branch": [
+          "cfD5hNlYql7wilzOXQUf"
+        ],
+        "hasImage": true
+      }
+    ],
+    [
+      {
+        "id": "uZxZJXXeyvm4uilkgFFM",
+        "name": "William Baxter",
+        "graduationYear": "1985",
+        "branch": [
+          "bP2QVeH1XRiKpSiislGy"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "oSe0J2ERnV4dL2EE2WE4",
+        "name": "William Carter",
+        "graduationYear": "1978",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": true
+      }
+    ],
+    [
+      {
+        "id": "b1cX1ft9MbA7fIuLn58w",
+        "name": "William Walrath",
+        "graduationYear": "",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": false
+      },
+      {
+        "id": "dsc4vVlf6Y6ukb2W3lMJ",
+        "name": "William Walrath (teacher)",
+        "graduationYear": "",
+        "branch": [
+          "O6GjK0MJkDV56qqS0G7T"
+        ],
+        "hasImage": false
+      }
+    ]
+  ],
+  "withSuffixes": [
+    {
+      "id": "T5mdUat8QPqOTv4bHEhn",
+      "name": "\"israel Turkey",
+      "graduationYear": "",
+      "branch": [],
+      "hasImage": false
+    },
+    {
+      "id": "nDcaCwYSNf0BhZPo7NNX",
+      "name": "Arnold L Versaw JR",
+      "graduationYear": "1975",
+      "branch": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "hasImage": true
+    },
+    {
+      "id": "eMtxu01o8N4wcFwDkNch",
+      "name": "Frank A. Paterniti III",
+      "graduationYear": "",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "ufmuBFHrOZNB8jE3LhAE",
+      "name": "Frank Szeker Sr.",
+      "graduationYear": "1964",
+      "branch": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "hasImage": true
+    },
+    {
+      "id": "FFrFVTSURE20LqA5AINK",
+      "name": "Gene E Palinkas Jr",
+      "graduationYear": "1969",
+      "branch": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "hasImage": true
+    },
+    {
+      "id": "Xinf4mV6SGz4icztHHjW",
+      "name": "Gerald A. Satava II",
+      "graduationYear": "1993",
+      "branch": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "WTUIzPPnLZu3fKhWnqko",
+      "name": "Gerald Satava II",
+      "graduationYear": "1993",
+      "branch": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "jo0cZNTVF7dDsKJrqZG7",
+      "name": "Harold Specht Jr.",
+      "graduationYear": "",
+      "branch": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "iPUuPzQLzoQZvvyys1M9",
+      "name": "Harry D Huston Jr.",
+      "graduationYear": "1965",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": true
+    },
+    {
+      "id": "nYeR4MIG2cGMqfLbMdVo",
+      "name": "James P. Manges III",
+      "graduationYear": "1997",
+      "branch": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "53bHQATNyHa2CteK3MUd",
+      "name": "James P. Manges Jr.",
+      "graduationYear": "1974",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "USyCfNfsIluQwGpVGaLS",
+      "name": "James Patton SR",
+      "graduationYear": "1982",
+      "branch": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "UqTkFkkXQ2k2y65RARFK",
+      "name": "Jerry Livengood",
+      "graduationYear": "1989",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "TYaPPZeu9tXwH0f5rfE8",
+      "name": "Joel Percival",
+      "graduationYear": "",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "jf78mpaH4CoXAYQSJjUF",
+      "name": "John Lauer Sr.",
+      "graduationYear": "",
+      "branch": [],
+      "hasImage": false
+    },
+    {
+      "id": "oUuTFUm3lzzfH2atSP8w",
+      "name": "John Lauer Sr.  (faculty)",
+      "graduationYear": "",
+      "branch": [],
+      "hasImage": false
+    },
+    {
+      "id": "Ep1DBRM6r89m0pRCMu6W",
+      "name": "Jonathan Ivaskovic*",
+      "graduationYear": "2011",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "TxIK9FejlJpsMtgL5MZ2",
+      "name": "Nick Mighton 2014 JR Yr.)",
+      "graduationYear": "2014",
+      "branch": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "No09t9KCUTNIpUomZlGf",
+      "name": "Orion Binns Sr.",
+      "graduationYear": "1994",
+      "branch": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "qEf7wPnqW21Au16rPruD",
+      "name": "Richard H Libby Jr/",
+      "graduationYear": "1972",
+      "branch": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "hasImage": true
+    },
+    {
+      "id": "ImUICtoSPcaD0YE8sPvv",
+      "name": "Robert Simmons (63 JR Yr)",
+      "graduationYear": "1963",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "jdUdT53kMpfQzLC1GcFk",
+      "name": "Steven Ivaskovic*",
+      "graduationYear": "2012",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "9kfRxBxk9ixBbuW3VgXV",
+      "name": "Sydney Jr. Stacy",
+      "graduationYear": "1970",
+      "branch": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "jRJP07k2urGx63gDkbYI",
+      "name": "Sydney Stacy Jr.",
+      "graduationYear": "1970",
+      "branch": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "hasImage": true
+    },
+    {
+      "id": "kXudM75SbqOF3OQ800pC",
+      "name": "Wayne Shockley Jr.",
+      "graduationYear": "2002",
+      "branch": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "hzbQZknHwG42M2FokuZZ",
+      "name": "William Cantrell Jr.",
+      "graduationYear": "",
+      "branch": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "izETh1frxZ0TVHAr2a9R",
+      "name": "William Mcfadden Jr.",
+      "graduationYear": "",
+      "branch": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "UdI1pA3DD43eScv9Lyn8",
+      "name": "William Shay III",
+      "graduationYear": "1964",
+      "branch": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "hasImage": true
+    }
+  ],
+  "facultyStaff": [
+    {
+      "id": "Ucd8Dl0gHLypkVu1O4UF",
+      "name": "Aaron Draime (teacher)",
+      "graduationYear": "",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "m7dUeZEp1BLuMlxOwt16",
+      "name": "Bill Grose (teacher)",
+      "graduationYear": "",
+      "branch": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "ABS1oMFKA3A9719Nu2Iz",
+      "name": "Bill Skelly (staff)",
+      "graduationYear": "",
+      "branch": [],
+      "hasImage": false
+    },
+    {
+      "id": "Wll9Z2fBrux6krXgklb5",
+      "name": "Dan Grill (staff)",
+      "graduationYear": "",
+      "branch": [
+        "DRkKKqV0KTK6PMAyM7t3"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "YcAnBbgdcdIHsDiEKKTd",
+      "name": "Dave Burris (teacher)",
+      "graduationYear": "",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "HKpTXG7zkzCW7AwAVZ8t",
+      "name": "Dave Denner (teacher)",
+      "graduationYear": "",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "AJ1wnPQrJtixBjW7KUnj",
+      "name": "Donald Mckenna (principal)",
+      "graduationYear": "",
+      "branch": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "sSLGecCyS0edvTCqV70O",
+      "name": "Ed Johnson (staff)",
+      "graduationYear": "",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "gr75EmvqK6hiaqK93PXz",
+      "name": "George Strailey (teacher)",
+      "graduationYear": "",
+      "branch": [
+        "bP2QVeH1XRiKpSiislGy"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "Ccp62lujfyPZqVPMb5vq",
+      "name": "Jim Ganas (staff)",
+      "graduationYear": "",
+      "branch": [],
+      "hasImage": false
+    },
+    {
+      "id": "7j8sdBrE65kbSgYXTa7R",
+      "name": "John  (teacher) Warner",
+      "graduationYear": "",
+      "branch": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "ywSebdcpaW1WCQ0j0xVZ",
+      "name": "John Delong (asst Super)",
+      "graduationYear": "",
+      "branch": [
+        "cfD5hNlYql7wilzOXQUf"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "oUuTFUm3lzzfH2atSP8w",
+      "name": "John Lauer Sr.  (faculty)",
+      "graduationYear": "",
+      "branch": [],
+      "hasImage": false
+    },
+    {
+      "id": "o6zKbHXNf5ToGUWnTPib",
+      "name": "John Sutch (teacher)",
+      "graduationYear": "",
+      "branch": [],
+      "hasImage": false
+    },
+    {
+      "id": "vPsaqlgHoM0xrQsfNmnU",
+      "name": "Louis Andersen  (faculty)",
+      "graduationYear": "",
+      "branch": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "Yk7LCfpnaA0S9CR2tGwo",
+      "name": "Robert Mcfarren (teacher)",
+      "graduationYear": "",
+      "branch": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ],
+      "hasImage": false
+    },
+    {
+      "id": "dsc4vVlf6Y6ukb2W3lMJ",
+      "name": "William Walrath (teacher)",
+      "graduationYear": "",
+      "branch": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "hasImage": false
+    }
+  ]
+}
