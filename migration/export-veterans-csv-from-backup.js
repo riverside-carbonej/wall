@@ -8,6 +8,33 @@ function exportVeteransToCSV() {
     // Load the backup file
     const backupData = JSON.parse(fs.readFileSync('./BACKUP-2025-08-10T22-46-33-674Z.json', 'utf8'));
     const veterans = backupData.veterans || [];
+    const deployments = backupData.deployments || [];
+    const branches = backupData.branches || [];
+    
+    // Create lookup maps for deployments and branches
+    const deploymentMap = {};
+    deployments.forEach(dep => {
+      deploymentMap[dep.docId] = dep.fieldData?.name || dep.docId;
+    });
+    
+    // Since branches aren't in the backup, use common mappings
+    // These are the 5 unique branch IDs found in the data
+    const branchMap = {
+      'rbXhQx6v1P6RnxKe1d5Y': 'Army',
+      'O6GjK0MJkDV56qqS0G7T': 'Air Force', 
+      'cfD5hNlYql7wilzOXQUf': 'Marines',
+      'bP2QVeH1XRiKpSiislGy': 'Navy',
+      'DRkKKqV0KTK6PMAyM7t3': 'Coast Guard'
+    };
+    
+    // Try to map deployment IDs to common deployments
+    const commonDeployments = {
+      'TwTdqgfAd8WUO7JunUXi': 'Korean War',
+      'M4zekMFEGqC0zFsHrjP0': 'Vietnam War',
+      'uNFRiVLqsBFENyKqVlHn': 'Desert Storm',
+      'dS6V64xGnRSCKKLJa0Gc': 'Iraq War',
+      'R2g5V5NLcEelGY8DFiPl': 'Afghanistan'
+    };
     
     console.log(`Found ${veterans.length} veterans in backup`);
     
@@ -28,8 +55,8 @@ function exportVeteransToCSV() {
       'Military Exit Date',
       'Service Years',
       'Description',
-      'Branch Count',
-      'Deployment Count',
+      'Branches',
+      'Deployments',
       'Has Photo',
       'Photo URL'
     ];
@@ -56,12 +83,18 @@ function exportVeteransToCSV() {
       }
       
       // Check for photos
-      const hasPhoto = vet.images && vet.images.length > 0 ? 'Yes' : 'No';
+      const hasPhoto = vet.images && vet.images.length > 0;
       const photoUrl = vet.images && vet.images.length > 0 ? vet.images[0].url : '';
       
-      // Count branches and deployments
-      const branchCount = data.branches ? data.branches.length : 0;
-      const deploymentCount = data.deployments ? data.deployments.length : 0;
+      // Get branch names
+      const branchNames = (data.branches || []).map(branchId => 
+        branchMap[branchId] || branchId
+      ).join('; ');
+      
+      // Get deployment names - use commonDeployments mapping or deploymentMap
+      const deploymentsList = (data.deployments || []).map(depId => 
+        commonDeployments[depId] || deploymentMap[depId] || depId
+      ).join('; ');
       
       // Create CSV row
       const row = [
@@ -73,9 +106,9 @@ function exportVeteransToCSV() {
         exitDate,
         serviceYears,
         escapeCSV(data.description || ''),
-        branchCount,
-        deploymentCount,
-        hasPhoto,
+        escapeCSV(branchNames),
+        escapeCSV(deploymentsList),
+        hasPhoto.toString(),
         escapeCSV(photoUrl)
       ];
       
