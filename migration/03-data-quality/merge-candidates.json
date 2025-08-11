@@ -1,0 +1,93 @@
+[
+  {
+    "name": "Jane Hemming (Carsten)",
+    "keepId": "d3dNHm6oCLH5cDTozBPe",
+    "deleteId": "9Vq4T2EDWNg5GDHY1nJT",
+    "reason": "Same graduation year",
+    "keepData": {
+      "name": "Jane Hemming (Carsten)",
+      "graduationYear": "1983",
+      "rank": "E-6 Staff Sergeant",
+      "militaryEntryDate": "1983-01-01T00:00:00.000Z",
+      "militaryExitDate": "1992-01-01T00:00:00.000Z",
+      "description": "",
+      "deployments": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ]
+    },
+    "deleteData": {
+      "name": "Jane Hemming (Carsten)",
+      "graduationYear": "1983",
+      "rank": "E-6 Staff Sergeant",
+      "militaryEntryDate": "1983-01-01T00:00:00.000Z",
+      "militaryExitDate": "1992-01-01T00:00:00.000Z",
+      "description": "",
+      "deployments": [],
+      "branches": [
+        "rbXhQx6v1P6RnxKe1d5Y"
+      ]
+    }
+  },
+  {
+    "name": "John Warner",
+    "keepId": "7j8sdBrE65kbSgYXTa7R",
+    "deleteId": "gnHDNb1T7bE7tLVX4qEG",
+    "reason": "Both have minimal data, likely same person",
+    "keepData": {
+      "name": "John Warner",
+      "graduationYear": "",
+      "rank": "",
+      "branches": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ],
+      "militaryEntryDate": "",
+      "militaryExitDate": "",
+      "deployments": [],
+      "description": "",
+      "awards": ""
+    },
+    "deleteData": {
+      "name": "John Warner",
+      "graduationYear": "",
+      "rank": "",
+      "militaryEntryDate": null,
+      "militaryExitDate": null,
+      "description": "",
+      "deployments": [],
+      "branches": [
+        "O6GjK0MJkDV56qqS0G7T"
+      ]
+    }
+  },
+  {
+    "name": "William Shay III",
+    "keepId": "UdI1pA3DD43eScv9Lyn8",
+    "deleteId": "U0eWH4wnUFCEjaWwR9Ge",
+    "reason": "Same graduation year",
+    "keepData": {
+      "name": "William Shay III",
+      "graduationYear": "1964",
+      "rank": "E-4 Corporal",
+      "militaryEntryDate": "1966-01-01T00:00:00.000Z",
+      "militaryExitDate": "1968-01-01T00:00:00.000Z",
+      "description": "",
+      "deployments": [],
+      "branches": [
+        "bP2QVeH1XRiKpSiislGy"
+      ]
+    },
+    "deleteData": {
+      "name": "William Shay III",
+      "graduationYear": "1964",
+      "rank": "E-4 Corporal",
+      "militaryEntryDate": "1966-01-01T00:00:00.000Z",
+      "militaryExitDate": "1968-01-01T00:00:00.000Z",
+      "description": "",
+      "deployments": [],
+      "branches": [
+        "bP2QVeH1XRiKpSiislGy"
+      ]
+    }
+  }
+]

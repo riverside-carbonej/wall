@@ -1,0 +1,338 @@
+{
+  "timestamp": "2025-08-11T00:06:39.146Z",
+  "wallId": "Fkzc5Kh7gMpyTEm5Cl6d",
+  "wallData": {
+    "organizationName": "Riverside Local Schools",
+    "organizationSubtitle": "Riverside Local Schools",
+    "id": "Fkzc5Kh7gMpyTEm5Cl6d",
+    "theme": {
+      "id": "patriotic",
+      "name": "Patriotic",
+      "isCustom": false,
+      "mode": "dark",
+      "primaryColor": "#dc3545",
+      "secondaryColor": "#ffffff",
+      "accentColor": "#dc3545",
+      "backgroundColor": "#0d1421",
+      "surfaceColor": "#1a2332",
+      "cardColor": "#243142",
+      "textColor": "#ffffff"
+    },
+    "createdAt": {
+      "_seconds": 1754546024,
+      "_nanoseconds": 209000000
+    },
+    "objectTypes": [
+      {
+        "id": "veteran",
+        "wallId": "Fkzc5Kh7gMpyTEm5Cl6d",
+        "name": "Veteran",
+        "description": "Individual veteran service member",
+        "icon": "person",
+        "color": "#1976d2",
+        "fields": [
+          {
+            "id": "name",
+            "name": "Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "id": "graduationYear",
+            "name": "Graduation Year",
+            "type": "text",
+            "required": false
+          },
+          {
+            "id": "rank",
+            "name": "Military Rank",
+            "type": "text",
+            "required": false
+          },
+          {
+            "id": "branches",
+            "name": "Service Branches",
+            "type": "entity",
+            "required": false,
+            "entityConfig": {
+              "targetObjectTypeId": "branch",
+              "allowMultiple": true,
+              "displayMode": "chips"
+            }
+          },
+          {
+            "id": "militaryEntryDate",
+            "name": "Military Entry Date",
+            "type": "date",
+            "required": false
+          },
+          {
+            "id": "militaryExitDate",
+            "name": "Military Exit Date",
+            "type": "date",
+            "required": false
+          },
+          {
+            "id": "deployments",
+            "name": "Deployments",
+            "type": "entity",
+            "required": false,
+            "entityConfig": {
+              "targetObjectTypeId": "deployment",
+              "allowMultiple": true,
+              "displayMode": "chips"
+            }
+          },
+          {
+            "id": "description",
+            "name": "Service Description",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "id": "awards",
+            "name": "Military Awards",
+            "type": "entity",
+            "required": false,
+            "entityConfig": {
+              "targetObjectTypeId": "award",
+              "allowMultiple": true,
+              "displayMode": "chips"
+            },
+            "description": "Military awards and decorations received"
+          }
+        ],
+        "displaySettings": {
+          "primaryField": "name",
+          "secondaryField": "rank",
+          "tertiaryField": "graduationYear",
+          "showOnMap": false,
+          "cardLayout": "detailed"
+        },
+        "isActive": true,
+        "sortOrder": 0,
+        "createdAt": {
+          "_seconds": 1754546024,
+          "_nanoseconds": 209000000
+        },
+        "updatedAt": {
+          "_seconds": 1754547717,
+          "_nanoseconds": 426000000
+        }
+      },
+      {
+        "id": "branch",
+        "wallId": "Fkzc5Kh7gMpyTEm5Cl6d",
+        "name": "Branch",
+        "description": "Military service branch",
+        "icon": "military_tech",
+        "color": "#f57c00",
+        "fields": [
+          {
+            "id": "name",
+            "name": "Branch Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "id": "description",
+            "name": "Description",
+            "type": "text",
+            "required": false
+          }
+        ],
+        "displaySettings": {
+          "primaryField": "name",
+          "secondaryField": "description",
+          "showOnMap": false,
+          "cardLayout": "compact"
+        },
+        "isActive": true,
+        "sortOrder": 1,
+        "createdAt": {
+          "_seconds": 1754546024,
+          "_nanoseconds": 209000000
+        },
+        "updatedAt": {
+          "_seconds": 1754546024,
+          "_nanoseconds": 209000000
+        }
+      },
+      {
+        "id": "deployment",
+        "wallId": "Fkzc5Kh7gMpyTEm5Cl6d",
+        "name": "Deployment",
+        "description": "Military deployment or operation",
+        "icon": "public",
+        "color": "#388e3c",
+        "fields": [
+          {
+            "id": "title",
+            "name": "Deployment Title",
+            "type": "text",
+            "required": true
+          },
+          {
+            "id": "location",
+            "name": "Location",
+            "type": "location",
+            "required": true
+          },
+          {
+            "id": "startDate",
+            "name": "Start Date",
+            "type": "date",
+            "required": false
+          },
+          {
+            "id": "endDate",
+            "name": "End Date",
+            "type": "date",
+            "required": false
+          },
+          {
+            "id": "description",
+            "name": "Description",
+            "type": "text",
+            "required": false
+          }
+        ],
+        "displaySettings": {
+          "primaryField": "title",
+          "secondaryField": "location",
+          "showOnMap": true,
+          "cardLayout": "compact"
+        },
+        "isActive": true,
+        "sortOrder": 2,
+        "createdAt": {
+          "_seconds": 1754546024,
+          "_nanoseconds": 209000000
+        },
+        "updatedAt": {
+          "_seconds": 1754546024,
+          "_nanoseconds": 209000000
+        }
+      },
+      {
+        "id": "award",
+        "wallId": "Fkzc5Kh7gMpyTEm5Cl6d",
+        "name": "Award",
+        "description": "Military awards, decorations, and honors",
+        "icon": "military_tech",
+        "color": "#ffd700",
+        "fields": [
+          {
+            "id": "name",
+            "name": "Award Name",
+            "type": "text",
+            "required": true,
+            "description": "Official name of the award or decoration"
+          },
+          {
+            "id": "category",
+            "name": "Category",
+            "type": "select",
+            "required": false,
+            "options": [
+              "Medal of Honor",
+              "Distinguished Service Cross",
+              "Silver Star",
+              "Bronze Star",
+              "Purple Heart",
+              "Combat Action Ribbon",
+              "Good Conduct Medal",
+              "National Defense Service Medal",
+              "Campaign Medal",
+              "Service Ribbon",
+              "Unit Citation",
+              "Other"
+            ],
+            "description": "Type or category of award"
+          },
+          {
+            "id": "dateAwarded",
+            "name": "Date Awarded",
+            "type": "date",
+            "required": false,
+            "description": "Date the award was presented"
+          },
+          {
+            "id": "citation",
+            "name": "Citation",
+            "type": "longtext",
+            "required": false,
+            "description": "Official citation or reason for award"
+          },
+          {
+            "id": "awardingUnit",
+            "name": "Awarding Unit",
+            "type": "text",
+            "required": false,
+            "description": "Unit or command that presented the award"
+          },
+          {
+            "id": "theater",
+            "name": "Theater of Operations",
+            "type": "text",
+            "required": false,
+            "description": "Geographic area or campaign where award was earned"
+          }
+        ],
+        "displaySettings": {
+          "primaryField": "name",
+          "secondaryField": "category",
+          "tertiaryField": "dateAwarded",
+          "showOnMap": false,
+          "cardLayout": "detailed"
+        },
+        "isActive": true,
+        "sortOrder": 3,
+        "createdAt": {
+          "_seconds": 1754547717,
+          "_nanoseconds": 426000000
+        },
+        "updatedAt": {
+          "_seconds": 1754547717,
+          "_nanoseconds": 426000000
+        }
+      }
+    ],
+    "name": "Wall of Honor",
+    "settings": {
+      "allowComments": false,
+      "allowRatings": false,
+      "enableNotifications": true,
+      "autoSave": true,
+      "moderationRequired": false,
+      "inactivityTimeout": 10,
+      "showQrCode": true
+    },
+    "visibility": {
+      "isPublished": true,
+      "requiresLogin": false,
+      "publishedAt": {},
+      "publishedBy": "HElXlnY0qPY6rE7t1lpM2G3BMhe2"
+    },
+    "description": "The Veteran Wall of Honor is a digital memorial platform dedicated to preserving and celebrating Riverside's American veterans from all branches of military service. Every Riverside veteran's contribution to our nation's freedom is displayed on this wall.",
+    "permissions": {
+      "owner": "HElXlnY0qPY6rE7t1lpM2G3BMhe2",
+      "editors": [],
+      "viewers": [],
+      "allowDepartmentEdit": false,
+      "managers": [
+        "SVgiIy9HiWVziy8opCfvIWxa9IH2"
+      ]
+    },
+    "updatedAt": {
+      "_seconds": 1754612388,
+      "_nanoseconds": 356000000
+    }
+  },
+  "totalItems": 0,
+  "veterans": [],
+  "deployments": [],
+  "branches": [],
+  "awards": [],
+  "allItems": []
+}

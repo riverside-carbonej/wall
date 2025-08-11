@@ -1,0 +1,274 @@
+[
+  {
+    "num": 14,
+    "id": "3SxRpPbaXG2qNyYWkqdY",
+    "name": "Allison Whitaker",
+    "problems": [
+      "Missing spaces around slash"
+    ],
+    "current": {
+      "name": "Allison Whitaker",
+      "rank": "E-6/TSgt",
+      "gradYear": "2003",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "E-6 / TSgt"
+    }
+  },
+  {
+    "num": 51,
+    "id": "SUWCJMHuChDrSZyo2daD",
+    "name": "Brian Swick",
+    "problems": [
+      "Missing spaces around slash"
+    ],
+    "current": {
+      "name": "Brian Swick",
+      "rank": "SGT/E-5",
+      "gradYear": "",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "SGT / E-5"
+    }
+  },
+  {
+    "num": 134,
+    "id": "jAyaJiHJOYPElcYwsr3A",
+    "name": "David Frecker",
+    "problems": [
+      "Missing spaces around parentheses in rank"
+    ],
+    "current": {
+      "name": "David Frecker",
+      "rank": "Major (US Army JAGC)",
+      "gradYear": "1974",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "Major (US Army JAGC)"
+    }
+  },
+  {
+    "num": 167,
+    "id": "wHcyD8fx54pt7ptlKKbN",
+    "name": "Donald Tulenson",
+    "problems": [
+      "Rank grade needs hyphen (E5 should be E-5)"
+    ],
+    "current": {
+      "name": "Donald Tulenson",
+      "rank": "SGT E5",
+      "gradYear": "1965",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "SGT E-5"
+    }
+  },
+  {
+    "num": 217,
+    "id": "e1V11co1cyztn61n0wmi",
+    "name": "Georgia Young (Ash)",
+    "problems": [
+      "Misspelled \"Sergeant\""
+    ],
+    "current": {
+      "name": "Georgia Young (Ash)",
+      "rank": "Seargant SP-4",
+      "gradYear": "1972",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "Sergeant SP-4"
+    }
+  },
+  {
+    "num": 229,
+    "id": "sjIcA5YJHYVNaK0wAUTw",
+    "name": "Gregory Script Blank",
+    "problems": [
+      "Missing spaces around parentheses in rank"
+    ],
+    "current": {
+      "name": "Gregory Script Blank",
+      "rank": "O-3 Captain On active Duty (O-2) 1LT",
+      "gradYear": "1970",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "O-3 Captain On active Duty (O-2) 1LT"
+    }
+  },
+  {
+    "num": 259,
+    "id": "zwoFxC2DVq35nAJdvYWW",
+    "name": "James Trubisky",
+    "problems": [
+      "Missing spaces around slash"
+    ],
+    "current": {
+      "name": "James Trubisky",
+      "rank": "E-6/TSgt",
+      "gradYear": "2001",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "E-6 / TSgt"
+    }
+  },
+  {
+    "num": 267,
+    "id": "8J1mw8GUl8lhpcd89mfC",
+    "name": "Jason Irons",
+    "problems": [
+      "Missing spaces around slash"
+    ],
+    "current": {
+      "name": "Jason Irons",
+      "rank": "FC1/E-6",
+      "gradYear": "1998",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "FC1 / E-6"
+    }
+  },
+  {
+    "num": 270,
+    "id": "KrKo4bmhXCROyNqwmPgn",
+    "name": "Jeff Senter",
+    "problems": [
+      "Rank grade needs hyphen (E5 should be E-5)"
+    ],
+    "current": {
+      "name": "Jeff Senter",
+      "rank": "E5",
+      "gradYear": "1984",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "E-5"
+    }
+  },
+  {
+    "num": 320,
+    "id": "kW60Jqr2UBPJiO7DjBVa",
+    "name": "Jordan Dawson*",
+    "problems": [
+      "Missing spaces around parentheses in rank"
+    ],
+    "current": {
+      "name": "Jordan Dawson*",
+      "rank": "E-5 (SGT)",
+      "gradYear": "2012",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "E-5 (SGT)"
+    }
+  },
+  {
+    "num": 353,
+    "id": "1BTCjolDEQygsUffQl9X",
+    "name": "Larry Waterman",
+    "problems": [
+      "Missing spaces around parentheses in rank"
+    ],
+    "current": {
+      "name": "Larry Waterman",
+      "rank": "E-7 (SFC)",
+      "gradYear": "1971",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "E-7 (SFC)"
+    }
+  },
+  {
+    "num": 370,
+    "id": "GgLQFKCh4FYL0nbuUPuo",
+    "name": "Mark Meyer",
+    "problems": [
+      "Missing spaces around slash"
+    ],
+    "current": {
+      "name": "Mark Meyer",
+      "rank": "E-6/TSgt",
+      "gradYear": "2001",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "E-6 / TSgt"
+    }
+  },
+  {
+    "num": 398,
+    "id": "xDQOTKrPcmuADetMPSVe",
+    "name": "Michael Schimpf",
+    "problems": [
+      "Missing spaces around parentheses in rank"
+    ],
+    "current": {
+      "name": "Michael Schimpf",
+      "rank": "Technical Sergeant (E-6)",
+      "gradYear": "1999",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "Technical Sergeant (E-6)"
+    }
+  },
+  {
+    "num": 436,
+    "id": "qEf7wPnqW21Au16rPruD",
+    "name": "Richard H Libby Jr/",
+    "problems": [
+      "Missing spaces around parentheses in rank"
+    ],
+    "current": {
+      "name": "Richard H Libby Jr/",
+      "rank": "Senior Chief Petty Officer (E-8)",
+      "gradYear": "1972",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "Senior Chief Petty Officer (E-8)"
+    }
+  },
+  {
+    "num": 443,
+    "id": "481eSOPhdpRvwq2aDcWX",
+    "name": "Richard Romig",
+    "problems": [
+      "Missing spaces around parentheses in rank"
+    ],
+    "current": {
+      "name": "Richard Romig",
+      "rank": "MSgt (E-7)",
+      "gradYear": "1972",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "MSgt (E-7)"
+    }
+  },
+  {
+    "num": 532,
+    "id": "pW5Ep65oCyqsRuNU5v5H",
+    "name": "Thomas Morse",
+    "problems": [
+      "Missing spaces around parentheses in rank"
+    ],
+    "current": {
+      "name": "Thomas Morse",
+      "rank": "Petty Officer First Class (E-6)",
+      "gradYear": "1987",
+      "description": ""
+    },
+    "suggested": {
+      "rank": "Petty Officer First Class (E-6)"
+    }
+  }
+]

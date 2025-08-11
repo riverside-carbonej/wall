@@ -1,0 +1,264 @@
+[
+  {
+    "type": "SAME LAST NAME",
+    "veteran1": {
+      "id": "U5uWKNcwSuvJMghxZZJR",
+      "name": "Chanisa Hobson",
+      "rank": "Corporal",
+      "gradYear": "2010"
+    },
+    "veteran2": {
+      "id": "VWVsr6HG5jAGDDIcD6qs",
+      "name": "Channing Hobson",
+      "rank": "Corporal",
+      "gradYear": "2009"
+    },
+    "similarity": 0.8,
+    "note": "First names: \"Chanisa\" vs \"Channing\""
+  },
+  {
+    "type": "HIGH SIMILARITY",
+    "veteran1": {
+      "id": "1pKG5BGWTlCHCO9MWIWl",
+      "name": "Dylan Maghaffey",
+      "rank": "",
+      "gradYear": ""
+    },
+    "veteran2": {
+      "id": "k5kl7boLrflNJfCY4KPx",
+      "name": "Ryan Maghaffey",
+      "rank": "",
+      "gradYear": ""
+    },
+    "similarity": 0.8666666666666667
+  },
+  {
+    "type": "SAME LAST NAME",
+    "veteran1": {
+      "id": "jo0cZNTVF7dDsKJrqZG7",
+      "name": "Harold Specht Jr.",
+      "rank": "",
+      "gradYear": ""
+    },
+    "veteran2": {
+      "id": "iPUuPzQLzoQZvvyys1M9",
+      "name": "Harry D Huston Jr.",
+      "rank": "Corporal",
+      "gradYear": "1965"
+    },
+    "similarity": 0.5,
+    "note": "First names: \"Harold\" vs \"Harry\""
+  },
+  {
+    "type": "EXACT MATCH",
+    "veteran1": {
+      "id": "9Vq4T2EDWNg5GDHY1nJT",
+      "name": "Jane Hemming (Carsten)",
+      "rank": "E-6 Staff Sergeant",
+      "gradYear": "1983"
+    },
+    "veteran2": {
+      "id": "d3dNHm6oCLH5cDTozBPe",
+      "name": "Jane Hemming (Carsten)",
+      "rank": "E-6 Staff Sergeant",
+      "gradYear": "1983"
+    },
+    "similarity": 1
+  },
+  {
+    "type": "EXACT MATCH",
+    "veteran1": {
+      "id": "7j8sdBrE65kbSgYXTa7R",
+      "name": "John Warner",
+      "rank": "",
+      "gradYear": ""
+    },
+    "veteran2": {
+      "id": "gnHDNb1T7bE7tLVX4qEG",
+      "name": "John Warner",
+      "rank": "",
+      "gradYear": ""
+    },
+    "similarity": 1
+  },
+  {
+    "type": "SAME LAST NAME",
+    "veteran1": {
+      "id": "CPLddA7YojPOBFkEFaxe",
+      "name": "Joseph A. Sledz",
+      "rank": "Seaman",
+      "gradYear": "2017"
+    },
+    "veteran2": {
+      "id": "xM4wEYlmEt9dCc24J2BY",
+      "name": "Joshua Sledz",
+      "rank": "E-5 Chief Petty Officer",
+      "gradYear": "2007"
+    },
+    "similarity": 0.7333333333333333,
+    "note": "First names: \"Joseph\" vs \"Joshua\""
+  },
+  {
+    "type": "HIGH SIMILARITY",
+    "veteran1": {
+      "id": "hFgK0aZcJU4R1fNQcKHA",
+      "name": "Katherine Mctaggart Voyce",
+      "rank": "",
+      "gradYear": "1990"
+    },
+    "veteran2": {
+      "id": "Lvy7y9PxqMwDRoffv5YZ",
+      "name": "Kathern McTaggart Voyce",
+      "rank": "",
+      "gradYear": "1990"
+    },
+    "similarity": 0.92
+  },
+  {
+    "type": "SAME LAST NAME",
+    "veteran1": {
+      "id": "2LUPZvqjpPvqRfoARXGG",
+      "name": "Laurence \"Larry\" Harley",
+      "rank": "S4",
+      "gradYear": "1960"
+    },
+    "veteran2": {
+      "id": "8XkmZTy0hmONPx6eB0K3",
+      "name": "Laurence Harley",
+      "rank": "S4",
+      "gradYear": "1960"
+    },
+    "similarity": 0.6521739130434783,
+    "note": "First names: \"Laurence\" vs \"Laurence\""
+  },
+  {
+    "type": "HIGH SIMILARITY",
+    "veteran1": {
+      "id": "dbzqqXo3mWiiQfCHldc2",
+      "name": "Michael Parsons",
+      "rank": "Lieutenant Colonel",
+      "gradYear": "1994"
+    },
+    "veteran2": {
+      "id": "bGRfsYOA57Q4O5PXRvpZ",
+      "name": "Michael Person",
+      "rank": "Sgt",
+      "gradYear": "2014"
+    },
+    "similarity": 0.8666666666666667
+  },
+  {
+    "type": "HIGH SIMILARITY",
+    "veteran1": {
+      "id": "l6Gmg63gHmInMwHQZWjA",
+      "name": "Robert Brooks",
+      "rank": "Specialist",
+      "gradYear": "2009"
+    },
+    "veteran2": {
+      "id": "YmbGdLT6cCyPwUiLbi6S",
+      "name": "Robert L Brooks",
+      "rank": "",
+      "gradYear": "1954"
+    },
+    "similarity": 0.8666666666666667
+  },
+  {
+    "type": "SAME LAST NAME",
+    "veteran1": {
+      "id": "htzdpFH9nlJ1r5BOmVeC",
+      "name": "Shawn Basco",
+      "rank": "Colonel",
+      "gradYear": ""
+    },
+    "veteran2": {
+      "id": "2l6NEnxaJ5KVpYClO2pS",
+      "name": "Shawn M. Basco",
+      "rank": "",
+      "gradYear": ""
+    },
+    "similarity": 0.7857142857142857,
+    "note": "First names: \"Shawn\" vs \"Shawn\""
+  },
+  {
+    "type": "HIGH SIMILARITY",
+    "veteran1": {
+      "id": "Da2BHZCTktENBMLbhPwY",
+      "name": "Tim Kallay",
+      "rank": "",
+      "gradYear": "1966"
+    },
+    "veteran2": {
+      "id": "63Vp4BFnNhXuqrx6O1UM",
+      "name": "Tom Kallay",
+      "rank": "",
+      "gradYear": "1965"
+    },
+    "similarity": 0.9
+  },
+  {
+    "type": "HIGH SIMILARITY",
+    "veteran1": {
+      "id": "uZxZJXXeyvm4uilkgFFM",
+      "name": "William Baxter",
+      "rank": "SGT Major",
+      "gradYear": "1985"
+    },
+    "veteran2": {
+      "id": "oSe0J2ERnV4dL2EE2WE4",
+      "name": "William Carter",
+      "rank": "",
+      "gradYear": "1978"
+    },
+    "similarity": 0.8571428571428571
+  },
+  {
+    "type": "SAME LAST NAME",
+    "veteran1": {
+      "id": "hzbQZknHwG42M2FokuZZ",
+      "name": "William Cantrell Jr.",
+      "rank": "",
+      "gradYear": ""
+    },
+    "veteran2": {
+      "id": "izETh1frxZ0TVHAr2a9R",
+      "name": "William Mcfadden Jr.",
+      "rank": "",
+      "gradYear": ""
+    },
+    "similarity": 0.65,
+    "note": "First names: \"William\" vs \"William\""
+  },
+  {
+    "type": "HIGH SIMILARITY",
+    "veteran1": {
+      "id": "oSe0J2ERnV4dL2EE2WE4",
+      "name": "William Carter",
+      "rank": "",
+      "gradYear": "1978"
+    },
+    "veteran2": {
+      "id": "bhObAszxlnHYvVRxziCr",
+      "name": "William Harper",
+      "rank": "Captain",
+      "gradYear": "1984"
+    },
+    "similarity": 0.8571428571428571
+  },
+  {
+    "type": "EXACT MATCH",
+    "veteran1": {
+      "id": "U0eWH4wnUFCEjaWwR9Ge",
+      "name": "William Shay III",
+      "rank": "E-4 Corporal",
+      "gradYear": "1964"
+    },
+    "veteran2": {
+      "id": "UdI1pA3DD43eScv9Lyn8",
+      "name": "William Shay III",
+      "rank": "E-4 Corporal",
+      "gradYear": "1964"
+    },
+    "similarity": 1
+  }
+]
