@@ -1,0 +1,44 @@
+{
+  "wallTitle": "Riverside High School Alumni Association Hall of Fame",
+  "organization": {
+    "name": "Riverside High School Alumni Association",
+    "founded": 1997,
+    "location": {
+      "address": "585 Riverside Drive",
+      "city": "Painesville",
+      "state": "OH",
+      "zipCode": "44077"
+    },
+    "mission": "Celebrate the quality of education and extracurricular experiences at Riverside Local Schools",
+    "goals": [
+      "Renew or continue the friendships among alumni",
+      "Benefit the Riverside community",
+      "Honor distinguished alumni through the Hall of Fame",
+      "Provide scholarships to graduating seniors",
+      "Support class reunions",
+      "Enhance and preserve the legacy, prestige and traditions of Riverside",
+      "Tell Riverside's story through the people who have lived its history"
+    ],
+    "philosophy": "The quality of the education we received and the friendships we made make Riverside High School a very special place indeed."
+  },
+  "hallOfFame": {
+    "purpose": "Recognize and honor distinguished alumni, faculty, staff, and coaches",
+    "categories": [
+      "Alumni",
+      "Athlete", 
+      "Faculty & Staff",
+      "Athletic Coach"
+    ],
+    "inductionYears": "1997-2024",
+    "totalInductees": 162
+  },
+  "membership": {
+    "eligibility": "All alumni, former/current faculty, staff, and community members",
+    "governance": "Voting members elect board of trustees annually",
+    "meetings": "Monthly - second Monday at 7pm, or second Saturday at 10:30am in January/February"
+  },
+  "wallDescription": "A digital memorial celebrating the distinguished members of the Riverside High School Hall of Fame, preserving the legacy of excellence in education, athletics, and service to the community.",
+  "wallTheme": "Riverside Gold",
+  "establishedYear": 1997,
+  "lastUpdated": "2024"
+}
