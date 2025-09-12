@@ -1,0 +1,123 @@
+{
+  "name": "New Alumni Wall",
+  "description": "Stay connected with fellow graduates and celebrate their achievements",
+  "organizationName": "Riverside Local Schools",
+  "organizationSubtitle": "Riverside Local Schools",
+  "organizationLogoUrl": "",
+  "theme": {
+    "id": "black-gold",
+    "name": "Black & Gold",
+    "isCustom": false,
+    "mode": "dark",
+    "primaryColor": "#ffd700",
+    "secondaryColor": "#000000",
+    "accentColor": "#ffed4e",
+    "backgroundColor": "#121212",
+    "surfaceColor": "#1e1e1e",
+    "cardColor": "#2a2a2a",
+    "textColor": "#ffffff",
+    "errorColor": "#cf6679",
+    "warningColor": "#ffb74d",
+    "successColor": "#81c784",
+    "cardStyle": "bordered",
+    "layout": "grid",
+    "spacing": "spacious",
+    "cornerRadius": "large",
+    "elevation": "low",
+    "font": "system",
+    "textScale": 1,
+    "contrast": "high",
+    "animations": true,
+    "customCss": "\n        /* Black & Gold theme custom styles */\n        .wall-header {\n          background: linear-gradient(135deg, #000000 0%, #ffd700 100%);\n          color: white;\n        }\n        .alumni-card {\n          border: 2px solid #ffd700;\n        }\n        .alumni-card:hover {\n          box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);\n        }\n      "
+  },
+  "permissions": {
+    "owner": "HElXlnY0qPY6rE7t1lpM2G3BMhe2",
+    "editors": [],
+    "managers": [],
+    "viewers": [],
+    "allowDepartmentEdit": false
+  },
+  "visibility": {
+    "isPublished": true,
+    "requiresLogin": true,
+    "publishedAt": {},
+    "publishedBy": "HElXlnY0qPY6rE7t1lpM2G3BMhe2"
+  },
+  "settings": {
+    "allowComments": false,
+    "allowRatings": false,
+    "enableNotifications": true,
+    "autoSave": true,
+    "moderationRequired": false,
+    "inactivityTimeout": 5,
+    "showQrCode": false
+  },
+  "lastActivityAt": {},
+  "createdAt": {
+    "_seconds": 1757607683,
+    "_nanoseconds": 675000000
+  },
+  "objectTypes": [
+    {
+      "id": "ot_1757607682911_brfg8d3ft",
+      "wallId": "dzwsujrWYLvznCJElpri",
+      "name": "Alumnus",
+      "description": "Alumni information",
+      "icon": "school",
+      "color": "#2563eb",
+      "fields": [
+        {
+          "id": "name",
+          "name": "Full Name",
+          "type": "text",
+          "required": true,
+          "placeholder": "Enter full name..."
+        },
+        {
+          "id": "graduationYear",
+          "name": "Graduation Year",
+          "type": "number",
+          "required": true,
+          "placeholder": "Enter graduation year..."
+        },
+        {
+          "id": "degree",
+          "name": "Degree",
+          "type": "text",
+          "required": false,
+          "placeholder": "Enter degree..."
+        },
+        {
+          "id": "currentPosition",
+          "name": "Current Position",
+          "type": "text",
+          "required": false,
+          "placeholder": "Enter current position..."
+        },
+        {
+          "id": "email",
+          "name": "Email",
+          "type": "email",
+          "required": false,
+          "placeholder": "Enter email address..."
+        }
+      ],
+      "relationships": [],
+      "displaySettings": {
+        "cardLayout": "detailed",
+        "showOnMap": false,
+        "primaryField": "name",
+        "secondaryField": "currentPosition"
+      },
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": {},
+      "updatedAt": {}
+    }
+  ],
+  "relationshipDefinitions": [],
+  "updatedAt": {
+    "_seconds": 1757607683,
+    "_nanoseconds": 992000000
+  }
+}

@@ -1,13 +1,18 @@
 {
-  "name": "alumni",
+  "name": "alumni-migration",
   "version": "1.0.0",
-  "description": "",
-  "main": "scrape-alumni-data.js",
+  "description": "Riverside Alumni Hall of Fame data migration to Firebase",
+  "main": "import-to-firebase.js",
   "scripts": {
+    "import": "node import-to-firebase.js",
+    "parse": "node parse-provided-data.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["alumni", "firebase", "migration"],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
 }

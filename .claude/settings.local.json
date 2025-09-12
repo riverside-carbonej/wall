@@ -27,7 +27,8 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "WebFetch(domain:www.riversidealumni.com)",
-      "Bash(npm init:*)"
+      "Bash(npm init:*)",
+      "Bash(npm run import:*)"
     ],
     "deny": []
   }
