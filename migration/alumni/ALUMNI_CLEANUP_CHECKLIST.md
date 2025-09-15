@@ -1,0 +1,192 @@
+# Alumni Data Cleanup Checklist
+
+## Patterns Identified:
+- **Year First Name**: "1952 Doug" → Doug (Class of 1952)
+- **Year First Last**: "1979 Dr. John" → Dr. John [LastName] (Class of 1979)
+- **Full Name Only**: "Gretchen Reed" → Gretchen Reed
+- **Name with Title**: "Coach Frank", "Dr. John"
+- **Name with Nickname**: "1967 Paul ""Toby""" → Paul "Toby" [LastName]
+- **Name with Asterisk**: "Al Porter*" → Al Porter (deceased indicator?)
+- **Special Format**: "Coach/1967 Don" → Don [LastName], Coach (Class of 1967)
+
+## Cleanup Tasks (162 Alumni)
+
+### Format: Year + First Name Only (needs last name)
+- [ ] SPS3u1z8ntEAQWT7MDHk: "1952 Doug" → Doug [LastName] (Class of 1952)
+- [ ] MYoFkeTGB2QUrMDEPgTR: "1952 George" → George [LastName] (Class of 1952)
+- [ ] f3sxMVywIUTVdUPtTLR4: "1953 Donald" → Donald [LastName] (Class of 1953)
+- [ ] KbIW6YVfdZcBqN8tdfjK: "1953 James" → James [LastName] (Class of 1953)
+- [ ] WAQe8aSutowqzhnfutES: "1954 Donald" → Donald [LastName] (Class of 1954)
+- [ ] 4pSdebYUasFw9recGyxA: "1954 Edwin" → Edwin [LastName] (Class of 1954)
+- [ ] NwUzGBZErocL4BapUFYH: "1954 Frank" → Frank [LastName] (Class of 1954)
+- [ ] ly1cGnx04siCgIfd6OTY: "1959 Diane" → Diane [LastName] (Class of 1959)
+- [ ] Q3nwFE7dFX653671QWDL: "1960 Dennis" → Dennis [LastName] (Class of 1960)
+- [ ] SboFlRMN1a3kS2cQgNqU: "1960 Martin" → Martin [LastName] (Class of 1960)
+- [ ] PC4nSOH8Nn3wLXZ4K3ue: "1960 Natalie" → Natalie [LastName] (Class of 1960)
+- [ ] HG2siOCT2PHUUsRMmJos: "1961 Art" → Art [LastName] (Class of 1961)
+- [ ] DZE69xjve88SqrFMLsTw: "1961 Grady" → Grady [LastName] (Class of 1961)
+- [ ] lIR8xXZcUUXVZkPZr7Te: "1961 Robert" → Robert [LastName] (Class of 1961)
+- [ ] ofA9D9OT6nDzLK2xsFnM: "1961 Robert" → Robert [LastName] (Class of 1961) [DUPLICATE NAME]
+- [ ] y1QCTIKrj9e3T5hLn07l: "1961 William" → William [LastName] (Class of 1961)
+- [ ] FlUFHXzGUWXrjVfyair8: "1962 David" → David [LastName] (Class of 1962)
+- [ ] XxkBrAdfenMs2PNEvQfY: "1963 Edward" → Edward [LastName] (Class of 1963)
+- [ ] nIdRvjleOoUajPFMAsda: "1963 Richard" → Richard [LastName] (Class of 1963)
+- [ ] qVGnY1ijAdIUaC5W3otW: "1963 William" → William [LastName] (Class of 1963)
+- [ ] 65FeRqrZgFpVsg1R404v: "1964 Ronald" → Ronald [LastName] (Class of 1964)
+- [ ] 6LFDrw757UeDEQBOCUtP: "1965 Bruce" → Bruce [LastName] (Class of 1965)
+- [ ] JUQPrQKN8aKjlz2jLZHQ: "1965 Gary" → Gary [LastName] (Class of 1965)
+- [ ] lOezDXI2cdT6ea5CJ0fe: "1966 Michael" → Michael [LastName] (Class of 1966)
+- [ ] WmYEvZJU2jHVQlKvTIeP: "1967 Daniel" → Daniel [LastName] (Class of 1967)
+- [ ] BghtlbzMIjqaXkp8MpgZ: "1967 Darryl" → Darryl [LastName] (Class of 1967)
+- [ ] rjWn8Ug43KP0D5ijRrKS: "1967 Donald" → Donald [LastName] (Class of 1967)
+- [ ] sQhU8JMD68B8EJLAd8XD: "1967 Leonard" → Leonard [LastName] (Class of 1967)
+- [ ] XbJyBmwV8Bvrj10zSAiN: "1967 William" → William [LastName] (Class of 1967)
+- [ ] x22kaTID9jALsx4O5bIp: "1968 Elbert" → Elbert [LastName] (Class of 1968)
+- [ ] yaTxaxBD9y5L15c6USmp: "1969 Bruce" → Bruce [LastName] (Class of 1969)
+- [ ] pcuaBXgm3xwpnYcJIVMA: "1969 Michael" → Michael [LastName] (Class of 1969)
+- [ ] MoXRekT3JPKmZrJGC4ka: "1970 John" → John [LastName] (Class of 1970)
+- [ ] 1O2eAji6ATAWqH6VSptQ: "1970 Peter" → Peter [LastName] (Class of 1970)
+- [ ] 2qpDsa0BR699N9L75hE7: "1971 Geoffrey" → Geoffrey [LastName] (Class of 1971)
+- [ ] aksfhDA3nZ0jYGdZdG7E: "1972 Donald" → Donald [LastName] (Class of 1972)
+- [ ] ShVM8EiozFtwkLIbCLhC: "1972 Gary" → Gary [LastName] (Class of 1972)
+- [ ] rSlPGhXGN2FWLDAHji3M: "1972 James" → James [LastName] (Class of 1972)
+- [ ] Mjv8NFuwso1A9pJy4EVs: "1973 Arthur" → Arthur [LastName] (Class of 1973)
+- [ ] of6MH14yZ20Tqr0K3jtm: "1975 Phillip" → Phillip [LastName] (Class of 1975)
+- [ ] axrLmt2dI7TmbDyZiBiR: "1976 Kirk" → Kirk [LastName] (Class of 1976)
+- [ ] mtUA4vdpetalWL6ylHRe: "1976 Robert" → Robert [LastName] (Class of 1976)
+- [ ] mhrlAUxbrvp4xauU4qH9: "1977 Rick" → Rick [LastName] (Class of 1977)
+- [ ] ye0q7S5DVQCkVgxEEihJ: "1978 Mark" → Mark [LastName] (Class of 1978)
+- [ ] 74qSuxqRwNm90ynS2wYz: "1979 Carol" → Carol [LastName] (Class of 1979)
+- [ ] nxwSUuBxlAFrvxdohG19: "1979 Ted" → Ted [LastName] (Class of 1979)
+- [ ] r4ZiB590Gbd7kqR3Dqp6: "1979 Terry" → Terry [LastName] (Class of 1979)
+- [ ] cpS8TnyJYzddCIIbvKSv: "1980 Brian" → Brian [LastName] (Class of 1980)
+- [ ] vlDJom0bM4Ky0EeEMRXp: "1980 Dan" → Dan [LastName] (Class of 1980)
+- [ ] Vb01DU9xPzAyOtBpvTqw: "1980 Joel" → Joel [LastName] (Class of 1980)
+- [ ] x0LUcNNonPxudmuremqd: "1980 Kristen" → Kristen [LastName] (Class of 1980)
+- [ ] bgrfijvPtbgoU1yTDyXC: "1981 Merralee" → Merralee [LastName] (Class of 1981)
+- [ ] Q6IsMhQFbAWeC57T9OiW: "1981 Neal" → Neal [LastName] (Class of 1981)
+- [ ] VbclCvb7R6JVg83LpF7C: "1983 Mike" → Mike [LastName] (Class of 1983)
+- [ ] qh8K2ForvoaLj5wY90li: "1985 Joseph" → Joseph [LastName] (Class of 1985)
+- [ ] FMVjrDu3rseHTNzNTb5g: "1985 Margie" → Margie [LastName] (Class of 1985)
+- [ ] olWHGchr9WFFMnFpQhfu: "1985 Scott" → Scott [LastName] (Class of 1985)
+- [ ] nd196TNy1YdH4LfSeFpL: "1986 Heidi" → Heidi [LastName] (Class of 1986)
+- [ ] UfuGAq36yWvEY7hu4ZrF: "1986 Keith" → Keith [LastName] (Class of 1986)
+- [ ] tJRMe3ypyGlmmplHHfRT: "1986 Kurt" → Kurt [LastName] (Class of 1986)
+- [ ] 2MyD5pdXilEb53IowtGW: "1988 Del" → Del [LastName] (Class of 1988)
+- [ ] OhAyzFoYtFesavdwEGHi: "1988 Michael" → Michael [LastName] (Class of 1988)
+- [ ] JjsgWayLJrKmvv5BlgXJ: "1989 Al" → Al [LastName] (Class of 1989)
+- [ ] MW3ThgkZuy811Ed7heNk: "1989 Brian" → Brian [LastName] (Class of 1989)
+- [ ] tY3oCdFs2CIvp3M5ceWi: "1989 Brian" → Brian [LastName] (Class of 1989) [DUPLICATE NAME]
+- [ ] p8G1BTpbSTLRod2anq0U: "1990 Jeffrey" → Jeffrey [LastName] (Class of 1990)
+- [ ] faRWW9DvxxlXwaTZtNSs: "1991 Missy" → Missy [LastName] (Class of 1991)
+- [ ] kjXGjHRCodBgmZwd39xA: "1991 Russell" → Russell [LastName] (Class of 1991)
+- [ ] g9pBIpWduIm7OtAYTEmL: "1993 Craig" → Craig [LastName] (Class of 1993)
+- [ ] 9GCbx8EcLL6U7cJIfi19: "1993 Lisa" → Lisa [LastName] (Class of 1993)
+- [ ] 3xOh0J4H5usD2Y37hXkc: "1995 Michael" → Michael [LastName] (Class of 1995)
+- [ ] hj9oJ73UGw9CGkygc2Lb: "1996 Matt" → Matt [LastName] (Class of 1996)
+- [ ] ShSEgXbmZeN5P4ZuysaJ: "1997 Christopher" → Christopher [LastName] (Class of 1997)
+- [ ] Inj21fhoBnrlB4CWcxCG: "1997 Nathan" → Nathan [LastName] (Class of 1997)
+- [ ] m5WiXD87eJ6enhtdwMQq: "1999 Christopher" → Christopher [LastName] (Class of 1999)
+- [ ] 25RTJisDmG9mIcMZKHqo: "2001 Jason" → Jason [LastName] (Class of 2001)
+- [ ] jhJA5oqTEj3aA3ac18ua: "2001 Jesse" → Jesse [LastName] (Class of 2001)
+- [ ] 3uKb7lbRbeuKGiekLhwE: "2003 Eric" → Eric [LastName] (Class of 2003)
+- [ ] esOflyVgEeJBpUWJcxEb: "2006 Amir" → Amir [LastName] (Class of 2006)
+- [ ] imBsNEpky1ybXbQTyefU: "2007 Alison" → Alison [LastName] (Class of 2007)
+
+### Format: Year + Name with Special Characters
+- [ ] YsAZmfB5sszoYDGvtknW: "1967 Paul ""Toby""" → Paul "Toby" [LastName] (Class of 1967)
+- [ ] fkijYF9VdGn3OJH6GNUA: "1979 Dr. John" → Dr. John [LastName] (Class of 1979)
+- [ ] 696cNXm7nDn9426g5qVC: "1984 Gerald ""Chip""" → Gerald "Chip" [LastName] (Class of 1984)
+- [ ] MxmJFNOE3O5xjstZfBW1: "1995 Joshua D." → Joshua D. [LastName] (Class of 1995)
+
+### Format: Full Name with Asterisk (Deceased?)
+- [ ] Jtnjwhni8BYMrAECcIE9: "Al Porter*" → Al Porter
+- [ ] LSecgRk6a0bjeaies4DK: "Bernadine McFarren*" → Bernadine McFarren
+- [ ] AAhpEphR9Pi5EVDSlrZ4: "Betts Strailey*" → Betts Strailey
+- [ ] VjPnJ4g6qskfzrJPsVDw: "Charlie Neal*" → Charlie Neal
+- [ ] Ruzr1qHSdUFTiT2Audsj: "David Burris*" → David Burris
+- [ ] PC42uVt9OzdeWLtQaVx8: "David Shaner*" → David Shaner
+- [ ] RpRnUMul54q0N26bXF3U: "Emma Lou Dalheim*" → Emma Lou Dalheim
+- [ ] lH4WXA1akX5qlFpCBT83: "George Adams*" → George Adams
+- [ ] FDmfUdXqPMG1c86QlKXz: "George Inscho, Jr.*" → George Inscho, Jr.
+- [ ] XD8IIT8TSG5f6vnTpX10: "Harold Parsons*" → Harold Parsons
+- [ ] NZTWF8UGvF3ELVhZOgsO: "Henry LaMuth*" → Henry LaMuth
+- [ ] po0vlsSAGYgVndi1gXx7: "Jacqueline Hood*" → Jacqueline Hood
+- [ ] VAnGIFMTWReRuhl0KYy3: "Jane Braden*" → Jane Braden
+- [ ] jQdTj2CIIfnrZQNrvzWh: "John DeLong*" → John DeLong
+- [ ] V52nbjNNGCE821W89wZL: "Louis Andersen*" → Louis Andersen
+- [ ] P3fMyvkMPaaUKQokhyOT: "Maren Larsen*" → Maren Larsen
+- [ ] ksLT0DiwBfHyc6a04eWY: "Martha Goodwin*" → Martha Goodwin
+- [ ] uc0o5pv2fWBPNFxQ2Wc7: "Mary Kosinski*" → Mary Kosinski
+- [ ] dus4NsqguLQAUPqFe43A: "Mary Porter*" → Mary Porter
+- [ ] 4lKoccIxxGpb6bJHkmoE: "Mary Thrasher*" → Mary Thrasher
+- [ ] 5w5GbVT6C2lhTQlvi1Ft: "Merle Court*" → Merle Court
+- [ ] eN1LtakZ4ehpWvuBJt7Y: "Nancy Johnson*" → Nancy Johnson
+- [ ] Mx0n6o2HJh6R9RD9FkeJ: "Peggy Lewis*" → Peggy Lewis
+- [ ] YZCuM6R8Xo7dJBk5EjGv: "Robert Capella*" → Robert Capella
+- [ ] gUBWFZnDpHWw40w7cWYs: "Robert Smith*" → Robert Smith
+- [ ] qhXs6OjWmtB5AkHcFvsm: "Roger Stanley*" → Roger Stanley
+
+### Format: Coach Title
+- [ ] GuHmDLS7aWwMCogVDv4e: "Coach Frank" → Frank [LastName], Coach
+- [ ] pXr1GiAZiYUm5vY3ZxNw: "Coach George" → George [LastName], Coach
+- [ ] PHTxfTvYp3lwM5l8g0lB: "Coach Lawrence ""Skip""" → Lawrence "Skip" [LastName], Coach
+- [ ] XIMA8DOlJzx53rPCmXlL: "Coach Robert" → Robert [LastName], Coach
+- [ ] jLWsjmlUwcMyOws4xtl1: "Coach Robert" → Robert [LastName], Coach [DUPLICATE]
+- [ ] vUvccwYwnfQrS80oD2ks: "Coach Ron" → Ron [LastName], Coach
+- [ ] Wn78X1GDiUY2Fn1YlDRb: "Coach Therese" → Therese [LastName], Coach
+- [ ] lxPPe9aZ54K81pL5bMUv: "Coach/1967 Don" → Don [LastName], Coach (Class of 1967)
+
+### Format: Full Names (Already Complete)
+- [ ] abaf723bWAvDZ6F3wGoF: "Amy Koepp" → Amy Koepp
+- [ ] ngG4Pb4xI7DO41m5E1v1: "Anna Dey" → Anna Dey
+- [ ] 4AKWp0e6pEJYEFUUH7JK: "Anthony Montonini" → Anthony Montonini
+- [ ] CMbAGWbZl9PwGlWsm4ZZ: "Becky Bartholomew" → Becky Bartholomew
+- [ ] W95kdDtv5z1ncMA7AvTV: "Candy Forest" → Candy Forest
+- [ ] Z9MypS48uDsqxy0G6tia: "Carol Benroth" → Carol Benroth
+- [ ] P2rMDebj8nTGb6ND4Tn7: "Carol Lewis" → Carol Lewis
+- [ ] FwdtYBI70kIGlqaDN8dT: "Carol Muster" → Carol Muster
+- [ ] F6TO2l7cnWsmNrWzVndv: "Courtney Eppich" → Courtney Eppich
+- [ ] CmKGfp2exgjHRekxD2j7: "Deborah Rosch" → Deborah Rosch
+- [ ] hnSvaCJXjOie6MBg39i8: "Dennis Watson" → Dennis Watson
+- [ ] tZnz20yYukCFlb2ghrvH: "Dianne Miley" → Dianne Miley
+- [ ] VsRmNyfn5zY3F3N1nx36: "Ellen Forbus" → Ellen Forbus
+- [ ] 23Bi9xyILybz3zACWpnT: "Gretchen Reed" → Gretchen Reed
+- [ ] bDrV6ItZgoDVbk8bVKG3: "Janice Martin" → Janice Martin
+- [ ] RJYvmqTwTMMbW0qhiOtW: "Janice Wunderlich" → Janice Wunderlich
+- [ ] HnC0EfObtb0iXKY7Dt2X: "John Reed" → John Reed
+- [ ] 9NKJfzkFcrcUEhpWcHtx: "John Weiss" → John Weiss
+- [ ] 4scrbffseWWIcjiaA5C7: "Karen Berry" → Karen Berry
+- [ ] 76SJ0Xduk5CExLyg1WJW: "Karen Honkala" → Karen Honkala
+- [ ] Qium9E7UkFsDetp9vu6n: "Karyn Loveless" → Karyn Loveless
+- [ ] zar8nXwGJAvzokbhxxd1: "Kathleen Riley" → Kathleen Riley
+- [ ] FRPRlzRwhjnxY6c3H3Fn: "Kelly Stewart" → Kelly Stewart
+- [ ] 8MaKlH8hYqo9wx9kzL7X: "Kimm Leininger" → Kimm Leininger
+- [ ] qkf9X73zDuN0in3fD4wf: "Laurie Sterling" → Laurie Sterling
+- [ ] y0TDZufV30S8KkJ1SDsK: "Leslie Stanfanick" → Leslie Stanfanick
+- [ ] HDlNacQmGiP8j1ppnRZb: "Linda Lucas" → Linda Lucas
+- [ ] fF0KGFOUpwI7wWfbceuD: "Lois Harrington" → Lois Harrington
+- [ ] 6aJrjCrdoLyoZpuE0ucs: "Loretta Bearer" → Loretta Bearer
+- [ ] ZeCblbqHVq0N6kDk2Hnp: "Luise Hanold" → Luise Hanold
+- [ ] k72wY7xiMnKE4D2BVM9O: "Lydia Parker" → Lydia Parker
+- [ ] QHmFphrZVRf1wgnEUqry: "Margaret Barber" → Margaret Barber
+- [ ] UAnOZnNV3GDf8v2xduvr: "Marijane Watson" → Marijane Watson
+- [ ] ehTMY8Z1cABy3VIRD6fj: "Melissa Ezzo" → Melissa Ezzo
+- [ ] 8cEYJJ8KQCSTa2xFqwKG: "Michael Shoaf" → Michael Shoaf
+- [ ] cSHHgBdDMNCksht3MNFO: "Michaela Burriss" → Michaela Burriss
+- [ ] UfnoGFm2iJmcZcm9AAqu: "Michelle Odom" → Michelle Odom
+- [ ] ghNTABV9Fjf4kuadNxiW: "Nadine Percival" → Nadine Percival
+- [ ] ravZYPXX9W3M54MiRfMR: "Pamela Bowsman" → Pamela Bowsman
+- [ ] E9XXdXIntDrRu3cTJ2oT: "Pamela Moser" → Pamela Moser
+- [ ] hsvPXCERoITPI2BTUv1T: "Patrick McKenrick" → Patrick McKenrick [NOTE: Has "Athletic Coach" in degree field]
+- [ ] FjzINl3wMjDh9cfU3pFw: "Shellie Graf" → Shellie Graf
+- [ ] cUGmdcJFkJhjuafEQD0D: "Tonya Niemeyer" → Tonya Niemeyer
+- [ ] sYoVrabRVQowVsulNfGq: "Trent Norris" → Trent Norris
+
+## Summary
+- Total Records: 162
+- Needs Last Name Added: ~85
+- Has Asterisk (Deceased?): 26
+- Coach Title: 8
+- Complete Names: ~43
+- Special Formatting: 4
