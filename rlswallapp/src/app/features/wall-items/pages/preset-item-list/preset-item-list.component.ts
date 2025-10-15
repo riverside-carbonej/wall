@@ -229,29 +229,24 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
     }
 
     .back-button {
-      color: var(--md-sys-color-on-surface);
-      background: transparent;
-      border: none;
-      padding: 8px;
+      flex-shrink: 0;
+    }
+
+    .back-button ::ng-deep button {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      padding: 0;
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
     }
 
-    .back-button:hover {
-      background: var(--md-sys-color-surface-variant);
-    }
-
-    .back-button mat-icon {
+    .back-button ::ng-deep mat-icon {
       font-size: 24px;
       width: 24px;
       height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .title-section {
@@ -374,6 +369,10 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
       margin-left: auto;
     }
 
+    .pagination .page-button {
+      flex-shrink: 0;
+    }
+
     /* Action Bar */
     .action-bar {
       padding: 8px 24px;
@@ -391,6 +390,7 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
     .page-button {
       width: 40px;
       height: 40px;
+      min-width: 40px;
       border: none;
       background: transparent;
       color: var(--md-sys-color-on-surface-variant);
@@ -400,6 +400,7 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      flex-shrink: 0;
     }
 
     .page-button:hover:not(:disabled) {
@@ -561,12 +562,79 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
 
     /* Responsive Design */
     @media (max-width: 768px) {
+      .custom-header {
+        padding: 12px 16px 8px;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .back-button {
+        order: 1;
+        flex-shrink: 0;
+      }
+
+      .header-info {
+        order: 2;
+        flex: 1;
+        min-width: 0;
+        max-width: calc(100% - 240px);
+      }
+
+      /* Second row - view toggle and pagination side by side */
+      .custom-header app-button-group {
+        order: 3;
+        flex-shrink: 0;
+      }
+
+      .pagination {
+        order: 4;
+        margin-left: auto;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+
       .page-title {
-        font-size: 1.75rem;
+        font-size: 1.25rem;
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .page-subtitle {
+        font-size: 0.875rem;
+        margin-top: 2px;
+      }
+
+      .page-info {
+        font-size: 0.875rem;
       }
 
       .floating-add-button {
         bottom: 16px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .custom-header {
+        padding: 8px 12px;
+        gap: 8px;
+      }
+
+      .page-title {
+        font-size: 1.125rem;
+      }
+
+      .page-subtitle {
+        font-size: 0.8125rem;
+      }
+
+      .pagination {
+        gap: 4px;
+      }
+
+      .page-info {
+        font-size: 0.8125rem;
       }
     }
   `]

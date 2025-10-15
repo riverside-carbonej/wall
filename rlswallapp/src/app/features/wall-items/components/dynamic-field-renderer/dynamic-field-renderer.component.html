@@ -69,6 +69,7 @@
           </label>
           <app-material-date-picker
             [value]="formControl?.value"
+            [allowFlexiblePrecision]="true"
             (dateSelected)="onDateSelected($event)">
           </app-material-date-picker>
           @if (formControl?.invalid && formControl?.touched) {

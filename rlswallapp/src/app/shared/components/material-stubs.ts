@@ -214,27 +214,110 @@ export class MatSlideToggle {
   }
 }
 
-// Slider
+// Slider (M3 API)
 @Component({
   selector: 'mat-slider',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   template: `
     <div class="mat-slider">
-      <input type="range" 
-             [min]="min()" 
-             [max]="max()" 
-             [step]="step()"
-             [value]="value()" 
-             [disabled]="disabled()"
-             (input)="onSlide($event)">
+      <ng-content></ng-content>
     </div>
   `,
   styles: [`
-    .mat-slider input[type="range"] {
+    .mat-slider {
       width: 100%;
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      position: relative;
+    }
+
+    .mat-slider ::ng-deep input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 20px; /* Make tall enough for thumb */
+      background: transparent;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+    }
+
+    /* Track fill (active part) */
+    .mat-slider ::ng-deep input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--md-sys-color-surface-container-highest);
+    }
+
+    .mat-slider ::ng-deep input[type="range"]::-moz-range-track {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--md-sys-color-surface-container-highest);
+    }
+
+    .mat-slider ::ng-deep input[type="range"]::-moz-range-progress {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--md-sys-color-primary);
+    }
+
+    /* Thumb styling */
+    .mat-slider ::ng-deep input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
       height: 20px;
-      accent-color: var(--md-sys-color-primary);
+      border-radius: 50%;
+      background: var(--md-sys-color-primary);
+      cursor: pointer;
+      border: 2px solid var(--md-sys-color-primary);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      margin-top: -8px; /* Center thumb on track: (20px thumb - 4px track) / 2 */
+    }
+
+    .mat-slider ::ng-deep input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--md-sys-color-primary);
+      cursor: pointer;
+      border: 2px solid var(--md-sys-color-primary);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: none; /* Firefox adds default border */
+    }
+
+    /* Hover state */
+    .mat-slider ::ng-deep input[type="range"]:hover::-webkit-slider-thumb {
+      transform: scale(1.1);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .mat-slider ::ng-deep input[type="range"]:hover::-moz-range-thumb {
+      transform: scale(1.1);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Active/Focus state */
+    .mat-slider ::ng-deep input[type="range"]:active::-webkit-slider-thumb,
+    .mat-slider ::ng-deep input[type="range"]:focus::-webkit-slider-thumb {
+      transform: scale(1.2);
+      box-shadow: 0 0 0 8px rgba(var(--md-sys-color-primary-rgb, 103, 80, 164), 0.12);
+    }
+
+    .mat-slider ::ng-deep input[type="range"]:active::-moz-range-thumb,
+    .mat-slider ::ng-deep input[type="range"]:focus::-moz-range-thumb {
+      transform: scale(1.2);
+      box-shadow: 0 0 0 8px rgba(var(--md-sys-color-primary-rgb, 103, 80, 164), 0.12);
+    }
+
+    /* Disabled state */
+    .mat-slider ::ng-deep input[type="range"]:disabled {
+      opacity: 0.38;
+      cursor: not-allowed;
     }
   `]
 })
@@ -242,14 +325,46 @@ export class MatSlider {
   min = input<number>(0);
   max = input<number>(100);
   step = input<number>(1);
-  value = model<number>(0);
+  discrete = input<boolean>(false);
+  displayWith = input<((value: number) => string) | null>(null);
   disabled = input<boolean>(false);
-  change = output<number>();
+}
 
-  onSlide(event: any) {
-    const val = Number(event.target.value);
-    this.value.set(val);
-    this.change.emit(val);
+// Slider Thumb Directive (M3 API)
+@Directive({
+  selector: 'input[matSliderThumb]',
+  standalone: true,
+  host: {
+    'type': 'range',
+    '[min]': 'getMin()',
+    '[max]': 'getMax()',
+    '[step]': 'getStep()',
+    '[value]': 'value()',
+    '(input)': 'onInput($event)'
+  }
+})
+export class MatSliderThumb {
+  value = input<number>(0);
+  valueChange = output<number>();
+
+  private slider = inject(MatSlider, { optional: true });
+
+  getMin(): number {
+    return this.slider?.min() ?? 0;
+  }
+
+  getMax(): number {
+    return this.slider?.max() ?? 100;
+  }
+
+  getStep(): number {
+    return this.slider?.step() ?? 1;
+  }
+
+  onInput(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const val = Number(target.value);
+    this.valueChange.emit(val);
   }
 }
 

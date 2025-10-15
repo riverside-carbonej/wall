@@ -37,7 +37,7 @@ import { ThemeService } from '../../services/theme.service';
       position: relative;
       width: 100%;
       height: 100%;
-      border-radius: var(--md-sys-shape-corner-medium, 12px);
+      border-radius: 12px;
       overflow: hidden;
       background: var(--fallback-color, var(--md-sys-color-surface-container));
       display: flex;
@@ -53,10 +53,12 @@ import { ThemeService } from '../../services/theme.service';
 
     .wall-item-image img.cover {
       object-fit: cover;
+      object-position: top center;
     }
 
     .wall-item-image img.contain {
       object-fit: contain;
+      object-position: top center;
     }
 
     .image-placeholder {

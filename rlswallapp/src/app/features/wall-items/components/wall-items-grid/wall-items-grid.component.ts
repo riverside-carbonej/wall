@@ -15,7 +15,7 @@ import { MaterialIconComponent } from '../../../../shared/components/material-ic
   template: `
     <!-- Grid View -->
     @if (viewMode === 'grid' && paginatedItems.length > 0) {
-      <div class="grid-layout">
+      <div class="grid-layout" [style.--card-aspect-ratio]="getAspectRatio()">
         @for (item of paginatedItems; track item.id) {
           <app-wall-item-card
             [item]="item"
@@ -102,10 +102,14 @@ import { MaterialIconComponent } from '../../../../shared/components/material-ic
     .grid-layout {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      grid-auto-rows: 320px;
       gap: 12px;
       padding: 8px;
       width: 100%;
+    }
+
+    /* Grid items with aspect ratio */
+    .grid-layout > app-wall-item-card {
+      aspect-ratio: var(--card-aspect-ratio, 3 / 4); /* Use preset aspect ratio or default to 3/4 */
     }
 
     /* List Layout */
@@ -501,5 +505,11 @@ export class WallItemsGridComponent {
       case 'number': return 'numbers';
       default: return 'info';
     }
+  }
+
+  getAspectRatio(): string {
+    // Get aspect ratio from preset's display settings, default to 3/4 for backward compatibility
+    const aspectRatio = this.preset?.displaySettings?.aspectRatio;
+    return aspectRatio || '3 / 4';
   }
 }

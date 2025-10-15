@@ -16,7 +16,7 @@ import { FormFieldComponent } from '../../../../shared/components/form-field/for
 import { MaterialTextInputComponent } from '../../../../shared/components/material-text-input/material-text-input.component';
 import { MaterialSelectComponent, SelectOption } from '../../../../shared/components/material-select/material-select.component';
 import { MaterialSwitchComponent } from '../../../../shared/components/material-switch/material-switch.component';
-import { MaterialDatePickerComponent } from '../../../../shared/components/material-date-picker/material-date-picker.component';
+import { MaterialDatePickerComponent, FlexibleDateValue } from '../../../../shared/components/material-date-picker/material-date-picker.component';
 
 @Component({
   selector: 'app-dynamic-field-renderer',
@@ -77,23 +77,6 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     // Re-initialize field data when inputs change (like readonly mode or formGroup)
     if (changes['formGroup'] || changes['readonly'] || changes['value'] || changes['wall']) {
-      console.log('🔄 DynamicFieldRenderer ngOnChanges - field:', this.field?.name, 'changes:', Object.keys(changes));
-      
-      // Log the actual changes for debugging
-      if (changes['value']) {
-        console.log('  📦 Value changed:', {
-          previous: changes['value'].previousValue,
-          current: changes['value'].currentValue,
-          isFirstChange: changes['value'].isFirstChange()
-        });
-      }
-      if (changes['readonly']) {
-        console.log('  👁️ Readonly changed:', {
-          previous: changes['readonly'].previousValue,
-          current: changes['readonly'].currentValue
-        });
-      }
-      
       // Use setTimeout to ensure the form control is properly initialized
       setTimeout(() => {
         this.initializeFieldData();
@@ -111,22 +94,12 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
       });
       return;
     }
-    
+
     // Get initial value from form control or input property
-    let initialValue = this.formControl.value !== null && this.formControl.value !== undefined 
-      ? this.formControl.value 
+    let initialValue = this.formControl.value !== null && this.formControl.value !== undefined
+      ? this.formControl.value
       : this.value;
-    
-    console.log('📊 DynamicFieldRenderer initializeFieldData:', {
-      field: this.field.name,
-      fieldId: this.field.id,
-      type: this.field.type,
-      initialValue,
-      formControlValue: this.formControl.value,
-      inputValue: this.value,
-      readonly: this.readonly,
-      hasWall: !!this.wall
-    });
+
     
     // Convert Date objects to ISO string format for date inputs
     if (this.field.type === 'date' && initialValue instanceof Date) {
@@ -137,40 +110,26 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     
     
     if (this.field.type === 'entity') {
-      console.log('🔗 Initializing entity field:', this.field.name, 'value:', initialValue);
-      
       // Check if we need to reload entities
       const currentIds = this.selectedEntities.map(e => e.id);
       const newIds = initialValue ? (Array.isArray(initialValue) ? initialValue : [initialValue]) : [];
       const needsReload = JSON.stringify(currentIds.sort()) !== JSON.stringify(newIds.sort());
-      
-      console.log('🔍 Entity reload check:', {
-        currentIds,
-        newIds,
-        needsReload,
-        readonly: this.readonly
-      });
-      
+
       // Always load available entity items
       this.loadEntityItems();
-      
+
       // Only reload selected entities if they've changed or we don't have them yet
       if (needsReload || this.selectedEntities.length === 0) {
         // Clear and reload
         this.selectedEntities = [];
-        
+
         if (initialValue) {
           // Handle both single and multiple entity values
           const entityIds = Array.isArray(initialValue) ? initialValue : [initialValue];
-          console.log('📌 Loading selected entities:', entityIds);
-          
+
           // Load the actual entity names
           this.loadSelectedEntities(entityIds);
-        } else {
-          console.log('⚠️ No initial value for entity field');
         }
-      } else {
-        console.log('✅ Keeping existing selected entities:', this.selectedEntities.length);
       }
     }
   }
@@ -205,8 +164,26 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     // Get value from form control instead of input property
     const value = this.formControl?.value || this.value;
     if (!value) return '';
-    
+
     if (this.field.type === 'date') {
+      // Handle FlexibleDateValue
+      if (typeof value === 'object' && 'precision' in value) {
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December'];
+
+        switch (value.precision) {
+          case 'year':
+            return value.year.toString();
+          case 'month':
+            return `${monthNames[value.month!]} ${value.year}`;
+          case 'day':
+            if (value.day !== undefined && value.month !== undefined) {
+              return new Date(value.year, value.month, value.day).toLocaleDateString();
+            }
+            return '';
+        }
+      }
+      // Handle regular date string or Date object
       return new Date(value).toLocaleDateString();
     }
 
@@ -320,8 +297,22 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     this.formControl?.setValue(null);
   }
 
-  onDateSelected(date: Date) {
-    if (date && !isNaN(date.getTime())) {
+  onDateSelected(date: Date | FlexibleDateValue | null) {
+    if (!date) {
+      // Clear date was selected
+      this.formControl?.setValue(null);
+      return;
+    }
+
+    // Handle FlexibleDateValue
+    if (typeof date === 'object' && 'precision' in date) {
+      // Store the flexible date value as-is
+      this.formControl?.setValue(date);
+      return;
+    }
+
+    // Handle regular Date object
+    if (date instanceof Date && !isNaN(date.getTime())) {
       // Convert to ISO string format for the form
       const isoString = date.toISOString().split('T')[0];
       this.formControl?.setValue(isoString);
@@ -362,7 +353,7 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     this.showEntitySuggestions = true;
     this.positionEntityDropdown();
   }
-  
+
   private updateFilteredEntities() {
     if (!this.entitySearchTerm.trim()) {
       // Show first 5 items when no search term
@@ -373,9 +364,9 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     }
 
     const searchTerm = this.entitySearchTerm.toLowerCase();
-    this.filteredEntities = this.allEntityItems.filter(item => 
+    this.filteredEntities = this.allEntityItems.filter(item =>
       !this.selectedEntities.some(selected => selected.id === item.id) &&
-      (item.name.toLowerCase().includes(searchTerm) || 
+      (item.name.toLowerCase().includes(searchTerm) ||
        (item.subtitle && item.subtitle.toLowerCase().includes(searchTerm)))
     );
   }
@@ -471,10 +462,14 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   }
   
   private loadEntityItems() {
-    if (!this.field.entityConfig || !this.wall) {
+    if (!this.field.entityConfig) {
       return;
     }
-    
+
+    if (!this.wall) {
+      return;
+    }
+
     const targetObjectTypeId = this.field.entityConfig.targetObjectTypeId;
     if (!targetObjectTypeId) {
       return;
@@ -485,15 +480,12 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     
     // Fallback: try to find by name if ID doesn't match
     if (!targetObjectType) {
-      targetObjectType = this.wall.objectTypes?.find(ot => 
+      targetObjectType = this.wall.objectTypes?.find(ot =>
         ot.name.toLowerCase() === targetObjectTypeId.toLowerCase()
       );
-      
+
       if (!targetObjectType) {
-        console.warn('⚠️ Cannot load entity items - target object type not found:', targetObjectTypeId);
         return;
-      } else {
-        console.log('📎 Found object type by name fallback for loading:', targetObjectType.name, targetObjectType.id);
       }
     }
 
@@ -534,7 +526,7 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
             subtitle: subtitle
           };
         });
-        
+
         this.updateFilteredEntities();
       },
       error: (error) => {
@@ -545,13 +537,11 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
   
   private loadSelectedEntities(entityIds: string[]) {
     if (!this.field.entityConfig || !this.wall) {
-      console.warn('⚠️ Cannot load selected entities - missing config or wall');
       return;
     }
     
     const targetObjectTypeId = this.field.entityConfig.targetObjectTypeId;
     if (!targetObjectTypeId) {
-      console.warn('⚠️ No target object type ID');
       return;
     }
 

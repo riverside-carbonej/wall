@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetect
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
-import { MatCheckbox, MatOption, MatSelect } from '../../../../shared/components/material-stubs';
+import { MatCheckbox, MatOption, MatSelect, MatSlider, MatSliderThumb } from '../../../../shared/components/material-stubs';
 import { WallObjectType, FieldDefinition } from '../../../../shared/models/wall.model';
 import { FormStateService, FormState } from '../../../../shared/services/form-state.service';
 import { Observable, Subject } from 'rxjs';
@@ -24,7 +24,9 @@ export interface ObjectTypeBuilderConfig {
     MaterialIconComponent,
     MatCheckbox,
     MatOption,
-    MatSelect
+    MatSelect,
+    MatSlider,
+    MatSliderThumb
   ],
   template: `
     <div class="form-section-parent" [formGroup]="objectTypeForm">
@@ -180,6 +182,26 @@ export interface ObjectTypeBuilderConfig {
                 }
               </mat-select>
               <div class="field-hint">Optional - used as subtitle in cards and lists</div>
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">Card Aspect Ratio</label>
+              <div class="aspect-ratio-selector">
+                <div class="slider-control">
+                  <div class="slider-container">
+                    <mat-slider [min]="0.4" [max]="2.5" [step]="0.1" [discrete]="true">
+                      <input matSliderThumb [value]="getAspectRatioNumeric()" (valueChange)="onAspectRatioChange($event)">
+                    </mat-slider>
+                    <div class="aspect-ratio-label">{{ getAspectRatioDescription() }}</div>
+                  </div>
+                  <div class="aspect-ratio-preview">
+                    <div class="preview-card" [style.aspect-ratio]="displaySettingsGroup.get('aspectRatio')?.value || '3 / 4'">
+                      <mat-icon [icon]="'image'"></mat-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="field-hint">Aspect ratio for item cards in grid view (width:height)</div>
             </div>
           </div>
         }
@@ -1035,6 +1057,91 @@ export interface ObjectTypeBuilderConfig {
         gap: 16px;
       }
     }
+
+    /* Aspect Ratio Selector with Preview */
+    .aspect-ratio-selector {
+      /* No styles needed - wrapper only */
+    }
+
+    .slider-control {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      padding: 20px;
+      background: var(--md-sys-color-surface-container-low);
+      border-radius: var(--md-sys-shape-corner-medium);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      transition: background-color 0.2s ease;
+    }
+
+    .slider-control:hover {
+      background: var(--md-sys-color-surface-container);
+    }
+
+    .slider-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .slider-container mat-slider {
+      width: 100%;
+    }
+
+    .aspect-ratio-label {
+      font-size: 0.875rem;
+      color: var(--md-sys-color-on-surface-variant);
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .aspect-ratio-preview {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 120px;
+      min-width: 80px;
+    }
+
+    .preview-card {
+      height: 100px;
+      background: var(--md-sys-color-primary-container);
+      border-radius: var(--md-sys-shape-corner-medium);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: aspect-ratio 0.3s ease, width 0.3s ease;
+      box-shadow: var(--md-sys-elevation-2);
+      color: var(--md-sys-color-on-primary-container);
+      opacity: 0.9;
+    }
+
+    .preview-card mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 768px) {
+      .slider-control {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+      }
+
+      .aspect-ratio-preview {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .preview-card {
+        height: 80px;
+      }
+    }
   `]
 })
 export class ObjectTypeBuilderComponent implements OnInit, OnDestroy {
@@ -1169,7 +1276,8 @@ export class ObjectTypeBuilderComponent implements OnInit, OnDestroy {
         primaryField: ['', Validators.required],
         secondaryField: [''], // Empty string represents "None"
         cardLayout: ['detailed'],
-        showOnMap: [false]
+        showOnMap: [false],
+        aspectRatio: ['3 / 4'] // Default to 3:4 portrait aspect ratio
       })
     });
 
@@ -1202,7 +1310,8 @@ export class ObjectTypeBuilderComponent implements OnInit, OnDestroy {
         primaryField: data.displaySettings.primaryField || '',
         secondaryField: data.displaySettings.secondaryField || '',
         cardLayout: data.displaySettings.cardLayout || 'detailed',
-        showOnMap: data.displaySettings.showOnMap || false
+        showOnMap: data.displaySettings.showOnMap || false,
+        aspectRatio: data.displaySettings.aspectRatio || '3 / 4'
       });
     }
 
@@ -1355,4 +1464,62 @@ export class ObjectTypeBuilderComponent implements OnInit, OnDestroy {
   private generateObjectTypeId(): string {
     return `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
+
+  // Aspect ratio slider methods
+  getAspectRatioNumeric(): number {
+    const aspectRatio = this.displaySettingsGroup.get('aspectRatio')?.value || '3 / 4';
+    const parts = aspectRatio.split(' / ');
+    if (parts.length === 2) {
+      const width = parseFloat(parts[0]);
+      const height = parseFloat(parts[1]);
+      return width / height;
+    }
+    return 0.75; // Default 3/4
+  }
+
+  onAspectRatioChange(value: number): void {
+    // Convert numeric value back to CSS format
+    let aspectRatioString: string;
+
+    // Snap to common ratios
+    if (Math.abs(value - 0.5625) < 0.05) { // 9/16
+      aspectRatioString = '9 / 16';
+    } else if (Math.abs(value - 0.6667) < 0.05) { // 2/3
+      aspectRatioString = '2 / 3';
+    } else if (Math.abs(value - 0.75) < 0.05) { // 3/4
+      aspectRatioString = '3 / 4';
+    } else if (Math.abs(value - 1) < 0.05) { // 1/1
+      aspectRatioString = '1 / 1';
+    } else if (Math.abs(value - 1.3333) < 0.05) { // 4/3
+      aspectRatioString = '4 / 3';
+    } else if (Math.abs(value - 1.5) < 0.05) { // 3/2
+      aspectRatioString = '3 / 2';
+    } else if (Math.abs(value - 1.7778) < 0.05) { // 16/9
+      aspectRatioString = '16 / 9';
+    } else {
+      // Custom value - round to 2 decimal places
+      aspectRatioString = `${value.toFixed(2)} / 1`;
+    }
+
+    this.displaySettingsGroup.get('aspectRatio')?.setValue(aspectRatioString);
+  }
+
+  getAspectRatioDescription(): string {
+    const aspectRatio = this.displaySettingsGroup.get('aspectRatio')?.value || '3 / 4';
+    const numeric = this.getAspectRatioNumeric();
+
+    if (aspectRatio === '9 / 16') return '9:16 Tall Portrait';
+    if (aspectRatio === '2 / 3') return '2:3 Portrait';
+    if (aspectRatio === '3 / 4') return '3:4 Portrait (Default)';
+    if (aspectRatio === '1 / 1') return '1:1 Square';
+    if (aspectRatio === '4 / 3') return '4:3 Landscape';
+    if (aspectRatio === '3 / 2') return '3:2 Landscape';
+    if (aspectRatio === '16 / 9') return '16:9 Widescreen';
+
+    return numeric < 1 ? 'Portrait' : numeric > 1 ? 'Landscape' : 'Square';
+  }
+
+  formatAspectRatioLabel = (value: number): string => {
+    return value.toFixed(1);
+  };
 }

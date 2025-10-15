@@ -60,6 +60,7 @@ export interface WallObjectType {
     secondaryField?: string; // Field ID for card subtitles (first subtitle line)
     tertiaryField?: string; // Field ID for tertiary information (second subtitle line)
     imageField?: string; // Field ID for card images
+    aspectRatio?: string; // Aspect ratio for card (e.g., "3/4", "16/9", "1/1"). Defaults to "3/4" if not specified
   };
   defaultImage?: {
     url: string;

@@ -61,7 +61,7 @@ export type PageMode = 'create' | 'view' | 'edit';
             
             <!-- Image Section (Left Side) -->
             <div class="image-section">
-              <div class="image-gallery-container">
+              <div class="image-gallery-container" [style.--image-aspect-ratio]="getAspectRatio()">
                 @if (images.length === 0) {
                   <div class="empty-image-state">
                     <app-wall-item-image
@@ -314,7 +314,7 @@ export type PageMode = 'create' | 'view' | 'edit';
     .image-gallery-container {
       background: var(--md-sys-color-surface-container);
       border-radius: 20px;
-      padding: 24px;
+      padding: 16px;
       box-shadow: var(--md-sys-elevation-1);
       min-height: 500px;
     }
@@ -353,9 +353,8 @@ export type PageMode = 'create' | 'view' | 'edit';
     .primary-image {
       position: relative;
       width: 100%;
-      height: min(500px, 40vh);
-      max-height: min(600px, 80vh);
-      border-radius: 20px;
+      aspect-ratio: var(--image-aspect-ratio, 3 / 4);
+      border-radius: 12px;
       overflow: hidden;
       box-shadow: var(--md-sys-elevation-2);
       transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
@@ -684,10 +683,6 @@ export type PageMode = 'create' | 'view' | 'edit';
         max-width: 1200px;
       }
 
-      .primary-image {
-        height: min(400px, 35vh);
-        max-height: min(500px, 70vh);
-      }
     }
 
     @media (max-width: 900px) {
@@ -703,11 +698,6 @@ export type PageMode = 'create' | 'view' | 'edit';
 
       .form-section {
         order: 2;
-      }
-
-      .primary-image {
-        height: min(350px, 40vh);
-        max-height: 500px;
       }
 
       .item-form {
@@ -733,12 +723,7 @@ export type PageMode = 'create' | 'view' | 'edit';
 
       .image-gallery-container,
       .form-container {
-        padding: 20px;
-      }
-
-      .primary-image {
-        height: min(300px, 35vh);
-        max-height: 400px;
+        padding: 16px;
       }
 
       .thumbnails-grid {
@@ -777,8 +762,12 @@ export type PageMode = 'create' | 'view' | 'edit';
       margin-top: 16px;
     }
 
-    .item-tabs .mat-mdc-tab-body-content {
-      padding-top: 16px;
+    .item-tabs ::ng-deep .mat-mdc-tab-body-content {
+      padding: 16px 0 0 0;
+    }
+
+    .item-tabs ::ng-deep .mat-mdc-tab-body-wrapper {
+      padding: 0;
     }
 
     /* Related Items Tab Styles */
@@ -1448,5 +1437,10 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
   getTabLabelForEntityType(objectType: WallObjectType, index?: number): string {
     const label = this.nlpService.getDisplayPlural(objectType.name);
     return label;
+  }
+
+  getAspectRatio(): string {
+    const aspectRatio = this.preset?.displaySettings?.aspectRatio;
+    return aspectRatio || '3 / 4';
   }
 }
