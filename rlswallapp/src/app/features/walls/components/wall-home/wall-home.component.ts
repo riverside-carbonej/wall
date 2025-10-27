@@ -261,10 +261,16 @@ export class WallHomeComponent implements OnInit, OnDestroy {
   wall$!: Observable<Wall | null>;
   wallItems$!: Observable<WallItem[]>;
   objectTypes$!: Observable<WallObjectType[]>;
-  
+
   public duration = 10000;
   private prevAngle = 0;
   private animationId?: number;
+
+  // Page rotation tracking
+  private currentPage = 0;
+  private cutsSinceLastPageChange = 0;
+  private cutsBeforeNextPageChange = 3; // Always 3 cuts before page change
+  private allPages: WallItem[][] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -292,10 +298,110 @@ export class WallHomeComponent implements OnInit, OnDestroy {
       map(wall => wall?.objectTypes || [])
     );
 
-    // Load ALL wall items from all object types mixed together
-    this.wallItems$ = this.wallItemService.getWallItems(this.wallId).pipe(
+    // Load ALL wall items and create pages with picture prioritization
+    this.wallItemService.getWallItems(this.wallId).pipe(
       takeUntil(this.destroy$)
-    );
+    ).subscribe(items => {
+      if (items.length === 0) {
+        this.allPages = [[]];
+        return;
+      }
+
+      // Shuffle helper using Fisher-Yates
+      const shuffle = <T,>(arr: T[]): T[] => {
+        const shuffled = [...arr];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+      };
+
+      // Separate items with and without pictures
+      const itemsWithPics = shuffle(items.filter(item => item.images && item.images.length > 0));
+      const itemsWithoutPics = shuffle(items.filter(item => !item.images || item.images.length === 0));
+
+      const totalItems = items.length;
+      const pageSize = 200;
+      const totalPages = Math.ceil(totalItems / pageSize);
+
+      // Calculate how many items with pics should be on each page (aim for 50%+ but distribute evenly)
+      const totalWithPics = itemsWithPics.length;
+      const totalWithoutPics = itemsWithoutPics.length;
+
+      // Create pages ensuring all items are used
+      this.allPages = [];
+      let withPicsIndex = 0;
+      let withoutPicsIndex = 0;
+
+      for (let pageNum = 0; pageNum < totalPages; pageNum++) {
+        const page: WallItem[] = [];
+
+        const remainingWithPics = totalWithPics - withPicsIndex;
+        const remainingWithoutPics = totalWithoutPics - withoutPicsIndex;
+        const remainingPages = totalPages - pageNum;
+
+        let picsForThisPage: number;
+        let noPicsForThisPage: number;
+
+        if (remainingWithPics === 0) {
+          // No more pics, use all remaining without pics
+          picsForThisPage = 0;
+          noPicsForThisPage = Math.min(pageSize, remainingWithoutPics);
+        } else if (remainingWithoutPics === 0) {
+          // No more without pics, use all remaining with pics
+          picsForThisPage = Math.min(remainingWithPics, pageSize);
+          noPicsForThisPage = 0;
+        } else {
+          // Distribute naturally based on ratio in collection, but ensure at least 50% with pics
+          const naturalRatio = totalWithPics / totalItems;
+          const minPicsRatio = 0.5; // Minimum 50% with pictures
+          const targetRatio = Math.max(naturalRatio, minPicsRatio);
+
+          const idealPicsPerPage = Math.ceil(pageSize * targetRatio);
+          const maxPicsAvailable = Math.min(remainingWithPics, pageSize);
+          const minPicsNeeded = Math.max(0, remainingWithPics - (remainingPages - 1) * pageSize);
+
+          picsForThisPage = Math.max(minPicsNeeded, Math.min(idealPicsPerPage, maxPicsAvailable));
+          noPicsForThisPage = Math.min(pageSize - picsForThisPage, remainingWithoutPics);
+        }
+
+        // Add items to page
+        if (picsForThisPage > 0) {
+          page.push(...itemsWithPics.slice(withPicsIndex, withPicsIndex + picsForThisPage));
+          withPicsIndex += picsForThisPage;
+        }
+
+        if (noPicsForThisPage > 0) {
+          page.push(...itemsWithoutPics.slice(withoutPicsIndex, withoutPicsIndex + noPicsForThisPage));
+          withoutPicsIndex += noPicsForThisPage;
+        }
+
+        // If page has fewer than 200 items, cycle back and add more to reach 200
+        while (page.length < pageSize && items.length > 0) {
+          const remainingNeeded = pageSize - page.length;
+          const itemsToCycle = shuffle([...items]).slice(0, remainingNeeded);
+          page.push(...itemsToCycle);
+        }
+
+        // Shuffle the page for variety
+        this.allPages.push(shuffle(page));
+      }
+
+      // Start with a random page
+      this.currentPage = Math.floor(Math.random() * this.allPages.length);
+    });
+
+    // Create observable that returns current page
+    this.wallItems$ = new Observable<WallItem[]>(observer => {
+      const interval = setInterval(() => {
+        if (this.allPages.length > 0) {
+          observer.next(this.allPages[this.currentPage]);
+        }
+      }, 100);
+
+      return () => clearInterval(interval);
+    });
 
     // Navigation context is already set by wallContextGuard before this component loads
   }
@@ -323,6 +429,19 @@ export class WallHomeComponent implements OnInit, OnDestroy {
   getLogoUrl(wall: Wall): string {
     // Use organization logo if set, otherwise default to Riverside logo
     return wall.organizationLogoUrl || '/assets/images/beaver-logo.png';
+  }
+
+  private switchToNextPage(): void {
+    if (this.allPages.length <= 1) return;
+
+    // Pick a different random page
+    let newPage: number;
+    do {
+      newPage = Math.floor(Math.random() * this.allPages.length);
+    } while (newPage === this.currentPage && this.allPages.length > 1);
+
+    this.currentPage = newPage;
+    this.cutsSinceLastPageChange = 0;
   }
 
   private getRandomAngle(): number {
@@ -396,6 +515,13 @@ export class WallHomeComponent implements OnInit, OnDestroy {
       });
 
       this.currentAnimation.onfinish = () => {
+        // Track cuts and switch pages after 3-5 cuts
+        this.cutsSinceLastPageChange++;
+
+        if (this.cutsSinceLastPageChange >= this.cutsBeforeNextPageChange) {
+          this.switchToNextPage();
+        }
+
         // Use requestAnimationFrame for smoother transitions
         requestAnimationFrame(() => {
           this.startAnimation();
