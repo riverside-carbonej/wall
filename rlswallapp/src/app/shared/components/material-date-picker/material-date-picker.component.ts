@@ -95,7 +95,7 @@ export class MaterialDatePickerComponent implements OnInit, OnDestroy {
   ngOnInit() {
     if (this.value) {
       // Handle FlexibleDateValue
-      if (typeof this.value === 'object' && 'precision' in this.value) {
+      if (this.value && typeof this.value === 'object' && 'precision' in this.value) {
         this.selectedFlexibleDate = this.value;
         this.currentPrecision = this.value.precision;
         this.currentMonth = new Date(this.value.year, this.value.month || 0, 1);
