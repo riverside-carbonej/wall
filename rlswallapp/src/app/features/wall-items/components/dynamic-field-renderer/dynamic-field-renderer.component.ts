@@ -167,7 +167,7 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
 
     if (this.field.type === 'date') {
       // Handle FlexibleDateValue
-      if (typeof value === 'object' && 'precision' in value) {
+      if (value && typeof value === 'object' && 'precision' in value) {
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
           'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -305,7 +305,7 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     }
 
     // Handle FlexibleDateValue
-    if (typeof date === 'object' && 'precision' in date) {
+    if (date && typeof date === 'object' && 'precision' in date) {
       // Store the flexible date value as-is
       this.formControl?.setValue(date);
       return;
