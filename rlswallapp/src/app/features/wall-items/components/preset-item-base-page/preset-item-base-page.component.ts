@@ -190,7 +190,7 @@ export type PageMode = 'create' | 'view' | 'edit';
                     <!-- Details Tab -->
                     <mat-tab label="Details">
                       <form [formGroup]="itemForm" class="item-form" [class.view-mode]="mode === 'view'">
-                        @for (field of preset.fields; track field.id) {
+                        @for (field of visibleFields(); track field.id) {
                           <div class="form-field">
                             <app-dynamic-field-renderer
                               [field]="field"
@@ -1126,6 +1126,18 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
   // Related items methods
   hasRelatedItems(): boolean {
     return this.relatedTypes.length > 0;
+  }
+
+  /** Fields to render on the Details tab. In view mode, only fields that have a
+   *  value are shown; in create/edit modes all fields show so they can be filled. */
+  visibleFields(): FieldDefinition[] {
+    const fields = this.preset?.fields || [];
+    if (this.mode !== 'view') return fields;
+    const data = this.item?.fieldData || {};
+    return fields.filter(f => {
+      const v = data[f.id];
+      return !(v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0));
+    });
   }
 
   private updateRelatedTypes() {

@@ -854,9 +854,22 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
   }
   
   // Template helper methods
+
+  /** True when the current item has a non-empty value for this field. */
+  fieldHasValue(field: FieldDefinition): boolean {
+    const v = this.wallItem?.fieldData?.[field.id];
+    return !(v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0));
+  }
+
+  /** In view mode, show only fields that have a value; in edit mode, show all
+   *  (so empty fields can still be filled in). */
+  displayFields(fields: FieldDefinition[]): FieldDefinition[] {
+    return this.editing ? fields : fields.filter(f => this.fieldHasValue(f));
+  }
+
   getBasicFields(): FieldDefinition[] {
     if (!this.objectType) return [];
-    
+
     const basicFields = this.objectType.fields.filter(field => 
       field.type === 'text' || 
       field.type === 'longtext' || 

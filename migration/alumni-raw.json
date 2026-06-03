@@ -1,0 +1,2329 @@
+[
+  {
+    "id": "1O2eAji6ATAWqH6VSptQ",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Peter",
+      "graduationYear": "1970",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Peter",
+      "lastName": "",
+      "originalName": "1970 Peter"
+    }
+  },
+  {
+    "id": "23Bi9xyILybz3zACWpnT",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Gretchen Reed",
+      "graduationYear": 2001,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "25RTJisDmG9mIcMZKHqo",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Jason",
+      "graduationYear": "2001",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Jason",
+      "lastName": "",
+      "originalName": "2001 Jason"
+    }
+  },
+  {
+    "id": "2MyD5pdXilEb53IowtGW",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Del",
+      "graduationYear": "1988",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Del",
+      "lastName": "",
+      "originalName": "1988 Del"
+    }
+  },
+  {
+    "id": "2qpDsa0BR699N9L75hE7",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Geoffrey",
+      "graduationYear": "1971",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Geoffrey",
+      "lastName": "",
+      "originalName": "1971 Geoffrey"
+    }
+  },
+  {
+    "id": "3uKb7lbRbeuKGiekLhwE",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Eric",
+      "graduationYear": "2003",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Eric",
+      "lastName": "",
+      "originalName": "2003 Eric"
+    }
+  },
+  {
+    "id": "3xOh0J4H5usD2Y37hXkc",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Michael",
+      "graduationYear": "1995",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Michael",
+      "lastName": "",
+      "originalName": "1995 Michael"
+    }
+  },
+  {
+    "id": "4AKWp0e6pEJYEFUUH7JK",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Anthony Montonini",
+      "graduationYear": 2024,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "4lKoccIxxGpb6bJHkmoE",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Mary Thrasher",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Mary",
+      "lastName": "Thrasher",
+      "originalName": "Mary Thrasher*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "4pSdebYUasFw9recGyxA",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Edwin",
+      "graduationYear": "1954",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Edwin",
+      "lastName": "",
+      "originalName": "1954 Edwin"
+    }
+  },
+  {
+    "id": "4scrbffseWWIcjiaA5C7",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Karen Berry",
+      "graduationYear": 2021,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "5w5GbVT6C2lhTQlvi1Ft",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Merle Court",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Merle",
+      "lastName": "Court",
+      "originalName": "Merle Court*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "65FeRqrZgFpVsg1R404v",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Ronald",
+      "graduationYear": "1964",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Ronald",
+      "lastName": "",
+      "originalName": "1964 Ronald"
+    }
+  },
+  {
+    "id": "696cNXm7nDn9426g5qVC",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "1984 Gerald \"Chip\"",
+      "graduationYear": 2022,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete"
+    }
+  },
+  {
+    "id": "6LFDrw757UeDEQBOCUtP",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Bruce",
+      "graduationYear": "1965",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Bruce",
+      "lastName": "",
+      "originalName": "1965 Bruce"
+    }
+  },
+  {
+    "id": "6aJrjCrdoLyoZpuE0ucs",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Loretta Bearer",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "74qSuxqRwNm90ynS2wYz",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Carol",
+      "graduationYear": "1979",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Carol",
+      "lastName": "",
+      "originalName": "1979 Carol"
+    }
+  },
+  {
+    "id": "76SJ0Xduk5CExLyg1WJW",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Karen Honkala",
+      "graduationYear": 1979,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "8MaKlH8hYqo9wx9kzL7X",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Kimm Leininger",
+      "graduationYear": 1988,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete"
+    }
+  },
+  {
+    "id": "8cEYJJ8KQCSTa2xFqwKG",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Michael Shoaf",
+      "graduationYear": 2007,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "9GCbx8EcLL6U7cJIfi19",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Lisa",
+      "graduationYear": "1993",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Lisa",
+      "lastName": "",
+      "originalName": "1993 Lisa"
+    }
+  },
+  {
+    "id": "9NKJfzkFcrcUEhpWcHtx",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "John Weiss",
+      "graduationYear": 1998,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "AAhpEphR9Pi5EVDSlrZ4",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Betts Strailey",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Betts",
+      "lastName": "Strailey",
+      "originalName": "Betts Strailey*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "BghtlbzMIjqaXkp8MpgZ",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Darryl",
+      "graduationYear": "1967",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Darryl",
+      "lastName": "",
+      "originalName": "1967 Darryl"
+    }
+  },
+  {
+    "id": "CMbAGWbZl9PwGlWsm4ZZ",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Becky Bartholomew",
+      "graduationYear": 2023,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "CmKGfp2exgjHRekxD2j7",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Deborah Rosch",
+      "graduationYear": 1980,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "DZE69xjve88SqrFMLsTw",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Grady",
+      "graduationYear": "1961",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Grady",
+      "lastName": "",
+      "originalName": "1961 Grady"
+    }
+  },
+  {
+    "id": "E9XXdXIntDrRu3cTJ2oT",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Pamela Moser",
+      "graduationYear": 1981,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "F6TO2l7cnWsmNrWzVndv",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Courtney Eppich",
+      "graduationYear": 2004,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete"
+    }
+  },
+  {
+    "id": "FDmfUdXqPMG1c86QlKXz",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "George Inscho, Jr.",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "George",
+      "lastName": "Inscho, Jr.",
+      "originalName": "George Inscho, Jr.*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "FMVjrDu3rseHTNzNTb5g",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Margie",
+      "graduationYear": "1985",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Margie",
+      "lastName": "",
+      "originalName": "1985 Margie"
+    }
+  },
+  {
+    "id": "FRPRlzRwhjnxY6c3H3Fn",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Kelly Stewart",
+      "graduationYear": 1991,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete"
+    }
+  },
+  {
+    "id": "FjzINl3wMjDh9cfU3pFw",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Shellie Graf",
+      "graduationYear": 1980,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "FlUFHXzGUWXrjVfyair8",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "David",
+      "graduationYear": "1962",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "David",
+      "lastName": "",
+      "originalName": "1962 David"
+    }
+  },
+  {
+    "id": "FwdtYBI70kIGlqaDN8dT",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Carol Muster",
+      "graduationYear": 1998,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "GuHmDLS7aWwMCogVDv4e",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Frank",
+      "graduationYear": 2010,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Frank",
+      "lastName": "",
+      "originalName": "Coach Frank",
+      "title": "Coach"
+    }
+  },
+  {
+    "id": "HDlNacQmGiP8j1ppnRZb",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Linda Lucas",
+      "graduationYear": 1962,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "HG2siOCT2PHUUsRMmJos",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Art",
+      "graduationYear": "1961",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Art",
+      "lastName": "",
+      "originalName": "1961 Art"
+    }
+  },
+  {
+    "id": "HnC0EfObtb0iXKY7Dt2X",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "John Reed",
+      "graduationYear": 2005,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "Inj21fhoBnrlB4CWcxCG",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Nathan",
+      "graduationYear": "1997",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Nathan",
+      "lastName": "",
+      "originalName": "1997 Nathan"
+    }
+  },
+  {
+    "id": "JUQPrQKN8aKjlz2jLZHQ",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Gary",
+      "graduationYear": "1965",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Gary",
+      "lastName": "",
+      "originalName": "1965 Gary"
+    }
+  },
+  {
+    "id": "JjsgWayLJrKmvv5BlgXJ",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Al",
+      "graduationYear": "1989",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Al",
+      "lastName": "",
+      "originalName": "1989 Al"
+    }
+  },
+  {
+    "id": "Jtnjwhni8BYMrAECcIE9",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Al Porter",
+      "graduationYear": 2006,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Al",
+      "lastName": "Porter",
+      "originalName": "Al Porter*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "KbIW6YVfdZcBqN8tdfjK",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "James",
+      "graduationYear": "1953",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "James",
+      "lastName": "",
+      "originalName": "1953 James"
+    }
+  },
+  {
+    "id": "LSecgRk6a0bjeaies4DK",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Bernadine McFarren",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Bernadine",
+      "lastName": "McFarren",
+      "originalName": "Bernadine McFarren*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "MW3ThgkZuy811Ed7heNk",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Brian",
+      "graduationYear": "1989",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Brian",
+      "lastName": "",
+      "originalName": "1989 Brian"
+    }
+  },
+  {
+    "id": "MYoFkeTGB2QUrMDEPgTR",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "George",
+      "graduationYear": "1952",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "George",
+      "lastName": "",
+      "originalName": "1952 George"
+    }
+  },
+  {
+    "id": "Mjv8NFuwso1A9pJy4EVs",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Arthur",
+      "graduationYear": "1973",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Arthur",
+      "lastName": "",
+      "originalName": "1973 Arthur"
+    }
+  },
+  {
+    "id": "MoXRekT3JPKmZrJGC4ka",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "John",
+      "graduationYear": "1970",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "John",
+      "lastName": "",
+      "originalName": "1970 John"
+    }
+  },
+  {
+    "id": "Mx0n6o2HJh6R9RD9FkeJ",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Peggy Lewis",
+      "graduationYear": 1998,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Peggy",
+      "lastName": "Lewis",
+      "originalName": "Peggy Lewis*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "MxmJFNOE3O5xjstZfBW1",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Joshua D.",
+      "graduationYear": "1995",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Joshua D.",
+      "lastName": "",
+      "originalName": "1995 Joshua D."
+    }
+  },
+  {
+    "id": "NZTWF8UGvF3ELVhZOgsO",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Henry LaMuth",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Henry",
+      "lastName": "LaMuth",
+      "originalName": "Henry LaMuth*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "NwUzGBZErocL4BapUFYH",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Frank",
+      "graduationYear": "1954",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Frank",
+      "lastName": "",
+      "originalName": "1954 Frank"
+    }
+  },
+  {
+    "id": "OhAyzFoYtFesavdwEGHi",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Michael",
+      "graduationYear": "1988",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Michael",
+      "lastName": "",
+      "originalName": "1988 Michael"
+    }
+  },
+  {
+    "id": "P2rMDebj8nTGb6ND4Tn7",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Carol Lewis",
+      "graduationYear": 2016,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "P3fMyvkMPaaUKQokhyOT",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Maren Larsen",
+      "graduationYear": 1998,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Maren",
+      "lastName": "Larsen",
+      "originalName": "Maren Larsen*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "PC42uVt9OzdeWLtQaVx8",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "David Shaner",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "David",
+      "lastName": "Shaner",
+      "originalName": "David Shaner*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "PC4nSOH8Nn3wLXZ4K3ue",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Natalie",
+      "graduationYear": "1960",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Natalie",
+      "lastName": "",
+      "originalName": "1960 Natalie"
+    }
+  },
+  {
+    "id": "PHTxfTvYp3lwM5l8g0lB",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Lawrence \"Skip\"",
+      "graduationYear": 2009,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Lawrence \"Skip\"",
+      "lastName": "",
+      "originalName": "Coach Lawrence \"Skip\"",
+      "title": "Coach"
+    }
+  },
+  {
+    "id": "Q3nwFE7dFX653671QWDL",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Dennis",
+      "graduationYear": "1960",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Dennis",
+      "lastName": "",
+      "originalName": "1960 Dennis"
+    }
+  },
+  {
+    "id": "Q6IsMhQFbAWeC57T9OiW",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Neal",
+      "graduationYear": "1981",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Neal",
+      "lastName": "",
+      "originalName": "1981 Neal"
+    }
+  },
+  {
+    "id": "QHmFphrZVRf1wgnEUqry",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Margaret Barber",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "Qium9E7UkFsDetp9vu6n",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Karyn Loveless",
+      "graduationYear": 1992,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete"
+    }
+  },
+  {
+    "id": "RJYvmqTwTMMbW0qhiOtW",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Janice Wunderlich",
+      "graduationYear": 2015,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "RpRnUMul54q0N26bXF3U",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Emma Lou Dalheim",
+      "graduationYear": 2002,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Emma",
+      "lastName": "Lou Dalheim",
+      "originalName": "Emma Lou Dalheim*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "Ruzr1qHSdUFTiT2Audsj",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "David Burris",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "David",
+      "lastName": "Burris",
+      "originalName": "David Burris*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "SPS3u1z8ntEAQWT7MDHk",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Doug",
+      "graduationYear": "1952",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Doug",
+      "lastName": "",
+      "originalName": "1952 Doug"
+    }
+  },
+  {
+    "id": "SboFlRMN1a3kS2cQgNqU",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Martin",
+      "graduationYear": "1960",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Martin",
+      "lastName": "",
+      "originalName": "1960 Martin"
+    }
+  },
+  {
+    "id": "ShSEgXbmZeN5P4ZuysaJ",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Christopher",
+      "graduationYear": "1997",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Christopher",
+      "lastName": "",
+      "originalName": "1997 Christopher"
+    }
+  },
+  {
+    "id": "ShVM8EiozFtwkLIbCLhC",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Gary",
+      "graduationYear": "1972",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Gary",
+      "lastName": "",
+      "originalName": "1972 Gary"
+    }
+  },
+  {
+    "id": "UAnOZnNV3GDf8v2xduvr",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Marijane Watson",
+      "graduationYear": 2002,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "UfnoGFm2iJmcZcm9AAqu",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Michelle Odom",
+      "graduationYear": 1987,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "UfuGAq36yWvEY7hu4ZrF",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Keith",
+      "graduationYear": "1986",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Keith",
+      "lastName": "",
+      "originalName": "1986 Keith"
+    }
+  },
+  {
+    "id": "V52nbjNNGCE821W89wZL",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Louis Andersen",
+      "graduationYear": 1999,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Louis",
+      "lastName": "Andersen",
+      "originalName": "Louis Andersen*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "VAnGIFMTWReRuhl0KYy3",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Jane Braden",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Jane",
+      "lastName": "Braden",
+      "originalName": "Jane Braden*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "Vb01DU9xPzAyOtBpvTqw",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Joel",
+      "graduationYear": "1980",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Joel",
+      "lastName": "",
+      "originalName": "1980 Joel"
+    }
+  },
+  {
+    "id": "VbclCvb7R6JVg83LpF7C",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Mike",
+      "graduationYear": "1983",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Mike",
+      "lastName": "",
+      "originalName": "1983 Mike"
+    }
+  },
+  {
+    "id": "VjPnJ4g6qskfzrJPsVDw",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Charlie Neal",
+      "graduationYear": 2010,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Charlie",
+      "lastName": "Neal",
+      "originalName": "Charlie Neal*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "VsRmNyfn5zY3F3N1nx36",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Ellen Forbus",
+      "graduationYear": 1980,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "W95kdDtv5z1ncMA7AvTV",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Candy Forest",
+      "graduationYear": 1963,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "WAQe8aSutowqzhnfutES",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Donald",
+      "graduationYear": "1954",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Donald",
+      "lastName": "",
+      "originalName": "1954 Donald"
+    }
+  },
+  {
+    "id": "WmYEvZJU2jHVQlKvTIeP",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Daniel",
+      "graduationYear": "1967",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Daniel",
+      "lastName": "",
+      "originalName": "1967 Daniel"
+    }
+  },
+  {
+    "id": "Wn78X1GDiUY2Fn1YlDRb",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Therese",
+      "graduationYear": 2001,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Therese",
+      "lastName": "",
+      "originalName": "Coach Therese",
+      "title": "Coach"
+    }
+  },
+  {
+    "id": "XD8IIT8TSG5f6vnTpX10",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Harold Parsons",
+      "graduationYear": 2002,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Harold",
+      "lastName": "Parsons",
+      "originalName": "Harold Parsons*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "XIMA8DOlJzx53rPCmXlL",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Robert",
+      "graduationYear": 1999,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Robert",
+      "lastName": "",
+      "originalName": "Coach Robert",
+      "title": "Coach"
+    }
+  },
+  {
+    "id": "XbJyBmwV8Bvrj10zSAiN",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "William",
+      "graduationYear": "1967",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "William",
+      "lastName": "",
+      "originalName": "1967 William"
+    }
+  },
+  {
+    "id": "XxkBrAdfenMs2PNEvQfY",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Edward",
+      "graduationYear": "1963",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Edward",
+      "lastName": "",
+      "originalName": "1963 Edward"
+    }
+  },
+  {
+    "id": "YZCuM6R8Xo7dJBk5EjGv",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Robert Capella",
+      "graduationYear": 2003,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Robert",
+      "lastName": "Capella",
+      "originalName": "Robert Capella*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "YsAZmfB5sszoYDGvtknW",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "1967 Paul \"Toby\"",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "Z9MypS48uDsqxy0G6tia",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Carol Benroth",
+      "graduationYear": 2004,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "ZeCblbqHVq0N6kDk2Hnp",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Luise Hanold",
+      "graduationYear": 2018,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "abaf723bWAvDZ6F3wGoF",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Amy Koepp",
+      "graduationYear": 1992,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete"
+    }
+  },
+  {
+    "id": "aksfhDA3nZ0jYGdZdG7E",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Donald",
+      "graduationYear": "1972",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Donald",
+      "lastName": "",
+      "originalName": "1972 Donald"
+    }
+  },
+  {
+    "id": "axrLmt2dI7TmbDyZiBiR",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Kirk",
+      "graduationYear": "1976",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Kirk",
+      "lastName": "",
+      "originalName": "1976 Kirk"
+    }
+  },
+  {
+    "id": "bDrV6ItZgoDVbk8bVKG3",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Janice Martin",
+      "graduationYear": 1963,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "bgrfijvPtbgoU1yTDyXC",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Merralee",
+      "graduationYear": "1981",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Merralee",
+      "lastName": "",
+      "originalName": "1981 Merralee"
+    }
+  },
+  {
+    "id": "cSHHgBdDMNCksht3MNFO",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Michaela Burriss",
+      "graduationYear": 2004,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete"
+    }
+  },
+  {
+    "id": "cUGmdcJFkJhjuafEQD0D",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Tonya Niemeyer",
+      "graduationYear": 1990,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete"
+    }
+  },
+  {
+    "id": "cpS8TnyJYzddCIIbvKSv",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Brian",
+      "graduationYear": "1980",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Brian",
+      "lastName": "",
+      "originalName": "1980 Brian"
+    }
+  },
+  {
+    "id": "dus4NsqguLQAUPqFe43A",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Mary Porter",
+      "graduationYear": 2007,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Mary",
+      "lastName": "Porter",
+      "originalName": "Mary Porter*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "eN1LtakZ4ehpWvuBJt7Y",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Nancy Johnson",
+      "graduationYear": 1998,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Nancy",
+      "lastName": "Johnson",
+      "originalName": "Nancy Johnson*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "ehTMY8Z1cABy3VIRD6fj",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Melissa Ezzo",
+      "graduationYear": 1993,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete"
+    }
+  },
+  {
+    "id": "esOflyVgEeJBpUWJcxEb",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Amir",
+      "graduationYear": "2006",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Amir",
+      "lastName": "",
+      "originalName": "2006 Amir"
+    }
+  },
+  {
+    "id": "f3sxMVywIUTVdUPtTLR4",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Donald",
+      "graduationYear": "1953",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Donald",
+      "lastName": "",
+      "originalName": "1953 Donald"
+    }
+  },
+  {
+    "id": "fF0KGFOUpwI7wWfbceuD",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Lois Harrington",
+      "graduationYear": 1998,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "faRWW9DvxxlXwaTZtNSs",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Missy",
+      "graduationYear": "1991",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Missy",
+      "lastName": "",
+      "originalName": "1991 Missy"
+    }
+  },
+  {
+    "id": "fkijYF9VdGn3OJH6GNUA",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Dr. John",
+      "graduationYear": "1979",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "John",
+      "lastName": "",
+      "originalName": "1979 Dr. John",
+      "title": "Dr."
+    }
+  },
+  {
+    "id": "g9pBIpWduIm7OtAYTEmL",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Craig",
+      "graduationYear": "1993",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Craig",
+      "lastName": "",
+      "originalName": "1993 Craig"
+    }
+  },
+  {
+    "id": "gUBWFZnDpHWw40w7cWYs",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Robert Smith",
+      "graduationYear": 2000,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Robert",
+      "lastName": "Smith",
+      "originalName": "Robert Smith*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "ghNTABV9Fjf4kuadNxiW",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Nadine Percival",
+      "graduationYear": 1999,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "hj9oJ73UGw9CGkygc2Lb",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Matt",
+      "graduationYear": "1996",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Matt",
+      "lastName": "",
+      "originalName": "1996 Matt"
+    }
+  },
+  {
+    "id": "hnSvaCJXjOie6MBg39i8",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Dennis Watson",
+      "graduationYear": 2003,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "hsvPXCERoITPI2BTUv1T",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Patrick McKenrick",
+      "graduationYear": 2024,
+      "degree": "Athletic Coach",
+      "currentPosition": "",
+      "email": "",
+      "category": ""
+    }
+  },
+  {
+    "id": "imBsNEpky1ybXbQTyefU",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Alison",
+      "graduationYear": "2007",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Alison",
+      "lastName": "",
+      "originalName": "2007 Alison"
+    }
+  },
+  {
+    "id": "jLWsjmlUwcMyOws4xtl1",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Robert",
+      "graduationYear": 1998,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Robert",
+      "lastName": "",
+      "originalName": "Coach Robert",
+      "title": "Coach"
+    }
+  },
+  {
+    "id": "jQdTj2CIIfnrZQNrvzWh",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "John DeLong",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "John",
+      "lastName": "DeLong",
+      "originalName": "John DeLong*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "jhJA5oqTEj3aA3ac18ua",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Jesse",
+      "graduationYear": "2001",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Jesse",
+      "lastName": "",
+      "originalName": "2001 Jesse"
+    }
+  },
+  {
+    "id": "k72wY7xiMnKE4D2BVM9O",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Lydia Parker",
+      "graduationYear": 1980,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "kjXGjHRCodBgmZwd39xA",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Russell",
+      "graduationYear": "1991",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Russell",
+      "lastName": "",
+      "originalName": "1991 Russell"
+    }
+  },
+  {
+    "id": "ksLT0DiwBfHyc6a04eWY",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Martha Goodwin",
+      "graduationYear": 1999,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Martha",
+      "lastName": "Goodwin",
+      "originalName": "Martha Goodwin*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "lH4WXA1akX5qlFpCBT83",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "George Adams",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "George",
+      "lastName": "Adams",
+      "originalName": "George Adams*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "lIR8xXZcUUXVZkPZr7Te",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Robert",
+      "graduationYear": "1961",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Robert",
+      "lastName": "",
+      "originalName": "1961 Robert"
+    }
+  },
+  {
+    "id": "lOezDXI2cdT6ea5CJ0fe",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Michael",
+      "graduationYear": "1966",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Michael",
+      "lastName": "",
+      "originalName": "1966 Michael"
+    }
+  },
+  {
+    "id": "lxPPe9aZ54K81pL5bMUv",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Don",
+      "graduationYear": "1967",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Don",
+      "lastName": "",
+      "originalName": "Coach/1967 Don",
+      "title": "Coach"
+    }
+  },
+  {
+    "id": "ly1cGnx04siCgIfd6OTY",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Diane",
+      "graduationYear": "1959",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Diane",
+      "lastName": "",
+      "originalName": "1959 Diane"
+    }
+  },
+  {
+    "id": "m5WiXD87eJ6enhtdwMQq",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Christopher",
+      "graduationYear": "1999",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Christopher",
+      "lastName": "",
+      "originalName": "1999 Christopher"
+    }
+  },
+  {
+    "id": "mhrlAUxbrvp4xauU4qH9",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Rick",
+      "graduationYear": "1977",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Rick",
+      "lastName": "",
+      "originalName": "1977 Rick"
+    }
+  },
+  {
+    "id": "mtUA4vdpetalWL6ylHRe",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Robert",
+      "graduationYear": "1976",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Robert",
+      "lastName": "",
+      "originalName": "1976 Robert"
+    }
+  },
+  {
+    "id": "nIdRvjleOoUajPFMAsda",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Richard",
+      "graduationYear": "1963",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Richard",
+      "lastName": "",
+      "originalName": "1963 Richard"
+    }
+  },
+  {
+    "id": "nd196TNy1YdH4LfSeFpL",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Heidi",
+      "graduationYear": "1986",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Heidi",
+      "lastName": "",
+      "originalName": "1986 Heidi"
+    }
+  },
+  {
+    "id": "ngG4Pb4xI7DO41m5E1v1",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Anna Dey",
+      "graduationYear": 2006,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "nxwSUuBxlAFrvxdohG19",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Ted",
+      "graduationYear": "1979",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Ted",
+      "lastName": "",
+      "originalName": "1979 Ted"
+    }
+  },
+  {
+    "id": "of6MH14yZ20Tqr0K3jtm",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Phillip",
+      "graduationYear": "1975",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Phillip",
+      "lastName": "",
+      "originalName": "1975 Phillip"
+    }
+  },
+  {
+    "id": "ofA9D9OT6nDzLK2xsFnM",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Robert",
+      "graduationYear": "1961",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Robert",
+      "lastName": "",
+      "originalName": "1961 Robert"
+    }
+  },
+  {
+    "id": "olWHGchr9WFFMnFpQhfu",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Scott",
+      "graduationYear": "1985",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Scott",
+      "lastName": "",
+      "originalName": "1985 Scott"
+    }
+  },
+  {
+    "id": "p8G1BTpbSTLRod2anq0U",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Jeffrey",
+      "graduationYear": "1990",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Jeffrey",
+      "lastName": "",
+      "originalName": "1990 Jeffrey"
+    }
+  },
+  {
+    "id": "pXr1GiAZiYUm5vY3ZxNw",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "George",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "George",
+      "lastName": "",
+      "originalName": "Coach George",
+      "title": "Coach"
+    }
+  },
+  {
+    "id": "pcuaBXgm3xwpnYcJIVMA",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Michael",
+      "graduationYear": "1969",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Michael",
+      "lastName": "",
+      "originalName": "1969 Michael"
+    }
+  },
+  {
+    "id": "po0vlsSAGYgVndi1gXx7",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Jacqueline Hood",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Jacqueline",
+      "lastName": "Hood",
+      "originalName": "Jacqueline Hood*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "qVGnY1ijAdIUaC5W3otW",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "William",
+      "graduationYear": "1963",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "William",
+      "lastName": "",
+      "originalName": "1963 William"
+    }
+  },
+  {
+    "id": "qh8K2ForvoaLj5wY90li",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Joseph",
+      "graduationYear": "1985",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Joseph",
+      "lastName": "",
+      "originalName": "1985 Joseph"
+    }
+  },
+  {
+    "id": "qhXs6OjWmtB5AkHcFvsm",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Roger Stanley",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Roger",
+      "lastName": "Stanley",
+      "originalName": "Roger Stanley*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "qkf9X73zDuN0in3fD4wf",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Laurie Sterling",
+      "graduationYear": 1980,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "r4ZiB590Gbd7kqR3Dqp6",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Terry",
+      "graduationYear": "1979",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Terry",
+      "lastName": "",
+      "originalName": "1979 Terry"
+    }
+  },
+  {
+    "id": "rSlPGhXGN2FWLDAHji3M",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "James",
+      "graduationYear": "1972",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "James",
+      "lastName": "",
+      "originalName": "1972 James"
+    }
+  },
+  {
+    "id": "ravZYPXX9W3M54MiRfMR",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Pamela Bowsman",
+      "graduationYear": 1979,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "rjWn8Ug43KP0D5ijRrKS",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Donald",
+      "graduationYear": "1967",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Donald",
+      "lastName": "",
+      "originalName": "1967 Donald"
+    }
+  },
+  {
+    "id": "sQhU8JMD68B8EJLAd8XD",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Leonard",
+      "graduationYear": "1967",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Leonard",
+      "lastName": "",
+      "originalName": "1967 Leonard"
+    }
+  },
+  {
+    "id": "sYoVrabRVQowVsulNfGq",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Trent Norris",
+      "graduationYear": 2001,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  },
+  {
+    "id": "tJRMe3ypyGlmmplHHfRT",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Kurt",
+      "graduationYear": "1986",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Kurt",
+      "lastName": "",
+      "originalName": "1986 Kurt"
+    }
+  },
+  {
+    "id": "tY3oCdFs2CIvp3M5ceWi",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Brian",
+      "graduationYear": "1989",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Brian",
+      "lastName": "",
+      "originalName": "1989 Brian"
+    }
+  },
+  {
+    "id": "tZnz20yYukCFlb2ghrvH",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Dianne Miley",
+      "graduationYear": 1980,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "uc0o5pv2fWBPNFxQ2Wc7",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Mary Kosinski",
+      "graduationYear": 1997,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff",
+      "firstName": "Mary",
+      "lastName": "Kosinski",
+      "originalName": "Mary Kosinski*",
+      "deceased": "true"
+    }
+  },
+  {
+    "id": "vUvccwYwnfQrS80oD2ks",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Ron",
+      "graduationYear": 1998,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Ron",
+      "lastName": "",
+      "originalName": "Coach Ron",
+      "title": "Coach"
+    }
+  },
+  {
+    "id": "vlDJom0bM4Ky0EeEMRXp",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Dan",
+      "graduationYear": "1980",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Dan",
+      "lastName": "",
+      "originalName": "1980 Dan"
+    }
+  },
+  {
+    "id": "x0LUcNNonPxudmuremqd",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Kristen",
+      "graduationYear": "1980",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Kristen",
+      "lastName": "",
+      "originalName": "1980 Kristen"
+    }
+  },
+  {
+    "id": "x22kaTID9jALsx4O5bIp",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Elbert",
+      "graduationYear": "1968",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Elbert",
+      "lastName": "",
+      "originalName": "1968 Elbert"
+    }
+  },
+  {
+    "id": "y0TDZufV30S8KkJ1SDsK",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Leslie Stanfanick",
+      "graduationYear": 1966,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni"
+    }
+  },
+  {
+    "id": "y1QCTIKrj9e3T5hLn07l",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "William",
+      "graduationYear": "1961",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "William",
+      "lastName": "",
+      "originalName": "1961 William"
+    }
+  },
+  {
+    "id": "yaTxaxBD9y5L15c6USmp",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Bruce",
+      "graduationYear": "1969",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Alumni",
+      "firstName": "Bruce",
+      "lastName": "",
+      "originalName": "1969 Bruce"
+    }
+  },
+  {
+    "id": "ye0q7S5DVQCkVgxEEihJ",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Mark",
+      "graduationYear": "1978",
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Athlete",
+      "firstName": "Mark",
+      "lastName": "",
+      "originalName": "1978 Mark"
+    }
+  },
+  {
+    "id": "zar8nXwGJAvzokbhxxd1",
+    "objectTypeId": "ot_1757607682911_brfg8d3ft",
+    "fieldData": {
+      "name": "Kathleen Riley",
+      "graduationYear": 2015,
+      "degree": "",
+      "currentPosition": "",
+      "email": "",
+      "category": "Faculty & Staff"
+    }
+  }
+]

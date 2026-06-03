@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subject, takeUntil, combineLatest } from 'rxjs';
 import { switchMap, filter, map } from 'rxjs/operators';
@@ -21,6 +22,8 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
 import { WallItemCardComponent } from '../../components/wall-item-card/wall-item-card.component';
 import { WallItemsGridComponent } from '../../components/wall-items-grid/wall-items-grid.component';
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
+import { MaterialSelectComponent, SelectOption } from '../../../../shared/components/material-select/material-select.component';
+import { SORTABLE_FIELD_TYPES, isEmptyValue, getFieldValue, sortWallItems } from '../../utils/wall-item-sort';
 
 @Component({
   selector: 'app-preset-item-list',
@@ -36,7 +39,9 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
     ButtonGroupComponent,
     WallItemCardComponent,
     WallItemsGridComponent,
-    ThemedButtonComponent
+    ThemedButtonComponent,
+    ReactiveFormsModule,
+    MaterialSelectComponent
   ],
   template: `
     <div class="page-wrapper" *ngIf="wall$ | async as wall">
@@ -56,13 +61,33 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
             <p class="page-subtitle" *ngIf="!isLoading">{{ nlpService.getCountText(totalItems, preset.name) }}</p>
           </div>
           
+          <!-- Sort controls -->
+          @if (sortOptions.length > 0) {
+            <div class="sort-controls">
+              <app-material-select
+                class="sort-select"
+                [options]="sortOptions"
+                [formControl]="sortControl"
+                placeholder="Sort by">
+              </app-material-select>
+              <app-themed-button
+                [variant]="'icon'"
+                [icon]="sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward'"
+                [disabled]="sortControl.value === ORIGINAL_ORDER"
+                [attr.title]="sortDir === 'asc' ? 'Ascending' : 'Descending'"
+                class="sort-dir-button"
+                (buttonClick)="toggleSortDir()">
+              </app-themed-button>
+            </div>
+          }
+
           <!-- View Toggle -->
           <app-button-group
             [items]="viewToggleItems"
             [activeId]="largeView ? 'grid' : 'list'"
             (selectionChange)="onViewToggleChange($event)">
           </app-button-group>
-          
+
           <!-- Pagination in header -->
           <div class="pagination">
             <app-themed-button
@@ -277,6 +302,74 @@ import { ThemedButtonComponent } from '../../../../shared/components/themed-butt
     /* View Toggle */
     .view-toggle {
       margin: 16px 0;
+    }
+
+    /* Sort controls */
+    .sort-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .sort-select {
+      min-width: 150px;
+    }
+
+    .sort-dir-button {
+      flex-shrink: 0;
+    }
+
+    /* Material 3 pill styling, scoped to this page's sort select only
+       (the shared MaterialSelectComponent is left untouched elsewhere). */
+    .sort-select ::ng-deep .form-field {
+      margin-bottom: 0;
+      gap: 0;
+    }
+
+    .sort-select ::ng-deep .field-label {
+      display: none;
+    }
+
+    .sort-select ::ng-deep .select-container {
+      border-radius: var(--md-sys-shape-corner-full, 9999px);
+      padding: 8px 8px 8px 16px;
+      min-height: 40px;
+      background: var(--md-sys-color-surface-container-high);
+      border: 1px solid var(--md-sys-color-outline-variant);
+    }
+
+    .sort-select ::ng-deep .select-container:hover:not(.disabled) {
+      background: var(--md-sys-color-surface-container-highest);
+      border-color: var(--md-sys-color-outline-variant);
+    }
+
+    /* Keep the pill stable on open (no M2 2px border jump / focus ring) */
+    .sort-select ::ng-deep .select-container.open,
+    .sort-select ::ng-deep .select-container:focus-within {
+      border-width: 1px;
+      border-color: var(--md-sys-color-primary);
+      box-shadow: none;
+      padding: 8px 8px 8px 16px;
+    }
+
+    .sort-select ::ng-deep .select-value {
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    .sort-select ::ng-deep .selected-content {
+      gap: 8px;
+    }
+
+    .sort-select ::ng-deep .select-arrow {
+      margin-left: 4px;
+    }
+
+    /* M3 menu surface */
+    .sort-select ::ng-deep .select-panel {
+      border-radius: var(--md-sys-shape-corner-medium, 12px);
+      box-shadow: 0 2px 6px 2px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.30);
     }
 
     /* View Toggle Styles - Now handled by ButtonGroupComponent */
@@ -675,6 +768,15 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
     }
   ];
 
+  // Sorting (per object-type page). Options are derived from the current
+  // object type's sortable fields that actually contain data.
+  readonly ORIGINAL_ORDER = '__original__';
+  sortOptions: SelectOption[] = [];
+  sortControl = new FormControl<string>('');
+  sortDir: 'asc' | 'desc' = 'asc';
+  private currentPreset: WallObjectType | null = null;
+  private originalOrder: WallItem[] = [];
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -730,13 +832,23 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     );
 
-    // Handle loading state and pagination
-    this.items$.subscribe(items => {
-      this.allItems = items;
-      this.totalItems = items.length;
-      this.updateCurrentPageItems();
-      this.isLoading = false;
-    });
+    // Handle loading state, sorting and pagination. Combine preset + items so the
+    // sort options reflect the current object type's fields and data.
+    combineLatest([this.preset$, this.items$])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(([preset, items]) => {
+        this.currentPreset = preset;
+        this.originalOrder = items;
+        this.totalItems = items.length;
+        this.buildSortOptions(preset, items);
+        this.applySort();
+        this.isLoading = false;
+      });
+
+    // Re-sort when the user changes the sort field
+    this.sortControl.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.applySort());
   }
 
   ngOnDestroy() {
@@ -778,6 +890,59 @@ export class PresetItemListComponent implements OnInit, OnDestroy {
 
   onViewToggleChange(item: ButtonGroupItem) {
     this.setLargeView(item.id === 'grid');
+  }
+
+  // Sorting Methods
+  /** Build sort options from the object type's sortable fields that contain data. */
+  private buildSortOptions(preset: WallObjectType | null, items: WallItem[]) {
+    if (!preset || !preset.fields) {
+      this.sortOptions = [];
+      return;
+    }
+
+    const hasData = (fieldId: string) =>
+      items.some(it => !isEmptyValue(getFieldValue(it, fieldId)));
+
+    const options: SelectOption[] = preset.fields
+      .filter(f => SORTABLE_FIELD_TYPES.has(f.type) && hasData(f.id))
+      .map(f => ({ value: f.id, label: f.name || f.id, icon: 'sort' }));
+
+    // Always offer the original (unsorted) order as an escape hatch
+    options.push({ value: this.ORIGINAL_ORDER, label: 'Original order', icon: 'shuffle' });
+    this.sortOptions = options;
+
+    // Default selection: primaryField ascending, falling back to the first
+    // sortable option if the primary field isn't sortable.
+    const current = this.sortControl.value;
+    const stillValid = !!current && options.some(o => o.value === current);
+    if (!stillValid) {
+      const primary = preset.displaySettings?.primaryField;
+      const primarySortable = !!primary && options.some(o => o.value === primary);
+      const fallback = options.find(o => o.value !== this.ORIGINAL_ORDER)?.value ?? this.ORIGINAL_ORDER;
+      this.sortDir = 'asc';
+      this.sortControl.setValue(primarySortable ? primary! : fallback, { emitEvent: false });
+    }
+  }
+
+  /** Sort allItems by the selected field/direction (blanks always last). */
+  private applySort() {
+    const field = this.sortControl.value;
+
+    if (!field || field === this.ORIGINAL_ORDER) {
+      this.allItems = [...this.originalOrder];
+    } else {
+      const fieldDef = (this.currentPreset?.fields || []).find(f => f.id === field);
+      const type = fieldDef?.type || 'text';
+      this.allItems = sortWallItems(this.originalOrder, field, type, this.sortDir);
+    }
+
+    this.pageIndex = 0;
+    this.updateCurrentPageItems();
+  }
+
+  toggleSortDir() {
+    this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    this.applySort();
   }
 
   // Navigation Methods
