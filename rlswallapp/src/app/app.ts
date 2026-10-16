@@ -15,10 +15,11 @@ import { NavigationMenuComponent } from './shared/components/navigation-menu/nav
 import { InactivityService } from './shared/services/inactivity.service';
 import { WallItemService } from './features/wall-items/services/wall-item.service';
 import { AuthService } from './core/services/auth.service';
+import { OnScreenKeyboardComponent } from './shared/components/on-screen-keyboard/on-screen-keyboard.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterModule, CommonModule, FormsModule, UserAccountMenuComponent, NavigationMenuComponent],
+  imports: [RouterOutlet, RouterModule, CommonModule, FormsModule, UserAccountMenuComponent, NavigationMenuComponent, OnScreenKeyboardComponent],
   animations: [
     trigger('slideDown', [
       transition(':enter', [
@@ -251,12 +252,15 @@ import { AuthService } from './core/services/auth.service';
         </main>
       </div>
 
+      <!-- On-screen keyboard, only shown in kiosk mode -->
+      <app-on-screen-keyboard />
 
     </div>
   `,
   styles: [`
     .app-container {
-      height: 100vh;
+      /* Shrinks to make room for the on-screen keyboard in kiosk mode */
+      height: calc(100vh - var(--osk-height, 0px));
       display: flex;
       flex-direction: column;
       background-color: var(--md-sys-color-background);
