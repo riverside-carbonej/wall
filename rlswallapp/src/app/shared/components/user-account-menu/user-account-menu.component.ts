@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ViewContainerRef, ComponentRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable, Subject, takeUntil } from 'rxjs';
@@ -6,11 +6,14 @@ import { AuthService, AppUser } from '../../../core/services/auth.service';
 import { MaterialIconComponent } from '../material-icon/material-icon.component';
 import { ThemedButtonComponent } from '../themed-button/themed-button.component';
 import { BugReportDialogComponent } from '../bug-report-dialog/bug-report-dialog.component';
+import { FormsModule } from '@angular/forms';
+import { MaterialSwitchComponent } from '../material-switch/material-switch.component';
+import { KioskModeService } from '../../services/kiosk-mode.service';
 
 @Component({
   selector: 'app-user-account-menu',
   standalone: true,
-  imports: [CommonModule, MaterialIconComponent, ThemedButtonComponent],
+  imports: [CommonModule, FormsModule, MaterialIconComponent, ThemedButtonComponent, MaterialSwitchComponent],
   template: `
     <div class="user-account-menu">
       <!-- User Avatar Button -->
@@ -132,6 +135,23 @@ import { BugReportDialogComponent } from '../bug-report-dialog/bug-report-dialog
             </app-themed-button>
           </div>
         }
+
+        <!-- Kiosk mode (available signed in or out, since the kiosk has no keyboard) -->
+        <div class="menu-divider"></div>
+        <div class="menu-section kiosk-section">
+          <app-material-switch
+            [label]="'Kiosk keyboard'"
+            [helpText]="kioskHelpText()"
+            [ariaLabel]="'Kiosk keyboard'"
+            [ngModel]="kioskMode.enabled()"
+            (ngModelChange)="onKioskToggle($event)">
+          </app-material-switch>
+          @if (kioskMode.currentSetting !== 'auto') {
+            <button class="kiosk-auto-button" type="button" (click)="onKioskAuto()">
+              Use auto-detect
+            </button>
+          }
+        </div>
       </div>
 
       <!-- Backdrop -->
@@ -342,6 +362,25 @@ import { BugReportDialogComponent } from '../bug-report-dialog/bug-report-dialog
       margin: 8px 0;
     }
 
+    /* Kiosk mode */
+    .kiosk-section {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 12px 24px;
+    }
+
+    .kiosk-auto-button {
+      background: none;
+      border: none;
+      padding: 4px 0;
+      color: var(--md-sys-color-primary);
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
     /* Backdrop */
     .menu-backdrop {
       position: fixed;
@@ -411,6 +450,7 @@ export class UserAccountMenuComponent implements OnInit, OnDestroy {
   imageLoadFailed = false;
 
   private dialogRef?: ComponentRef<BugReportDialogComponent>;
+  protected kioskMode = inject(KioskModeService);
 
   constructor(
     private authService: AuthService,
@@ -518,6 +558,23 @@ export class UserAccountMenuComponent implements OnInit, OnDestroy {
         console.error('Sign out error:', error);
       }
     });
+  }
+
+  kioskHelpText(): string {
+    if (this.kioskMode.currentSetting !== 'auto') {
+      return 'Saved on this device';
+    }
+    return this.kioskMode.enabled()
+      ? 'On automatically: touchscreen kiosk detected'
+      : 'Turns on automatically on a touchscreen kiosk';
+  }
+
+  onKioskToggle(enabled: boolean): void {
+    this.kioskMode.setSetting(enabled ? 'on' : 'off');
+  }
+
+  onKioskAuto(): void {
+    this.kioskMode.setSetting('auto');
   }
 
   onSignIn(): void {
