@@ -2,6 +2,81 @@ import { Injectable } from '@angular/core';
 import { Observable, from, of } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
 import * as L from 'leaflet';
+import { leafletLayer, paintRules, labelRules } from 'protomaps-leaflet';
+import { namedFlavor, Flavor } from '@protomaps/basemaps';
+import { mix, getLuminance } from 'color2k';
+import { WallTheme } from '../../../shared/models/wall.model';
+
+// Self-hosted map tiles (OpenStreetMap data cut with Protomaps), served from our own Firebase site
+const MAP_TILES_BASE_URL = 'https://rlswall-maps.web.app';
+
+// Area covered by riverside.pmtiles, which carries street-level detail around the district
+const DISTRICT_DETAIL_BOUNDS = L.latLngBounds([41.45, -81.75], [42.0, -80.85]);
+
+// Warm, quiet base used when no wall theme applies
+const DEFAULT_MAP_COLORS = { land: '#f3efe7', ink: '#3f3b35', accent: '#c9a227', dark: false };
+
+/**
+ * Builds the street map's palette from a wall theme: land and water come from the wall's
+ * surfaces, labels from its text color, highways from its accent, and dark walls get a dark map.
+ */
+export function createMapFlavor(theme?: WallTheme): Flavor {
+  const colors = theme ? mapColorsForTheme(theme) : DEFAULT_MAP_COLORS;
+  const { land, ink, accent, dark } = colors;
+  const tint = (color: string, amount: number) => mix(land, color, amount);
+  const water = dark && theme ? theme.backgroundColor : tint('#6f9cbf', 0.3);
+  const green = tint(dark ? '#4f7d5c' : '#9fbf8f', dark ? 0.18 : 0.22);
+  const sand = tint('#d9c49a', dark ? 0.08 : 0.18);
+  const area = tint(ink, 0.05);
+  const road = dark ? tint(ink, 0.16) : tint('#ffffff', 0.85);
+  const casing = tint(ink, dark ? 0.06 : 0.14);
+
+  return {
+    ...namedFlavor(dark ? 'dark' : 'light'),
+    background: land,
+    earth: land,
+    water,
+    park_a: green, park_b: green, wood_a: green, wood_b: green,
+    scrub_a: green, scrub_b: green, zoo: green,
+    sand, beach: sand,
+    glacier: tint('#ffffff', dark ? 0.1 : 0.5),
+    buildings: tint(ink, dark ? 0.1 : 0.08),
+    industrial: area, hospital: area, school: area, aerodrome: area,
+    military: area, pedestrian: area, pier: area,
+    runway: tint(ink, 0.12),
+    minor_a: road, minor_b: road, minor_service: road, other: road, link: road,
+    major: dark ? tint(ink, 0.24) : tint('#ffffff', 0.95),
+    highway: tint(accent, dark ? 0.45 : 0.35),
+    minor_casing: casing, minor_service_casing: casing, link_casing: casing,
+    major_casing_early: casing, major_casing_late: casing,
+    highway_casing_early: casing, highway_casing_late: casing,
+    railway: tint(ink, 0.25),
+    boundaries: tint(ink, 0.35),
+    ocean_label: mix(water, ink, 0.5),
+    country_label: tint(ink, 0.7),
+    state_label: tint(ink, 0.5), state_label_halo: land,
+    city_label: tint(ink, 0.85), city_label_halo: land,
+    subplace_label: tint(ink, 0.65), subplace_label_halo: land,
+    roads_label_minor: tint(ink, 0.6), roads_label_minor_halo: land,
+    roads_label_major: tint(ink, 0.7), roads_label_major_halo: land,
+    address_label: tint(ink, 0.55), address_label_halo: land,
+    landcover: {
+      grassland: tint(green, 0.5), farmland: tint(green, 0.5), scrub: tint(green, 0.6),
+      forest: green, barren: sand, urban_area: area, glacier: tint('#ffffff', dark ? 0.1 : 0.5)
+    }
+  };
+}
+
+function mapColorsForTheme(theme: WallTheme) {
+  const dark = theme.mode === 'dark' || (theme.mode !== 'light' && getLuminance(theme.backgroundColor) < 0.3);
+  return {
+    // Dark walls use their raised surface for land so the darker background can read as water
+    land: dark ? theme.surfaceColor : mix(theme.backgroundColor, theme.primaryColor, 0.04),
+    ink: theme.textColor || theme.titleColor || (dark ? '#ffffff' : '#333333'),
+    accent: theme.accentColor || theme.primaryColor,
+    dark
+  };
+}
 
 export interface Coordinates {
   lat: number;
@@ -91,8 +166,8 @@ export class MapsService {
   /**
    * Add a tile layer to the map
    */
-  addTileLayer(map: L.Map, provider: 'openstreetmap' | 'satellite' = 'openstreetmap'): L.TileLayer {
-    let tileLayer: L.TileLayer;
+  addTileLayer(map: L.Map, provider: 'openstreetmap' | 'satellite' = 'openstreetmap', theme?: WallTheme): L.Layer {
+    let tileLayer: L.Layer;
 
     switch (provider) {
       case 'satellite':
@@ -103,16 +178,49 @@ export class MapsService {
         break;
       case 'openstreetmap':
       default:
-        tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-          subdomains: 'abcd',
-          maxZoom: 19
-        });
+        // Our own OpenStreetMap tiles, so the street map depends on no outside map provider
+        tileLayer = this.createStreetMapLayer(theme);
         break;
     }
 
     tileLayer.addTo(map);
     return tileLayer;
+  }
+
+  /**
+   * Street map drawn from our self-hosted PMTiles: the whole world down to region detail,
+   * with full street detail layered on top around the district.
+   */
+  private createStreetMapLayer(theme?: WallTheme): L.Layer {
+    const flavor = createMapFlavor(theme);
+    const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    const paint = paintRules(flavor);
+    const labels = labelRules(flavor, 'en');
+
+    const world = leafletLayer({
+      url: `${MAP_TILES_BASE_URL}/world.pmtiles`,
+      maxDataZoom: 7,
+      paintRules: paint,
+      labelRules: labels,
+      backgroundColor: flavor.background,
+      attribution,
+      maxZoom: 19
+    });
+
+    const district = leafletLayer({
+      url: `${MAP_TILES_BASE_URL}/riverside.pmtiles`,
+      maxDataZoom: 15,
+      paintRules: paint,
+      labelRules: labels,
+      backgroundColor: flavor.background,
+      attribution,
+      bounds: DISTRICT_DETAIL_BOUNDS,
+      minZoom: 9,
+      maxZoom: 19
+    });
+
+    // protomaps-leaflet's typings don't extend L.Layer, though the layers are Leaflet GridLayers
+    return L.layerGroup([world as unknown as L.Layer, district as unknown as L.Layer]);
   }
 
   /**

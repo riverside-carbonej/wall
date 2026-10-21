@@ -11,7 +11,7 @@ import { Observable, Subject, combineLatest, takeUntil } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import * as L from 'leaflet';
 import { MapsService, Coordinates, MapMarker } from '../../services/maps.service';
-import { WallItem, WallObjectType, Wall } from '../../../../shared/models/wall.model';
+import { WallItem, WallObjectType, Wall, WallTheme } from '../../../../shared/models/wall.model';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { WallService } from '../../../walls/services/wall.service';
@@ -70,7 +70,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   
   private map!: L.Map;
   private markersLayer!: L.LayerGroup;
-  private tileLayer!: L.TileLayer;
+  private tileLayer!: L.Layer;
   private destroy$ = new Subject<void>();
   
   settings: MapViewSettings = {
@@ -87,6 +87,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
   private currentWallId?: string;
   private currentWall?: Wall;
   private wallThemeColors?: { primary: string; secondary: string; accent: string; };
+  private wallTheme?: WallTheme;
   
   constructor(
     private mapsService: MapsService,
@@ -120,11 +121,16 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe(theme => {
         if (theme.wallTheme) {
+          this.wallTheme = theme.wallTheme;
           this.wallThemeColors = {
             primary: theme.wallTheme.primaryColor,
             secondary: theme.wallTheme.secondaryColor,
             accent: theme.wallTheme.accentColor || theme.wallTheme.primaryColor
           };
+          // Repaint the street map in the wall's colors
+          if (this.map) {
+            this.updateTileLayer();
+          }
           // Update existing markers with new theme colors
           if (this.map && this.mapMarkers.length > 0) {
             this.updateMapMarkers();
@@ -193,7 +199,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
       this.map.removeLayer(this.tileLayer);
     }
     
-    this.tileLayer = this.mapsService.addTileLayer(this.map, this.settings.tileProvider);
+    this.tileLayer = this.mapsService.addTileLayer(this.map, this.settings.tileProvider, this.wallTheme);
   }
   
   private updateVisibleItems() {

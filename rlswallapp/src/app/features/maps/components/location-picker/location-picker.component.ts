@@ -9,6 +9,7 @@ import { MatLabel, MatError, MatIcon, MatIconButton } from '../../../../shared/c
 import { Observable, Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs';
 import * as L from 'leaflet';
 import { MapsService, Coordinates, GeocodingResult } from '../../services/maps.service';
+import { ThemeService } from '../../../../shared/services/theme.service';
 
 export interface LocationPickerResult {
   coordinates: Coordinates;
@@ -71,7 +72,10 @@ export class LocationPickerComponent implements OnInit, OnDestroy, AfterViewInit
   isSearching = false;
   isGettingLocation = false;
   
-  constructor(private mapsService: MapsService) {}
+  constructor(
+    private mapsService: MapsService,
+    private themeService: ThemeService
+  ) {}
   
   ngOnInit() {
     this.setupAddressSearch();
@@ -132,7 +136,7 @@ export class LocationPickerComponent implements OnInit, OnDestroy, AfterViewInit
       });
       
       // Add tile layer immediately
-      this.mapsService.addTileLayer(this.map);
+      this.mapsService.addTileLayer(this.map, 'openstreetmap', this.themeService.getCurrentThemeSync().wallTheme);
       
       // Add initial marker if coordinates provided
       if (this.initialCoordinates && this.mapsService.isValidCoordinates(this.initialCoordinates)) {
