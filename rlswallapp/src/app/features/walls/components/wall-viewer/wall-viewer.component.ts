@@ -14,6 +14,7 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
 import { UserActivityService } from '../../../../shared/services/user-activity.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NavigationService } from '../../../../shared/services/navigation.service';
+import { formatFieldDate } from '../../../wall-items/utils/field-date';
 
 @Component({
   selector: 'app-wall-viewer',
@@ -164,7 +165,7 @@ import { NavigationService } from '../../../../shared/services/navigation.servic
                 <div class="field-value" [style.color]="wall.theme.bodyTextColor">
                   <ng-container [ngSwitch]="field.type">
                     <span *ngSwitchCase="'date'">
-                      {{ getFieldData(item, field.id) | date:'mediumDate' }}
+                      {{ formatDate(getFieldData(item, field.id)) }}
                     </span>
                     <span *ngSwitchCase="'email'">
                       <a [href]="'mailto:' + getFieldData(item, field.id)" [style.color]="wall.theme.primaryColor">
@@ -1094,5 +1095,9 @@ export class WallViewerComponent implements OnInit {
     });
     
     return canEdit;
+  }
+
+  formatDate(value: any): string {
+    return formatFieldDate(value);
   }
 }

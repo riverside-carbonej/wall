@@ -18,6 +18,7 @@ import { WallItemService } from '../../services/wall-item.service';
 import { MatTabGroup, MatTab } from '../../../../shared/components/material-stubs';
 import { WallItemsGridComponent } from '../wall-items-grid/wall-items-grid.component';
 import { NlpService } from '../../../../shared/services/nlp.service';
+import { formatIfDate } from '../../utils/field-date';
 
 export type PageMode = 'create' | 'view' | 'edit';
 
@@ -1023,6 +1024,9 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
 
   private formatFieldValue(value: any): string {
     if (!value) return '';
+
+    const date = formatIfDate(value);
+    if (date !== null) return date;
     
     // Handle location objects
     if (value && typeof value === 'object') {
@@ -1441,7 +1445,8 @@ export class PresetItemBasePageComponent implements OnInit, OnDestroy, OnChanges
     const fieldData = item.fieldData || {};
     const values = Object.values(fieldData)
       .filter(value => value && typeof value === 'string' && value.trim())
-      .slice(0, 2) as string[];
+      .slice(0, 2)
+      .map(value => formatIfDate(value) ?? value) as string[];
     
     return values.join(' • ') || 'No additional details';
   }

@@ -19,6 +19,7 @@ import { WallItemService } from '../../../wall-items/services/wall-item.service'
 import { ThemeService } from '../../../../shared/services/theme.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { WallItemsGridComponent } from '../../../wall-items/components/wall-items-grid/wall-items-grid.component';
+import { formatFieldDate, formatIfDate } from '../../../wall-items/utils/field-date';
 
 export interface MapViewSettings {
   tileProvider: 'openstreetmap' | 'satellite';
@@ -645,7 +646,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
           
           // Format specific field types
           if (field.type === 'date') {
-            displayValue = new Date(fieldValue).toLocaleDateString();
+            displayValue = formatFieldDate(fieldValue);
           } else if (field.type === 'boolean') {
             displayValue = fieldValue ? 'Yes' : 'No';
           } else if (field.type === 'multiselect' && Array.isArray(fieldValue)) {
@@ -688,6 +689,9 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private formatFieldValue(value: any): string {
     if (!value) return '';
+
+    const date = formatIfDate(value);
+    if (date !== null) return date;
     
     // Handle location objects
     if (value && typeof value === 'object') {

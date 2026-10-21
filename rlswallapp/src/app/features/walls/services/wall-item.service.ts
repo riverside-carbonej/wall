@@ -4,6 +4,7 @@ import { map, catchError, switchMap } from 'rxjs/operators';
 import { Firestore, collection, doc, addDoc, updateDoc, deleteDoc, getDocs, getDoc, query, where, orderBy, limit } from '@angular/fire/firestore';
 import { WallItem, EnhancedWallItem, WallObjectType, FieldDefinition } from '../../../shared/models/wall.model';
 import { RelationshipService } from './relationship.service';
+import { toFieldDate } from '../../wall-items/utils/field-date';
 
 @Injectable({
   providedIn: 'root'
@@ -316,7 +317,7 @@ export class WallItemService {
           break;
         
         case 'date':
-          if (!(value instanceof Date) && isNaN(Date.parse(value))) {
+          if (!toFieldDate(value)) {
             errors.push(`Field '${field.name}' must be a valid date`);
           }
           break;

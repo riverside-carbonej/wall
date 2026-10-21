@@ -1,4 +1,5 @@
 import { WallItem } from '../../../shared/models/wall.model';
+import { toFieldDate } from './field-date';
 
 /** Field types that make sense to sort by in the per-object-type list pages. */
 export const SORTABLE_FIELD_TYPES = new Set(['text', 'number', 'date', 'email', 'url', 'select']);
@@ -44,7 +45,13 @@ export function sortWallItems(
     if (type === 'number' || numericText) {
       result = Number(va) - Number(vb);
     } else if (type === 'date') {
-      result = new Date(va).getTime() - new Date(vb).getTime();
+      // Dates that can't be read go after the ones that can, like blanks
+      const ta = toFieldDate(va)?.getTime();
+      const tb = toFieldDate(vb)?.getTime();
+      if (ta === undefined || tb === undefined) {
+        return ta === tb ? 0 : ta === undefined ? 1 : -1;
+      }
+      result = ta - tb;
     } else {
       result = String(va).localeCompare(String(vb), undefined, { sensitivity: 'base', numeric: true });
     }

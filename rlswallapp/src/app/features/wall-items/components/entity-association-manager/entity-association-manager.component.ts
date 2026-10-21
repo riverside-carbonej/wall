@@ -9,6 +9,7 @@ import { MaterialIconComponent } from '../../../../shared/components/material-ic
 import { ThemedButtonComponent } from '../../../../shared/components/themed-button/themed-button.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { WallItemsGridComponent } from '../wall-items-grid/wall-items-grid.component';
+import { formatIfDate } from '../../utils/field-date';
 
 interface SelectableItem {
   id: string;
@@ -473,6 +474,9 @@ export class EntityAssociationManagerComponent implements OnInit {
   
   private formatFieldValue(value: any): string {
     if (!value) return '';
+
+    const date = formatIfDate(value);
+    if (date !== null) return date;
     if (typeof value === 'object') {
       if (value.address) return value.address;
       if (value.lat && value.lng) return `${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}`;

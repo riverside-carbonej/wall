@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { WallItem, WallObjectType, WallItemImage, Wall } from '../../../../shared/models/wall.model';
 import { WallItemCardComponent } from '../wall-item-card/wall-item-card.component';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { formatFieldDate, formatIfDate } from '../../utils/field-date';
 
 @Component({
   selector: 'app-wall-items-grid',
@@ -433,7 +434,7 @@ export class WallItemsGridComponent {
             
             // Format specific field types
             if (field.type === 'date') {
-              displayValue = new Date(fieldValue).toLocaleDateString();
+              displayValue = formatFieldDate(fieldValue);
             } else if (field.type === 'boolean') {
               displayValue = fieldValue ? 'Yes' : 'No';
             } else if (field.type === 'multiselect' && Array.isArray(fieldValue)) {
@@ -477,6 +478,9 @@ export class WallItemsGridComponent {
   
   private formatFieldValue(value: any): string {
     if (!value) return '';
+
+    const date = formatIfDate(value);
+    if (date !== null) return date;
     
     // Handle location objects
     if (value && typeof value === 'object') {

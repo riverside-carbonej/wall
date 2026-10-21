@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MaterialIconComponent } from '../material-icon/material-icon.component';
+import { toFieldDate } from '../../../features/wall-items/utils/field-date';
 
 export type DatePrecision = 'year' | 'month' | 'day';
 
@@ -101,8 +102,15 @@ export class MaterialDatePickerComponent implements OnInit, OnDestroy {
         this.currentMonth = new Date(this.value.year, this.value.month || 0, 1);
       } else {
         // Handle Date or string
-        this.selectedDate = this.value instanceof Date ? this.value : new Date(this.value);
-        this.currentMonth = new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth(), 1);
+        // Read by the day it names, so a stored "1952-01-01" doesn't open on Dec 31
+        const parsedDate = toFieldDate(this.value);
+        if (parsedDate) {
+          this.selectedDate = parsedDate;
+          this.currentMonth = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1);
+        } else {
+          // Not a date we can read: nothing selected, open on the current month
+          this.selectedDate = null;
+        }
       }
     }
 

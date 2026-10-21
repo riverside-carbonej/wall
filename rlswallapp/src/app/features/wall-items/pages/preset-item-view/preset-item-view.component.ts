@@ -10,6 +10,7 @@ import { Wall, WallItem, WallObjectType } from '../../../../shared/models/wall.m
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
+import { formatIfDate } from '../../utils/field-date';
 
 @Component({
   selector: 'app-preset-item-view',
@@ -167,6 +168,9 @@ export class PresetItemViewComponent implements OnInit, OnDestroy {
 
   private formatFieldValue(value: any): string {
     if (!value) return '';
+
+    const date = formatIfDate(value);
+    if (date !== null) return date;
     
     // Handle location objects
     if (value && typeof value === 'object') {

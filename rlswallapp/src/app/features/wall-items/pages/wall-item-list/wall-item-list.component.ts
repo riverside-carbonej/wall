@@ -15,6 +15,7 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
 import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/components/empty-state/empty-state.component';
 import { CardComponent, CardAction, CardMenuItem } from '../../../../shared/components/card/card.component';
 import { WallItemImageComponent } from '../../../../shared/components/wall-item-image/wall-item-image.component';
+import { formatIfDate } from '../../utils/field-date';
 
 @Component({
   selector: 'app-wall-item-list',
@@ -437,6 +438,9 @@ export class WallItemListComponent implements OnInit, OnDestroy {
 
   private formatFieldValue(value: any): string {
     if (!value) return '';
+
+    const date = formatIfDate(value);
+    if (date !== null) return date;
     
     // Handle location objects
     if (value && typeof value === 'object') {

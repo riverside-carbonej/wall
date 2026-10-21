@@ -12,6 +12,7 @@ import { PageLayoutComponent, PageAction } from '../../../../shared/components/p
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { MaterialIconComponent } from '../../../../shared/components/material-icon/material-icon.component';
 import { FormStateService, FormState } from '../../../../shared/services/form-state.service';
+import { formatIfDate } from '../../utils/field-date';
 
 @Component({
   selector: 'app-preset-item-edit',
@@ -234,6 +235,9 @@ export class PresetItemEditComponent implements OnInit, OnDestroy {
 
   private formatFieldValue(value: any): string {
     if (!value) return '';
+
+    const date = formatIfDate(value);
+    if (date !== null) return date;
     
     // Handle location objects
     if (value && typeof value === 'object') {

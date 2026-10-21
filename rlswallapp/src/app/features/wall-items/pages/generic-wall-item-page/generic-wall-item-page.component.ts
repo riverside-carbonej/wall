@@ -30,6 +30,7 @@ import { ErrorDialogComponent } from '../../../../shared/components/error-dialog
 import { FormStateService, FormState } from '../../../../shared/services/form-state.service';
 import { NlpService } from '../../../../shared/services/nlp.service';
 import { WallItemsGridComponent } from '../../components/wall-items-grid/wall-items-grid.component';
+import { formatIfDate, isFlexibleDate, toDateInputValue } from '../../utils/field-date';
 
 @Component({
   selector: 'app-generic-wall-item-page',
@@ -493,9 +494,9 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     this.objectType.fields.forEach(field => {
       let value = this.wallItem.fieldData[field.id] || this.getDefaultValueForField(field);
       
-      // Convert Date objects to ISO string for date fields
-      if (field.type === 'date' && value instanceof Date) {
-        value = value.toISOString().split('T')[0]; // YYYY-MM-DD format
+      // Date inputs take "YYYY-MM-DD", read by the day the value names
+      if (field.type === 'date' && value && !isFlexibleDate(value)) {
+        value = toDateInputValue(value) ?? value;
       }
       
       formValues[field.id] = value;
@@ -1137,7 +1138,8 @@ export class GenericWallItemPageComponent implements OnInit, OnDestroy {
     const fieldData = item.fieldData || {};
     const values = Object.values(fieldData)
       .filter(value => value && typeof value === 'string' && value.trim())
-      .slice(0, 2) as string[];
+      .slice(0, 2)
+      .map(value => formatIfDate(value) ?? value) as string[];
     
     return values.join(' • ') || 'No additional details';
   }

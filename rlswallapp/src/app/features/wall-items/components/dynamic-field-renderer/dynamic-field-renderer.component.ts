@@ -17,6 +17,7 @@ import { MaterialTextInputComponent } from '../../../../shared/components/materi
 import { MaterialSelectComponent, SelectOption } from '../../../../shared/components/material-select/material-select.component';
 import { MaterialSwitchComponent } from '../../../../shared/components/material-switch/material-switch.component';
 import { MaterialDatePickerComponent, FlexibleDateValue } from '../../../../shared/components/material-date-picker/material-date-picker.component';
+import { formatFieldDate, formatIfDate, isFlexibleDate, toDateInputValue } from '../../utils/field-date';
 
 @Component({
   selector: 'app-dynamic-field-renderer',
@@ -101,11 +102,14 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
       : this.value;
 
     
-    // Convert Date objects to ISO string format for date inputs
-    if (this.field.type === 'date' && initialValue instanceof Date) {
-      const isoString = initialValue.toISOString().split('T')[0]; // YYYY-MM-DD format
-      this.formControl.setValue(isoString, { emitEvent: false });
-      initialValue = isoString;
+    // Date inputs take "YYYY-MM-DD". Year and month precision dates stay as they are,
+    // and text that isn't a date is left alone rather than wiped.
+    if (this.field.type === 'date' && initialValue && !isFlexibleDate(initialValue)) {
+      const day = toDateInputValue(initialValue);
+      if (day) {
+        this.formControl.setValue(day, { emitEvent: false });
+        initialValue = day;
+      }
     }
     
     
@@ -166,25 +170,7 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
     if (!value) return '';
 
     if (this.field.type === 'date') {
-      // Handle FlexibleDateValue
-      if (value && typeof value === 'object' && 'precision' in value) {
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-          'July', 'August', 'September', 'October', 'November', 'December'];
-
-        switch (value.precision) {
-          case 'year':
-            return value.year.toString();
-          case 'month':
-            return `${monthNames[value.month!]} ${value.year}`;
-          case 'day':
-            if (value.day !== undefined && value.month !== undefined) {
-              return new Date(value.year, value.month, value.day).toLocaleDateString();
-            }
-            return '';
-        }
-      }
-      // Handle regular date string or Date object
-      return new Date(value).toLocaleDateString();
+      return formatFieldDate(value);
     }
 
     if (this.field.type === 'boolean') {
@@ -311,11 +297,10 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
       return;
     }
 
-    // Handle regular Date object
-    if (date instanceof Date && !isNaN(date.getTime())) {
-      // Convert to ISO string format for the form
-      const isoString = date.toISOString().split('T')[0];
-      this.formControl?.setValue(isoString);
+    // Handle regular Date object, by its local day so it can't slip a day in any timezone
+    const day = toDateInputValue(date);
+    if (day) {
+      this.formControl?.setValue(day);
     } else {
       // Clear date was selected
       this.formControl?.setValue(null);
@@ -639,6 +624,9 @@ export class DynamicFieldRendererComponent implements OnInit, OnChanges {
 
   private formatFieldValue(value: any): string {
     if (!value) return '';
+
+    const date = formatIfDate(value);
+    if (date !== null) return date;
     
     // Handle location objects
     if (value && typeof value === 'object') {
