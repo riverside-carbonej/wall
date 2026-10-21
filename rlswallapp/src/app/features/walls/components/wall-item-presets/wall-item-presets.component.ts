@@ -6,6 +6,7 @@ import { switchMap, filter } from 'rxjs/operators';
 import { NlpService } from '../../../../shared/services/nlp.service';
 
 import { WallService } from '../../services/wall.service';
+import { WallPermissionsService } from '../../../../core/services/wall-permissions.service';
 import { Wall, WallObjectType } from '../../../../shared/models/wall.model';
 import { EmptyStateComponent, EmptyStateAction } from '../../../../shared/components/empty-state/empty-state.component';
 import { PageLayoutComponent, PageAction } from '../../../../shared/components/page-layout/page-layout.component';
@@ -63,14 +64,16 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
                     <mat-icon [icon]="'visibility'"></mat-icon>
                     View Items
                   </button>
-                  <button class="action-button secondary" (click)="editPreset(objectType)">
-                    <mat-icon [icon]="'edit'"></mat-icon>
-                    Edit
-                  </button>
-                  <button class="action-button danger" (click)="deletePreset(objectType)">
-                    <mat-icon [icon]="'delete'"></mat-icon>
-                    Delete
-                  </button>
+                  @if (canAdmin) {
+                    <button class="action-button secondary" (click)="editPreset(objectType)">
+                      <mat-icon [icon]="'edit'"></mat-icon>
+                      Edit
+                    </button>
+                    <button class="action-button danger" (click)="deletePreset(objectType)">
+                      <mat-icon [icon]="'delete'"></mat-icon>
+                      Delete
+                    </button>
+                  }
                 </div>
               </div>
             }
@@ -80,7 +83,7 @@ import { ConfirmationDialogService } from '../../../../shared/services/confirmat
             icon="category"
             title="No Wall Item Presets Yet"
             message="Create your first preset to define the structure of items in this wall."
-            [actions]="emptyStateActions">
+            [actions]="canAdmin ? emptyStateActions : []">
           </app-empty-state>
         }
         
@@ -280,6 +283,9 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   
   wall$!: Observable<Wall>;
+
+  // Only the owner and managers can change item types, which is what Firestore allows too.
+  canAdmin = false;
   
   emptyStateActions: EmptyStateAction[] = [
     {
@@ -295,6 +301,7 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
     private router: Router,
     private wallService: WallService,
     private confirmationDialog: ConfirmationDialogService,
+    private wallPermissionsService: WallPermissionsService,
     public nlpService: NlpService
   ) {}
 
@@ -307,6 +314,11 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
       filter(wall => wall !== null),
       takeUntil(this.destroy$)
     ) as Observable<Wall>;
+
+    this.wall$.pipe(
+      switchMap(wall => this.wallPermissionsService.canAdminWall(wall)),
+      takeUntil(this.destroy$)
+    ).subscribe(canAdmin => this.canAdmin = canAdmin);
   }
 
   ngOnDestroy() {
@@ -319,6 +331,10 @@ export class WallItemPresetsComponent implements OnInit, OnDestroy {
   }
 
   getPageActions(): PageAction[] {
+    if (!this.canAdmin) {
+      return [];
+    }
+
     return [
       {
         label: 'New Preset',
