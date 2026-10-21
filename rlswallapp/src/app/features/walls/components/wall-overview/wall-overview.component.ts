@@ -182,7 +182,7 @@ import { CardComponent } from '../../../../shared/components/card/card.component
     .main-photo-container {
       position: relative;
       width: 100%;
-      height: 400px;
+      aspect-ratio: 16 / 9;
       border-radius: 12px;
       overflow: hidden;
       background: var(--md-sys-color-surface-variant);
@@ -191,7 +191,8 @@ import { CardComponent } from '../../../../shared/components/card/card.component
     .main-photo {
       width: 100%;
       height: 100%;
-      background-size: cover;
+      /* Show the whole photo; tall photos sit centered on the surface color */
+      background-size: contain;
       background-position: center;
       background-repeat: no-repeat;
       position: relative;
@@ -385,10 +386,6 @@ import { CardComponent } from '../../../../shared/components/card/card.component
       .page-content {
         padding: 0 16px 16px;
         gap: 16px;
-      }
-
-      .main-photo-container {
-        height: 300px;
       }
 
       .photo-navigation {
