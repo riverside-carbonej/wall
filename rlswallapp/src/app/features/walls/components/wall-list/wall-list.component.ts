@@ -904,13 +904,15 @@ export class WallListComponent implements OnInit {
       next: ([recentWallIds, allWalls]) => {
         // Show walls that are either:
         // 1. Owned by the user (always visible)
-        // 2. User is an editor (always visible) 
+        // 2. Shared with the user at any access level (always visible)
         // 3. Recently visited and user has access
         const currentUser = this.authService.currentUser;
         const visibleWalls = allWalls.filter(wall => {
           const isOwnerOrEditor = currentUser && (
             wall.permissions?.owner === currentUser.uid ||
-            wall.permissions?.editors?.includes(currentUser.uid)
+            wall.permissions?.editors?.includes(currentUser.uid) ||
+            wall.permissions?.managers?.includes(currentUser.uid) ||
+            wall.permissions?.viewers?.includes(currentUser.uid)
           );
           const isRecentlyVisited = recentWallIds.includes(wall.id!);
           return isOwnerOrEditor || isRecentlyVisited;
@@ -920,11 +922,15 @@ export class WallListComponent implements OnInit {
         const sortedWalls = visibleWalls.sort((a, b) => {
           const aIsOwnerOrEditor = currentUser && (
             a.permissions?.owner === currentUser.uid ||
-            a.permissions?.editors?.includes(currentUser.uid)
+            a.permissions?.editors?.includes(currentUser.uid) ||
+            a.permissions?.managers?.includes(currentUser.uid) ||
+            a.permissions?.viewers?.includes(currentUser.uid)
           );
           const bIsOwnerOrEditor = currentUser && (
             b.permissions?.owner === currentUser.uid ||
-            b.permissions?.editors?.includes(currentUser.uid)
+            b.permissions?.editors?.includes(currentUser.uid) ||
+            b.permissions?.managers?.includes(currentUser.uid) ||
+            b.permissions?.viewers?.includes(currentUser.uid)
           );
           
           // Owned/editor walls come first

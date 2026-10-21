@@ -2833,15 +2833,17 @@ export class WallFormComponent implements OnInit, OnDestroy {
         }
 
         if (this.isEditMode && this.wallId) {
-          // For updates, exclude ownership and creation fields to prevent data corruption
-          const updateData: Partial<Wall> = {
+          // For updates, exclude ownership and creation fields to prevent data corruption.
+          // Who has access is kept as it is: only the department toggle on this form is
+          // written, by its own path, so saving settings never resets owner or people.
+          const updateData: Partial<Wall> & Record<string, unknown> = {
             name: this.wallForm.get('name')?.value,
             description: this.wallForm.get('description')?.value,
             organizationName: this.wallForm.get('organizationName')?.value,
             organizationSubtitle: this.wallForm.get('organizationSubtitle')?.value,
             organizationLogoUrl: this.wallForm.get('organizationLogoUrl')?.value,
             theme: this.selectedTheme,
-            permissions,
+            'permissions.allowDepartmentEdit': permissions.allowDepartmentEdit,
             visibility,
             settings: {
               allowComments: false,

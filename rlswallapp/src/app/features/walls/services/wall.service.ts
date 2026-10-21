@@ -849,6 +849,9 @@ export class WallService {
       };
       
       // Only add fields that are not undefined
+      if (permissions['owner']) {
+        updateData['permissions.owner'] = permissions['owner'];
+      }
       if (permissions['editors'] !== undefined) {
         updateData['permissions.editors'] = permissions['editors'];
       }

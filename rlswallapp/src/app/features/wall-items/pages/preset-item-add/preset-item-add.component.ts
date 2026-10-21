@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -7,6 +7,7 @@ import { switchMap, filter, map } from 'rxjs/operators';
 
 import { WallService } from '../../../walls/services/wall.service';
 import { WallItemService } from '../../services/wall-item.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 import { ImageUploadService, PendingImage } from '../../../../shared/services/image-upload.service';
 import { Wall, WallObjectType, WallItem, WallItemImage } from '../../../../shared/models/wall.model';
 import { PresetItemBasePageComponent } from '../../components/preset-item-base-page/preset-item-base-page.component';
@@ -43,6 +44,7 @@ import { FormStateService, FormState } from '../../../../shared/services/form-st
   styles: []
 })
 export class PresetItemAddComponent implements OnInit, OnDestroy {
+  private readonly notification = inject(NotificationService);
   private destroy$ = new Subject<void>();
   
   wall$!: Observable<Wall | null>;
@@ -172,11 +174,11 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
 
       const processed = this.imageUploadService.processSelectedFiles(files);
       
+      // Say which files were skipped, and keep the ones that are fine.
       if (processed.errors.length > 0) {
-        // TODO: Show error messages to user
-        console.error('File validation errors:', processed.errors);
-        return;
+        this.notification.error(`Skipped: ${processed.errors.join('; ')}`, 8000);
       }
+      if (processed.valid.length === 0) return;
 
       // Add to pending images
       this.pendingImages.push(...processed.valid);
@@ -199,7 +201,7 @@ export class PresetItemAddComponent implements OnInit, OnDestroy {
       const processed = this.imageUploadService.processSelectedFiles(files);
       
       if (processed.errors.length > 0) {
-        console.error('File validation errors:', processed.errors);
+        this.notification.error(processed.errors.join('; '), 8000);
         return;
       }
 

@@ -47,6 +47,25 @@ service cloud.firestore {
              hasDepartmentAccess(wallData));
     }
     
+    function people(permissions) {
+      return {
+        'owner': permissions.owner,
+        'managers': permissions.get('managers', []),
+        'editors': permissions.get('editors', []),
+        'viewers': permissions.get('viewers', []),
+        'department': permissions.get('department', null),
+        'allowDepartmentEdit': permissions.get('allowDepartmentEdit', false)
+      };
+    }
+    
+    function accessChangeAllowed(before, after) {
+      return people(after.permissions) == people(before.permissions) ||
+             isWallOwner(before) ||
+             (isWallManager(before) &&
+              after.permissions.owner == before.permissions.owner &&
+              after.permissions.get('managers', []) == before.permissions.get('managers', []));
+    }
+    
     function canViewWall(wallData) {
       // Soft deleted walls cannot be viewed by anyone
       return (!('deletedAt' in wallData) || wallData.deletedAt == null) &&
@@ -70,8 +89,10 @@ service cloud.firestore {
       // Read individual walls based on visibility settings
       allow get: if canViewWall(resource.data);
       
-      // Update walls if user can edit
-      allow update: if isAuthenticated() && canEditWall(resource.data);
+      // Update walls if user can edit. Who has access is the owner's to change;
+      // a manager may change viewers and editors, but not the owner or managers.
+      allow update: if isAuthenticated() && canEditWall(resource.data) &&
+                       accessChangeAllowed(resource.data, request.resource.data);
       
       // Delete walls if owner only
       allow delete: if isAuthenticated() && isWallOwner(resource.data);

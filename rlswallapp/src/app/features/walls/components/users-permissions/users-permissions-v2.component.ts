@@ -118,7 +118,7 @@ interface WallUser {
                       [variant]="'basic'"
                       [icon]="'delete'"
                       (buttonClick)="removeUser(user)"
-                      *ngIf="user.accessLevel !== 'owner'"
+                      *ngIf="canChange(user)"
                       [title]="'Remove user'">
                     </app-themed-button>
                   </td>
@@ -168,7 +168,7 @@ interface WallUser {
                       <div class="search-results" *ngIf="showSearchResults() && searchResults().length === 0 && searchQuery.length > 2">
                         <div class="no-results">
                           <mat-icon [icon]="'info'"></mat-icon>
-                          <span>No users found. Press Enter to invite by email.</span>
+                          <span>No one found. They need to sign in to rlswall.app once before they can be added.</span>
                         </div>
                       </div>
                     </div>
@@ -527,6 +527,7 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
   ownerProfile: UserProfile | null = null;
   currentUserUid: string = '';
   isOwner = false;
+  isManager = false;
   
   // Form controls map for access levels
   private accessLevelControls = new Map<string, FormControl>();
@@ -537,7 +538,7 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
 
   // Computed values
   pageActions = computed<PageAction[]>(() => {
-    if (!this.isOwner) return [];
+    if (!this.isOwner && !this.isManager) return [];
     
     return [{
       label: 'Save Changes',
@@ -598,6 +599,7 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
       this.wall = wall;
       if (wall) {
         this.isOwner = wall.permissions.owner === this.currentUserUid;
+        this.isManager = !!wall.permissions.managers?.includes(this.currentUserUid);
         
         // Create owner profile from auth
         this.ownerProfile = {
@@ -709,15 +711,13 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
                 if (authResults.length > 0) {
                   this.searchResults.set(authResults);
                 } else {
-                  // Final fallback to mock results for testing
-                  this.searchResults.set(this.getMockSearchResults(value));
+                  this.searchResults.set([]);
                 }
                 // Dropdown now positions itself via CSS
               },
               error: (error) => {
                 console.error('Firebase Auth search error:', error);
-                // Fallback to mock results
-                this.searchResults.set(this.getMockSearchResults(value));
+                this.searchResults.set([]);
                 // Dropdown now positions itself via CSS
               }
             });
@@ -729,16 +729,12 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
           this.firebaseAuthSearch.searchUsers(value).subscribe({
             next: (authResults) => {
               console.log('Firebase Auth search results (fallback):', authResults);
-              if (authResults.length > 0) {
-                this.searchResults.set(authResults);
-              } else {
-                this.searchResults.set(this.getMockSearchResults(value));
-              }
+              this.searchResults.set(authResults);
               // Dropdown now positions itself via CSS
             },
             error: (authError) => {
               console.error('Both search methods failed:', authError);
-              this.searchResults.set(this.getMockSearchResults(value));
+              this.searchResults.set([]);
               // Dropdown now positions itself via CSS
             }
           });
@@ -758,35 +754,6 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
     // No longer needed - using CSS absolute positioning
   }
 
-  private getMockSearchResults(searchTerm: string): AuthUser[] {
-    // Mock users for testing when Cloud Function is not available
-    const mockUsers: AuthUser[] = [
-      {
-        uid: 'mock1',
-        email: `${searchTerm.toLowerCase()}@example.com`,
-        displayName: `${searchTerm} User`,
-        photoURL: null
-      },
-      {
-        uid: 'mock2', 
-        email: `test.${searchTerm.toLowerCase()}@company.com`,
-        displayName: `Test ${searchTerm}`,
-        photoURL: null
-      },
-      {
-        uid: 'mock3',
-        email: `${searchTerm}123@domain.org`,
-        displayName: `${searchTerm} Demo User`,
-        photoURL: null
-      }
-    ];
-    
-    return mockUsers.filter(user => 
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.displayName?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }
-
   selectSearchResult(user: AuthUser) {
     this.selectedUser = user;
     this.searchQuery = user.email;
@@ -794,31 +761,35 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
   }
 
   canAddUser(): boolean {
-    return !!this.selectedUser || this.isValidEmail(this.searchQuery);
-  }
-
-  private isValidEmail(email: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    return !!this.selectedUser;
   }
 
   async addUser() {
-    if (!this.canAddUser()) return;
-    
-    const email = this.selectedUser?.email || this.searchQuery;
-    const displayName = this.selectedUser?.displayName || email;
+    // Enter with a single match picks it, so typing a whole email still works.
+    if (!this.selectedUser && this.searchResults().length === 1) {
+      this.selectSearchResult(this.searchResults()[0]);
+    }
+
+    // Access is granted by account id, so only someone found in the search
+    // (who has signed in at least once) can be added.
+    const selected = this.selectedUser;
+    if (!selected) return;
+
+    const email = selected.email;
+    const displayName = selected.displayName || email;
     
     // Check if user already exists
-    if (this.wallUsers().some(u => u.email === email)) {
+    if (this.wallUsers().some(u => u.uid === selected.uid)) {
       this.notification.error('User already has access to this wall');
       return;
     }
     
     // Add user as viewer by default
     const newUser: WallUser = {
-      uid: this.selectedUser?.uid || email, // Use email as temporary ID
+      uid: selected.uid,
       email,
       displayName,
-      photoURL: this.selectedUser?.photoURL || undefined,
+      photoURL: selected.photoURL || undefined,
       accessLevel: 'viewer'
     };
     
@@ -850,17 +821,31 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
     }
   }
 
+  /** Owners change anyone but themselves; managers change viewers and editors. */
+  canChange(user: WallUser): boolean {
+    if (user.accessLevel === 'owner') return false;
+    if (this.isOwner) return true;
+    return this.isManager && user.accessLevel !== 'manager';
+  }
+
   getAccessLevelOptions(user: WallUser): SelectOption[] {
     // Owner cannot change their own role
     if (user.accessLevel === 'owner') {
       return [{ value: 'owner', label: 'Owner' }];
     }
+
+    if (user.accessLevel === 'manager' && !this.isOwner) {
+      return [{ value: 'manager', label: 'Manager' }];
+    }
     
     const options: SelectOption[] = [
       { value: 'viewer', label: 'Viewer' },
-      { value: 'editor', label: 'Editor' },
-      { value: 'manager', label: 'Manager' }
+      { value: 'editor', label: 'Editor' }
     ];
+
+    if (this.isOwner) {
+      options.push({ value: 'manager', label: 'Manager' });
+    }
     
     // Add transfer ownership option for current owner
     if (this.isOwner && user.uid !== this.currentUserUid) {
@@ -885,7 +870,7 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
   
   getAccessLevelControl(user: WallUser): FormControl {
     if (!this.accessLevelControls.has(user.uid)) {
-      const isDisabled = user.accessLevel === 'owner';
+      const isDisabled = !this.canChange(user);
       const control = new FormControl({
         value: user.accessLevel,
         disabled: isDisabled
@@ -931,7 +916,7 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
       }
       user.accessLevel = 'owner';
       
-      this.notification.success('Ownership transferred successfully');
+      this.notification.success('Ownership will transfer when you save changes');
     }
   }
 
@@ -992,7 +977,7 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
       };
       
       // Update wall permissions
-      await this.wallService.updateWallPermissions(this.wallId, permissions);
+      await firstValueFrom(this.wallService.updateWallPermissions(this.wallId, permissions));
       
       // Update initial permissions to reflect the saved state
       this.initialPermissions = {
@@ -1004,6 +989,13 @@ export class UsersPermissionsV2Component implements OnInit, OnDestroy {
       this.hasChanges.set(false);
       
       this.notification.success('Permissions updated successfully');
+
+      // Handing over ownership leaves this person a manager.
+      if (permissions.owner !== this.currentUserUid && this.isOwner) {
+        this.isOwner = false;
+        this.isManager = permissions.managers.includes(this.currentUserUid);
+        this.accessLevelControls.clear();
+      }
     } catch (error) {
       this.notification.error('Failed to update permissions');
       console.error(error);
