@@ -43,9 +43,9 @@ import { CardComponent } from '../../../../shared/components/card/card.component
               }
             </div>
 
-            <!-- Photo Gallery Section -->
-            <div class="photo-gallery-section">
-              @if (currentWall.galleryImages && currentWall.galleryImages.length > 0) {
+            <!-- Photo Gallery Section (left out entirely when the wall has no photos) -->
+            @if (currentWall.galleryImages && currentWall.galleryImages.length > 0) {
+              <div class="photo-gallery-section">
                 <div class="photo-gallery">
                   <!-- Main Display -->
                   <div class="main-photo-container">
@@ -107,19 +107,8 @@ import { CardComponent } from '../../../../shared/components/card/card.component
                     }
                   </div>
                 </div>
-              } @else {
-                <!-- Photo Placeholders -->
-                <div class="photo-placeholders">
-                  <div class="main-placeholder"></div>
-                  <div class="thumbnail-placeholders">
-                    <div class="thumbnail-placeholder"></div>
-                    <div class="thumbnail-placeholder"></div>
-                    <div class="thumbnail-placeholder"></div>
-                    <div class="thumbnail-placeholder"></div>
-                  </div>
-                </div>
-              }
-            </div>
+              </div>
+            }
             
             <!-- Wall Statistics -->
             <div class="statistics-footer">
@@ -182,39 +171,6 @@ import { CardComponent } from '../../../../shared/components/card/card.component
     .photo-gallery-section {
       margin-top: 8px;
     }
-
-    /* Photo Placeholders */
-    .photo-placeholders {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .main-placeholder {
-      width: 100%;
-      height: 300px;
-      background: var(--md-sys-color-surface-container-low);
-      border-radius: 8px;
-      border: 1px solid var(--md-sys-color-outline-variant);
-      opacity: 0.6;
-    }
-
-    .thumbnail-placeholders {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-start;
-    }
-
-    .thumbnail-placeholder {
-      width: 80px;
-      height: 60px;
-      background: var(--md-sys-color-surface-container-low);
-      border-radius: 6px;
-      border: 1px solid var(--md-sys-color-outline-variant);
-      opacity: 0.5;
-      flex-shrink: 0;
-    }
-
 
     /* Photo Gallery */
     .photo-gallery {
@@ -433,10 +389,6 @@ import { CardComponent } from '../../../../shared/components/card/card.component
 
       .main-photo-container {
         height: 300px;
-      }
-
-      .main-placeholder {
-        height: 250px;
       }
 
       .photo-navigation {
